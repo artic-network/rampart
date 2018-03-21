@@ -86,7 +86,7 @@
 <div id="body">
 
     <div style="display:inline-block">
-    <div style="float:left; margin:10px"><a href="http://artic.network"><img src="logo.png" width="132"></a></div>
+    <div style="float:left; margin:10px"><a href="http://artic.network"><img src="http://artic.network/images/logo.png" width="132"></a></div>
 
     <h1>RAMPART</h1>
 
@@ -118,7 +118,7 @@
 
 <script>
     queue()
-        .defer(d3.csv, "data/reads_1M.csv")
+        .defer(d3.csv, "https://artic-network.github.io/rampart/data/reads_1M.csv")
         .await(ready);
 
 
