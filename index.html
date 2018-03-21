@@ -81,18 +81,38 @@
         fill: #eee;
         stroke: #666;
     }
+
+    #data-count {
+        text-align: right;
+        width: 850px;
+        margin-top: 10px;
+        margin-right: 15px;
+        font-size: 14px;
+        font-weight: 200;
+    }
+
+    #data-count .filter-count {
+        color: #3182bd;
+        font-weight: 400;
+    }
+
+    #data-count .total-count {
+        color: #3182bd;
+        font-weight: 400;
+    }
+
 </style>
 
 <div id="body">
 
     <div style="display:inline-block">
-    <div style="float:left; margin:10px"><a href="http://artic.network"><img src="http://artic.network/images/logo.png" width="132"></a></div>
+        <div style="float:left; margin:10px"><a href="http://artic.network"><img src="http://artic.network/images/logo.png" width="132"></a></div>
 
-    <h1>RAMPART</h1>
+        <h1>RAMPART</h1>
 
-    <h2>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</h2>
+        <h2>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</h2>
     </div>
-    
+
     <div id="charts">
         <div id="coverage-chart" class="dc-chart">
             <span class="title">Coverage</span>
@@ -101,6 +121,10 @@
         <div id="length-chart" class="dc-chart">
             <span class="title">Read Lengths</span>
             <span class="reset title" style="display: none;">| <a href="javascript:lengthChart.filterAll();dc.redrawAll();">reset</a></span>
+        </div>
+        <div id="reference-chart" class="dc-chart inline-div align-bottom">
+            <span class="title">Closest Reference</span>
+            <span class="reset title" style="display: none;">| <a href="javascript:referenceChart.filterAll();dc.redrawAll();">reset</a></span>
         </div>
     </div>
 
@@ -118,7 +142,7 @@
 
 <script>
     queue()
-        .defer(d3.csv, "https://artic-network.github.io/rampart/data/reads_1M.csv")
+        .defer(d3.csv, "data/reads_1M.csv")
         .await(ready);
 
 
@@ -133,6 +157,7 @@
 
         var coverageChart = dc.barChart("#coverage-chart");
         var lengthChart = dc.barChart("#length-chart");
+        var referenceChart = dc.rowChart("#reference-chart");
 
         // A little coercion, since the CSV is untyped.
         readMappings.forEach(function (d, i) {
@@ -158,13 +183,19 @@
             location = reads.dimension(function (d) {
                 return d.location;
             }),
-            locations = location.group(function (d) {
+            locationGroups = location.group(function (d) {
                 return d;
             }),
             length = reads.dimension(function (d) {
                 return d.length;
             }),
-            lengths = length.group(function (d) {
+            lengthGroups = length.group(function (d) {
+                return d;
+            }),
+            reference = reads.dimension(function (d) {
+                return d.reference;
+            }),
+            referenceGroups = reference.group(function (d) {
                 return d;
             });
 
@@ -174,7 +205,7 @@
             .margins({top: 10, right: 20, bottom: 20, left: 50})
             .colors('steelblue')
             .dimension(location)
-            .group(locations)
+            .group(locationGroups)
             .centerBar(false)
             .elasticY(true)
             .gap(0)
@@ -188,11 +219,27 @@
             .margins({top: 10, right: 20, bottom: 20, left: 50})
             .colors('steelblue')
             .dimension(length)
-            .group(lengths)
+            .group(lengthGroups)
             .centerBar(false)
             .elasticY(true)
             .gap(0)
             .x(d3.scale.linear().domain([0, 1000]))
+            .on("filtered", function() { renderAll(); })
+            .xAxis().ticks(10);
+
+        referenceChart
+            .transitionDuration(0)
+            .width(450)
+            .height(240)
+            .margins({top: 0, right: 20, bottom: 20, left: 20})
+            .dimension(reference)
+            .group(referenceGroups)
+            .ordinalColors(['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'])
+            .label(function (d){
+                return d.value + " " + (d.key);
+            })
+            .title(function(d){return d.value;})
+            .elasticX(true)
             .on("filtered", function() { renderAll(); })
             .xAxis().ticks(10);
 
