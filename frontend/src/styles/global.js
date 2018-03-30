@@ -20,3 +20,24 @@ css.global('div, p', {
   "fontWeight": "normal",
   "fontSize": "1em"
 })
+
+css.global('.dc-chart .axis path, .axis line', {
+  fill: 'none',
+  stroke: '#000',
+  strokeWidth: 1,
+  shapeRendering: 'auto'
+})
+
+css.global('.axis text', {
+    fontSize: '12px'
+})
+
+css.global('.brush rect.extent', {
+    fill: 'steelblue',
+    fillOpacity: .125
+})
+
+css.global('.brush .resize path', {
+    fill: '#eee',
+    stroke: '#666'
+})

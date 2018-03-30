@@ -23,7 +23,7 @@ app.use(cors())
 /* API "getInitialData" -> get data structure */
 app.get('/getInitialData', (req, res) => {
   console.log("someone asked for initial data. sending")
-  res.json(data.map((d) => d.splice(0, 100)));
+  res.json(data.map((d) => d.splice(0, 5000)));
 })
 
 

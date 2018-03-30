@@ -16,11 +16,11 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: [],
+      channels: [],
       status: "App loading"
     };
     this.changeStatus = (status) => {this.setState({status})}
-    this.changeData = (data) => {this.setState({data})}
+    this.changeData = (data) => {this.setState({channels: data})}
   }
 
   componentDidMount() {
@@ -28,8 +28,8 @@ class App extends Component {
   }
 
   generatePanels() {
-    return this.state.data.map((d, i) => (
-      <Panel key={i} data={d}/>
+    return this.state.channels.map((d, i) => (
+      <Panel key={i} version={d.version} data={d.data} info={d.info}/>
     ))
   }
 
@@ -37,7 +37,7 @@ class App extends Component {
     return (
       <div {...container}>
         <Header/>
-        {this.state.data.length ?
+        {this.state.channels.length ?
           this.generatePanels() :
           <LoadingStatus status={this.state.status}/>
         }

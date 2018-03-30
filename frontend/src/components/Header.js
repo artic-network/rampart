@@ -4,7 +4,8 @@ import { css } from 'glamor'
 
 const child = css({
   width: '100%',
-  margin: 'auto'
+  margin: 'auto',
+
 })
 
 class Header extends React.Component {
