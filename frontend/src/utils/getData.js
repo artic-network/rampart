@@ -1,8 +1,7 @@
-import crossfilter from "crossfilter";
 
 const processData = (data) => {
   // arrives as "reference","start","end","identity" (last 3 are ints)
-  const asObj = data.map((d) => ({
+  return data.map((d) => ({
     reference: d[0],
     start: d[1],
     end: d[2],
@@ -10,11 +9,25 @@ const processData = (data) => {
     length: d[2] - d[1] + 1,
     location: (d[1] + d[2]) / 2
   }))
-  return crossfilter(asObj);
+}
+
+const timeBetweenUpdates = 1000;
+
+const getDataUpdate = (appendData) => {
+  fetch("http://localhost:3001/getDataUpdate")
+    .then((res) => res.json())
+    .then((res) => {
+      const processedData = res.map((d) => processData(d))
+      appendData(processedData);
+      setTimeout(() => getDataUpdate(appendData), timeBetweenUpdates);
+    })
+    .catch((err) => {
+      console.error(err)
+    })
 }
 
 
-export const getData = function getData(changeStatus, changeData) {
+export const getData = function getData(changeStatus, setData, appendData) {
   changeStatus("Querying server for initial data");
   fetch("http://localhost:3001/getInitialData")
       .then((res) => res.json())
@@ -25,7 +38,8 @@ export const getData = function getData(changeStatus, changeData) {
           info: `Nanopore channel ${i}`,
           data: processData(d)
         }));
-        changeData(processedData);
+        setData(processedData);
+        setTimeout(() => getDataUpdate(appendData), timeBetweenUpdates);
       })
       .catch((err) => {
         console.error(err)

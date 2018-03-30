@@ -33,7 +33,7 @@ export const constructCoverageChart = (DOMref, data, rerender) => {
     .elasticY(true)
     .gap(0)
     .colors('steelblue')
-    .x(d3.scale.linear().domain([0, 1000]))
+    .x(d3.scale.linear().domain([0, 10000]))
     .on("filtered", rerender)
     .xAxis().ticks(10);
 }

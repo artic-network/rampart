@@ -1,4 +1,5 @@
 import dc from "dc"
+import crossfilter from "crossfilter"
 import React from 'react';
 import { css } from 'glamor'
 import {constructLengthChart, constructCoverageChart, constructReferenceChart} from "../utils/constructChart";
@@ -43,28 +44,42 @@ const resetStyle = css({
 class Panel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {}
+    this.state = {nReads: 0}
     this.DOMref = {};
   }
   renderAll() {
     dc.renderAll();
   }
   componentDidMount() {
+    const reads = crossfilter(this.props.data);
     this.setState({
-      coverage: constructCoverageChart(this.DOMref.coverage, this.props.data, this.renderAll),
-      length: constructLengthChart(this.DOMref.length, this.props.data, this.renderAll),
-      reference: constructReferenceChart(this.DOMref.reference, this.props.data, this.renderAll)
+      reads,
+      nReads: reads.size(),
+      coverage: constructCoverageChart(this.DOMref.coverage, reads, this.renderAll),
+      length: constructLengthChart(this.DOMref.length, reads, this.renderAll),
+      reference: constructReferenceChart(this.DOMref.reference, reads, this.renderAll)
     })
     this.renderAll();
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.version !== this.props.version) {
+      /* data has updated */
+      this.state.reads.remove();
+      this.state.reads.add(this.props.data);
+      this.renderAll();
+      this.setState({nReads: this.state.reads.size()})
+    }
+
+  }
 
   render() {
-    console.log(this.props.data)
     return (
       <div {...outerStyles}>
         <div {...flexRowContainer}>
           <div {...panelTitle}>
-            {`${this.props.info}. Data version ${this.props.version}. Total reads: ${this.props.data.size()}. Selected reads: todo`}
+            {`${this.props.info}.
+            Data version ${this.props.version}.
+            Total reads: ${this.state.nReads}.`}
           </div>
           <button {...resetStyle} onClick={() => {dc.filterAll(); dc.renderAll()}}>
             reset filters
