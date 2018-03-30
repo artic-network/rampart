@@ -1,0 +1,17 @@
+/* @font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Regular'), url(./LatoLatin-Regular.woff) format('woff');
+  font-weight: bold;
+} */
+
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Light'), url(./LatoLatin-Light.woff) format('woff');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Hairline'), url(./LatoLatin-Hairline.woff) format('woff');
+  font-weight: normal;
+}

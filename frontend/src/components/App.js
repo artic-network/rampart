@@ -1,22 +1,48 @@
 import React, { Component } from 'react';
-import logo from '../images/logo.svg';
-import dc from "dc"
-import '../styles/styles.css';
+import Header from "./Header";
+import Panel from "./Panel"
+import LoadingStatus from "./LoadingStatus"
+import '../styles/global'; // sets global CSS
+import '../styles/fonts.css'; // sets global fonts
+import { css } from 'glamor'
+import { getData } from "../utils/getData"
+
+const container = css({
+  display: "flex",
+  'flexDirection': 'column'
+})
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: [],
+      status: "App loading"
+    };
+    this.changeStatus = (status) => {this.setState({status})}
+    this.changeData = (data) => {this.setState({data})}
+  }
+
+  componentDidMount() {
+    getData(this.changeStatus, this.changeData)
+  }
+
+  generatePanels() {
+    return this.state.data.map((d, i) => (
+      <Panel key={i} data={d}/>
+    ))
+  }
+
   render() {
-    console.log("dc:", dc)
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div {...container}>
+        <Header/>
+        {this.state.data.length ?
+          this.generatePanels() :
+          <LoadingStatus status={this.state.status}/>
+        }
       </div>
-    );
+    )
   }
 }
 

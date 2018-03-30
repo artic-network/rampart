@@ -5,6 +5,7 @@
   "dependencies": {
     "crossfilter": "^1.3.12",
     "dc": "^2.1.10",
+    "glamor": "^2.20.40",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts": "1.1.1"
