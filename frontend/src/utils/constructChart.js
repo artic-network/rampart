@@ -47,9 +47,35 @@ export const drawBarChart = (svg, chartGeom, scales, data) => {
     .enter().append("rect")
     .attr("class", "bar")
     .attr("x", d => scales.x(d.key))
-    .attr("width", 10)
+    .attr("width", 10) // TODO
     .attr("y", d => scales.y(d.value))
     .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d.value));
+}
+
+export const drawRefChart = (svg, chartGeom, scales, data) => {
+  svg.selectAll(".bar").remove();
+  svg.selectAll(".bar")
+    .data(data)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", scales.x(0) + 1)
+    .attr("width", d => scales.x(d.value))
+    .attr("y", (d, i) => scales.y(i) - 20)
+    .attr("height", 20)
+    .attr("fill",(d, i) => colours.rainbow5[i]);
+  /* labels */
+  svg.selectAll(".text").remove();
+  svg.selectAll(".text")
+    .data(data)
+    .enter().append("text")
+    .attr("class", "text")
+    .attr("x", scales.x(0) + 1)
+    .attr("y", (d, i) => scales.y(i) - 2)
+    .attr("font-family", "lato")
+    .attr("font-size", "20px")
+    .attr("fill", "white")
+    .text(d => d.key);
+
 }
 
 //
