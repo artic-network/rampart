@@ -3,7 +3,7 @@ import React from 'react';
 import { css } from 'glamor'
 import {calcScales, drawAxes, drawBarChart} from "../utils/constructChart";
 import { select } from "d3-selection";
-import { getCoverageMaxes } from "../utils/manipulateReads.js"
+import { getMaxes } from "../utils/manipulateReads.js"
 
 const outerStyles = css({
   width: '100%',
@@ -58,10 +58,12 @@ class Panel extends React.Component {
       reads: undefined,
       nReads: undefined,
       coverageData: undefined,
-      coverageScales: undefined
+      readLengthData: undefined,
+      coverageScales: undefined,
+      readLengthScales: undefined
     }
     this.coverageRef = undefined;
-    this.lengthRef = undefined;
+    this.readLengthRef = undefined;
     this.referenceRef = undefined;
   }
   renderAll() {
@@ -74,23 +76,37 @@ class Panel extends React.Component {
     This only needs to be done once - it automagically updates! */
     const coverageData = reads
       .dimension((d) => d.location)
-      .group((d) => Math.ceil(d/100)*100)
+      .group((d) => Math.ceil(d/100)*100) /* this makes a histogram with x values (bases) rounded to closest 100 */
       .all();
-
+    const readLengthData = reads
+      .dimension((d) => d.length)
+      .group((d) => d) /* this makes a histogram with x values (bases) rounded to closest 10 */
+      .all();
+    console.log(readLengthData)
     /* create the scales */
-    const coverageMaxes = getCoverageMaxes(coverageData)
+    /* coverage */
+    const coverageMaxes = getMaxes(coverageData)
     const coverageSVG = select(this.coverageRef)
     const coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
-
+    /* read length */
+    const readLengthMaxes = getMaxes(readLengthData)
+    const readLengthSVG = select(this.readLengthRef)
+    const readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
+    console.log(readLengthMaxes.x, readLengthMaxes.y)
     /* draw */
     drawAxes(coverageSVG, chartGeom, coverageScales)
     drawBarChart(coverageSVG, chartGeom, coverageScales, coverageData)
+
+    drawAxes(readLengthSVG, chartGeom, readLengthScales)
+    drawBarChart(readLengthSVG, chartGeom, readLengthScales, readLengthData)
 
     this.setState({
       reads,
       nReads,
       coverageData,
-      coverageScales
+      readLengthData,
+      coverageScales,
+      readLengthScales
     })
 
   }
@@ -106,9 +122,10 @@ class Panel extends React.Component {
       newState.nReads = newState.reads.size()
 
       const coverageSVG = select(this.coverageRef)
+      const readLengthSVG = select(this.readLengthRef)
 
       /* do scales need updating? */
-      const coverageMaxes = getCoverageMaxes(this.state.coverageData)
+      const coverageMaxes = getMaxes(this.state.coverageData)
       if (coverageMaxes.x !== this.state.coverageScales.x.domain()[1] ||
         coverageMaxes.y !== this.state.coverageScales.y.domain()[1]) {
         newState.coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
@@ -116,9 +133,19 @@ class Panel extends React.Component {
       } else {
         newState.coverageScales = this.state.coverageScales
       }
+      const readLengthMaxes = getMaxes(this.state.readLengthData)
+      if (readLengthMaxes.x !== this.state.readLengthScales.x.domain()[1] ||
+        readLengthMaxes.y !== this.state.readLengthScales.y.domain()[1]) {
+        newState.readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
+        drawAxes(readLengthSVG, chartGeom, newState.readLengthScales)
+      } else {
+        newState.readLengthScales = this.state.readLengthScales
+      }
 
       /* draw data (it must have updated) */
       drawBarChart(coverageSVG, chartGeom, newState.coverageScales, this.state.coverageData)
+      drawBarChart(readLengthSVG, chartGeom, newState.readLengthScales, this.state.readLengthData)
+
       this.setState(newState)
       console.timeEnd("CDU")
     }
@@ -143,12 +170,12 @@ class Panel extends React.Component {
             <svg ref={(r) => {this.coverageRef = r}} height={chartGeom.height} width={chartGeom.width}/>
           </div>
           <div {...panelElement}>
-            <div {...chartTitle}>{"length"}</div>
-            <div ref={(r) => {this.lengthRef = r}}/>
+            <div {...chartTitle}>{"read length"}</div>
+            <svg ref={(r) => {this.readLengthRef = r}}  height={chartGeom.height} width={chartGeom.width}/>
           </div>
           <div {...panelElement}>
             <div {...chartTitle}>{"reference"}</div>
-            <div ref={(r) => {this.referenceRef = r}}/>
+            <svg ref={(r) => {this.referenceRef = r}}/>
           </div>
         </div>
       </div>
