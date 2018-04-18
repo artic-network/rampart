@@ -3,8 +3,16 @@ const app = express()
 const csv = require('csvtojson')
 const cors = require('cors')
 
+const args = process.argv.slice(2);
+/* get plex from command line arguments */
+let plex = 1;
+for (let i = 0; i < args.length; i++) {
+  if (args[i].startsWith("--plex")) {
+    plex = parseInt(args[i].split("=")[1], 10)
+  }
+}
+
 /* LOAD THE DUMMY DATA */
-plex = 1;
 const data = [];
 for (let i = 0; i < plex; i++) {
   data.push([])
@@ -18,16 +26,22 @@ csv({noheader:false})
     }
   })
   .on('done', () => {
-    console.log("FINISHED LOAD OF FAKE CSV READS")
+    console.log("FINISHED LOAD OF 1M FAKE CSV READS. MULTIPLEX: ", plex)
     // console.log(data[0].splice(0, 10))
     // console.log("...")
   })
 /* END LOAD */
 
-/* Mock "new" reads from the minIon */
+/* Mock 100 "new" reads from the minIon */
 function getRandomReads(channelData) {
+  /* there's some chance that nothing is read... */
+  if (Math.random() < 0.3) {
+    return []
+  }
+  /* else: */
+  const averageNumReadsPerChannel = 500
   const start = Math.floor(Math.random() * channelData.length)
-  let end = start + Math.floor(Math.random() * 10000)
+  let end = start + Math.floor(Math.random() * averageNumReadsPerChannel)
   if (end >= channelData.length) end = channelData.length
   return channelData.slice(start, end)
 }
@@ -36,8 +50,8 @@ function getRandomReads(channelData) {
 app.use(cors())
 
 app.get('/getInitialData', (req, res) => {
-  console.log("Initial data. Returning 1000 reads.")
-  res.json(data.map((d) => d.slice(0, 1000)));
+  console.log("Initial data. Returning 10 reads.")
+  res.json(data.map((d) => d.slice(0, 100)));
 })
 
 app.get('/getDataUpdate', (req, res) => {

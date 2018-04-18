@@ -86,7 +86,6 @@ class Panel extends React.Component {
       .dimension((d) => d.reference)
       .group((d) => d)
       .all();
-    console.log(refMatchData)
 
     /* create the scales */
     /* coverage */
@@ -115,9 +114,6 @@ class Panel extends React.Component {
     drawAxes(refMatchSVG, chartGeom, refMatchScales)
     drawRefChart(refMatchSVG, chartGeom, refMatchScales, refMatchData)
 
-    console.log(refMatchScales.x.domain(), refMatchScales.y.domain(), refMatchData)
-
-
     this.setState({
       reads,
       nReads,
@@ -132,7 +128,6 @@ class Panel extends React.Component {
   }
   componentDidUpdate(prevProps) {
     if (prevProps.version !== this.props.version) {
-      console.log("VERSION", this.props.version)
       console.time("CDU")
       const newState = {
         reads: this.state.reads,
