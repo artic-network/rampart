@@ -62,7 +62,8 @@ class Panel extends React.Component {
       coverageScales: undefined,
       readLengthScales: undefined,
       refMatchData: undefined,
-      refMatchScales: undefined
+      refMatchScales: undefined,
+      startTime: Date.now()
     }
     this.coverageDOMRef = undefined;
     this.readLengthDOMRef = undefined;
@@ -182,17 +183,20 @@ class Panel extends React.Component {
   }
 
   render() {
+    // <button {...resetStyle} onClick={() => {console.log("reset filters")}}>
+    //   reset filters
+    // </button>
+
     return (
       <div {...outerStyles}>
         <div {...flexRowContainer}>
           <div {...panelTitle}>
             {`${this.props.info}.
-            Data version ${this.props.version}.
-            Total reads: ${this.state.nReads}.`}
+            Total reads: ${this.state.nReads}.
+            Time elapsed: ${parseInt((Date.now() - this.state.startTime) / 1000, 10)}s.
+            `}
           </div>
-          <button {...resetStyle} onClick={() => {console.log("reset filters")}}>
-            reset filters
-          </button>
+
         </div>
         <div {...flexRowContainer}>
           <div {...panelElement}>
