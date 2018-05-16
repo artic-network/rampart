@@ -7,7 +7,7 @@ import '../styles/global'; // sets global CSS
 import '../styles/fonts.css'; // sets global fonts
 import { css } from 'glamor'
 import { getData, getDataUpdate } from "../utils/getData"
-
+import OverallSummary from "./OverallSummary";
 const container = css({
   display: "flex",
   'flexDirection': 'column'
@@ -33,7 +33,9 @@ class App extends Component {
     if (!this.state.data) {
       /* must initialise! */
       newState.data = newData;
+      newState.startTime = Date.now();
       newState.nTotalReads = newData.length;
+      newState.readsOverTime = [[0, newData.length]];
       const dataPerChannel = [...Array(this.state.multiplex)].map(() => []);
       newData.forEach((res) => {
         dataPerChannel[res.channel-1].push(res); /* [0] is channel 1. How could this possible cause bugs?!? */
@@ -58,13 +60,19 @@ class App extends Component {
           .all()
       )
     } else {
+      /* a data update */
       newState.data = this.state.data.concat(newData);
       newState.nTotalReads = newState.data.length;
+      newState.readsOverTime = this.state.readsOverTime;
+      newState.readsOverTime.push([
+        parseInt((Date.now() - this.state.startTime) / 1000, 10),
+        this.state.nTotalReads
+      ])
       const newDataPerChannel = [...Array(this.state.multiplex)].map(() => []);
       newData.forEach((res) => {
         newDataPerChannel[res.channel-1].push(res);
       })
-      /* crossfilter doesn't need a state update since it's all links */
+      /* crossfilter doesn't need any state updates since it's all links */
       newState.versions = newDataPerChannel.map((d, i) => {
         if (d.length) {
           this.state.readsPerChannel[i].add(d);
@@ -72,14 +80,8 @@ class App extends Component {
         }
         return this.state.versions[i];
       })
-
-
-
-
-      /* a data update */
     }
     console.timeEnd("calcNewState")
-    console.log(newState)
     return newState;
   }
   componentDidMount() {
@@ -113,11 +115,39 @@ class App extends Component {
         <br/>
         reads: {this.state.data ? this.state.data.length : "none yet"}
         <br/>
-        {this.generatePanelsOrDisplayLoadingStatus()}
+        {this.state.data ? (
+          <div>
+            <OverallSummary
+              nTotalReads={this.state.nTotalReads}
+              readsOverTime={this.state.readsOverTime}
+              version={this.state.versions.reduce((tot, cv) => tot + cv)}
+              coveragePerChannel={this.state.coveragePerChannel}
+              readLengthPerChannel={this.state.readLengthPerChannel}
+              refMatchPerChannel={this.state.refMatchPerChannel}
+            />
+            {this.state.readsPerChannel.map((reads, idx) => (
+              <Panel
+                key={idx}
+                reads={reads}
+                version={this.state.versions[idx]}
+                coverage={this.state.coveragePerChannel[idx]}
+                readLength={this.state.readLengthPerChannel[idx]}
+                refMatch={this.state.refMatchPerChannel[idx]}
+                channelNumber={idx+1}
+              />
+            ))}
+          </div>
+        ) : (
+          <LoadingStatus status={this.state.status}/>
+        )}
       </div>
     )
   }
 }
+
+[0, 1, 2, 3].reduce(function (accumulator, currentValue) {
+  return accumulator + currentValue;
+}, 0);
 
 // <Panel key={"overview"} version={d.version} data={d.data} info={d.info}/>
 

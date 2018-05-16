@@ -23,7 +23,7 @@ const requestReads = (changeStatusCallback, addDataCallback) => {
         addDataCallback(processedData);
       } catch (e) {
         console.log(e)
-        console.log("requestReads -> response:", responseBodyAsText)
+        // console.log("requestReads -> response:", responseBodyAsText)
       }
     })
     .catch((err) => {

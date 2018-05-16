@@ -52,6 +52,18 @@ export const drawBarChart = (svg, chartGeom, scales, data) => {
     .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d.value));
 }
 
+export const drawScatter = (svg, chartGeom, scales, data) => {
+  svg.selectAll(".scatterDot").remove();
+  svg.selectAll(".scatterDot")
+    .data(data)
+    .enter().append("circle")
+    .attr("class", "scatterDot")
+    .attr("r", 10)
+    .attr("cx", d => scales.x(d[0]))
+    .attr("cy", d => scales.y(d[1]))
+    .style("fill", "pink");
+}
+
 export const drawRefChart = (svg, chartGeom, scales, data) => {
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")

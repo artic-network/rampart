@@ -1,18 +1,17 @@
-import crossfilter from "crossfilter"
 import React from 'react';
 import { css } from 'glamor'
 import {calcScales, drawAxes, drawBarChart, drawRefChart} from "../utils/constructChart";
 import { select } from "d3-selection";
 import { getHistogramMaxes, getMaxNumReadsForRefs } from "../utils/manipulateReads.js"
 
-const outerStyles = css({
+export const outerStyles = css({
   width: '100%',
   margin: 'auto',
   minHeight: "400px", // TODO
   boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset'
 })
 
-const flexRowContainer = css({
+export const flexRowContainer = css({
   display: "flex",
   'flexDirection': 'row',
   justifyContent: 'space-between'
@@ -23,12 +22,12 @@ const panelElement = css({
   margin: 'auto'
 })
 
-const chartTitle = css({
+export const chartTitle = css({
   "fontWeight": "bold",
   "fontSize": "1em"
 })
 
-const panelTitle = css({
+export const panelTitle = css({
   "fontWeight": "bold",
   "fontSize": "1.3em"
 })
@@ -56,8 +55,7 @@ class Panel extends React.Component {
     this.state = {
       coverageScales: undefined,
       readLengthScales: undefined,
-      refMatchScales: undefined,
-      startTime: Date.now()
+      refMatchScales: undefined
     }
     this.coverageDOMRef = undefined;
     this.readLengthDOMRef = undefined;
@@ -150,9 +148,8 @@ class Panel extends React.Component {
       <div {...outerStyles}>
         <div {...flexRowContainer}>
           <div {...panelTitle}>
-            {`Channel ${this.props.channelNumber} (array idx ${this.props.channelNumber-1}).
-            Total reads: ${this.props.reads.size()}.
-            Time elapsed: ${parseInt((Date.now() - this.state.startTime) / 1000, 10)}s.
+            {`Channel ${this.props.channelNumber} (array idx ${this.props.channelNumber-1}),
+            ${this.props.reads.size()} reads.
             `}
           </div>
 
