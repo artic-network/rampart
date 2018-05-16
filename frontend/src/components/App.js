@@ -87,26 +87,6 @@ class App extends Component {
   componentDidMount() {
     getData(this.changeStatus, this.addData);
   }
-
-  generatePanelsOrDisplayLoadingStatus() {
-    if (!this.state.data) {
-      return (
-        <LoadingStatus status={this.state.status}/>
-      )
-    }
-    return this.state.readsPerChannel.map((reads, idx) => (
-      <Panel
-        key={idx}
-        reads={reads}
-        version={this.state.versions[idx]}
-        coverage={this.state.coveragePerChannel[idx]}
-        readLength={this.state.readLengthPerChannel[idx]}
-        refMatch={this.state.refMatchPerChannel[idx]}
-        channelNumber={idx+1}
-      />
-    ))
-  }
-
   render() {
     return (
       <div {...container}>
@@ -122,7 +102,7 @@ class App extends Component {
               readsOverTime={this.state.readsOverTime}
               version={this.state.versions.reduce((tot, cv) => tot + cv)}
               coveragePerChannel={this.state.coveragePerChannel}
-              readLengthPerChannel={this.state.readLengthPerChannel}
+              readsPerChannel={this.state.readsPerChannel}
               refMatchPerChannel={this.state.refMatchPerChannel}
             />
             {this.state.readsPerChannel.map((reads, idx) => (

@@ -1,8 +1,15 @@
 import React from 'react';
 import { css } from 'glamor';
 import { select } from "d3-selection";
+import { rgb } from "d3-color";
+import { interpolateHcl } from "d3-interpolate";
+import { scaleLinear } from "d3-scale";
+import { line, curveCatmullRom } from "d3-shape";
 import {flexRowContainer, outerStyles, panelTitle, chartTitle} from "./Panel";
-import {calcScales, drawAxes, drawScatter} from "../utils/constructChart";
+import {calcScales, drawAxes, drawScatter, drawVerticalBarChart} from "../utils/constructChart";
+
+const channelColours = ["#462EB9", "#3E58CF", "#4580CA", "#549DB2", "#69B091", "#83BA70", "#A2BE57", "#C1BA47", "#D9AD3D", "#E69136", "#E4632E", "#DC2F24"];
+
 
 const panelElement = css({
   width: '25%',
@@ -19,6 +26,78 @@ const chartGeom = {
 };
 
 
+const getMaxsOfReadsOverTime = (readsOverTime) => {
+  const finalPoint = readsOverTime.slice(-1)[0];
+  const timeMax = finalPoint[0] > 60 ? finalPoint[0] : 60;
+  const readsMax = finalPoint[1] > 10000 ? finalPoint[1] : 10000;
+  return [timeMax, readsMax]
+}
+const processReadsPerChannel = (readsPerChannel) => {
+  const xy = readsPerChannel.map((cf, idx) => [idx+1, cf.size()]);
+  return {
+    xy,
+    maxX: readsPerChannel.length,
+    maxY: xy.reduce((max, cv) => cv[1] > max ? cv[1] : max, 0)
+  }
+}
+const haveMaxesChanged = (scales, newMaxX, newMaxY) => {
+  return newMaxX !== scales.x.domain()[1] || newMaxY !== scales.y.domain()[1];
+}
+
+const drawRefHeatMap = (svg, chartGeom, scales, cfData, colourScale) => {
+  /* step1 : flatten cfData */
+  /* data point structure for d3: [channel # (1-based),  ref idx (1-based), ref match % (over [0, 100])] */
+  const data = cfData.reduce((acc, laneData, laneIdx) => {
+    const totalReadsInLane = laneData.reduce((acc, cv) => acc + cv.value, 0);
+    const points = laneData.map((cellData, refIdx) => [laneIdx+1, refIdx+1, cellData.value / totalReadsInLane * 100]);
+    return acc.concat(points)
+  }, []);
+
+  svg.selectAll(".heat").remove();
+  const cellSize = 20;
+  svg.selectAll(".heat")
+    .data(data)
+    .enter().append("rect")
+    .attr("class", "heat")
+    .attr('width', cellSize)
+    .attr('height', cellSize)
+    .attr("x", d => scales.x(d[0]-1))
+    .attr("y", d => scales.y(d[1]))
+    .attr("fill", d => colourScale(d[2]));
+}
+
+const drawCoverageSparkLines = (svg, chartGeom, scales, data) => {
+  /* data is array of channelData */
+  /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
+  const makeLinePath = line()
+    .x((d) =>scales.x(d.key))
+    .y((d) =>scales.y(d.value))
+    .curve(curveCatmullRom.alpha(0.5));
+
+  svg.selectAll(".line").remove();
+  svg.selectAll(".line")
+    .data(data)
+    .enter().append("path")
+    .attr("class", "line")
+    .attr("fill", "none")
+    .attr("stroke", (d, i) => channelColours[i])
+    .attr('d', makeLinePath);
+}
+
+const getCoverageMaxes = (coveragePerChannel) => {
+  /* do this in app and only check the "new" data to change things... */
+  const maxX = coveragePerChannel.reduce((acc, channelData) => {
+    return channelData.slice(-1)[0].key;
+  }, 0)
+  const maxY = coveragePerChannel.reduce((outerAcc, channelData) => {
+    const channelMax = channelData.reduce((innerAcc, point) => {
+      return point.value > innerAcc ? point.value : innerAcc;
+    }, 0);
+    return channelMax > outerAcc ? channelMax : outerAcc;
+  }, 0)
+  return [maxX, maxY];
+}
+
 class OverallSummary extends React.Component {
   constructor(props) {
     super(props);
@@ -26,48 +105,89 @@ class OverallSummary extends React.Component {
     this.coverageDOMRef = undefined;
     this.winningReferencesDOMRef = undefined;
     this.readsOverTimeDOMRef = undefined;
-    this.nReadsPerChannelDOMRef = undefined;
+    this.readsPerChannelDOMRef = undefined;
   }
   componentDidMount() {
+    const newState = {
+      readsOverTimeSVG: select(this.readsOverTimeDOMRef),
+      readsPerChannelSVG: select(this.readsPerChannelDOMRef),
+      winningReferencesSVG: select(this.winningReferencesDOMRef),
+      coverageSVG: select(this.coverageDOMRef)
+    }
     /* create the scales */
     /* reads over time */
-    const finalPoint = this.props.readsOverTime.slice(-1)[0];
-    const timeMax = finalPoint[0] > 60 ? finalPoint[0] : 60;
-    const readsMax = finalPoint[1] > 10000 ? finalPoint[1] : 10000;
-    const readsOverTimeScales = calcScales(chartGeom, timeMax, readsMax);
+    newState.readsOverTimeScales = calcScales(chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
+    /* reads per channel */
+    const rpc = processReadsPerChannel(this.props.readsPerChannel);
+    newState.readsPerChannelScales = calcScales(chartGeom, rpc.maxX, rpc.maxY);
+    /* winning references - a little different, the scales never need updating :) */
+    newState.refMatchPerChannelScales = calcScales(
+      chartGeom,
+      this.props.refMatchPerChannel.length,
+      this.props.refMatchPerChannel[0].length
+    );
+    /* coverage spark lines */
+    newState.coveragePerChannelScales = calcScales(chartGeom, ...getCoverageMaxes(this.props.coveragePerChannel));
 
-
+    /*        D R A W    A X E S    &      D A T A       */
     /* draw reads over time */
-    const readsOverTimeSVG = select(this.readsOverTimeDOMRef);
-    drawAxes(readsOverTimeSVG, chartGeom, readsOverTimeScales)
-    drawScatter(readsOverTimeSVG, chartGeom, readsOverTimeScales, this.props.readsOverTime)
+    drawAxes(newState.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales)
+    drawScatter(newState.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
+    /* draw reads per channel */
+    drawAxes(newState.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales)
+    drawVerticalBarChart(newState.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales, rpc.xy, channelColours)
+    /* draw ref vs lanes heat map */
+    drawAxes(newState.winningReferencesSVG, chartGeom, newState.refMatchPerChannelScales)
+    // const heatColours = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"]; // alternatively colorbrewer.YlGnBu[9]
+    newState.heatColourScale = scaleLinear()
+      .domain([0, 100])
+      // .range(heatColours)
+      .interpolate(interpolateHcl)
+      .range([rgb("#007AFF"), rgb('#FFF500')]);
+    drawRefHeatMap(newState.winningReferencesSVG, chartGeom, newState.refMatchPerChannelScales, this.props.refMatchPerChannel, newState.heatColourScale)
+    // coverage
+    drawAxes(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales)
+    drawCoverageSparkLines(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel)
 
-    this.setState({
-      readsOverTimeScales,
-    })
+
+    this.setState(newState);
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.version !== this.props.version) {
-      console.log("CDU overall")
-      // console.time("CDU for channel ", this.state.channelNumber)
-      const readsOverTimeSVG = select(this.readsOverTimeDOMRef);
-      const newState = {};
-      /* do scales need updating? */
-      const finalPoint = this.props.readsOverTime.slice(-1)[0];
-      const timeMax = finalPoint[0] > 60 ? finalPoint[0] : 60;
-      const readsMax = finalPoint[1] > 10000 ? finalPoint[1] : 10000;
-      if (timeMax !== this.state.readsOverTimeScales.x.domain()[1] ||
-        readsMax !== this.state.readsOverTimeScales.y.domain()[1]) {
-        newState.readsOverTimeScales = calcScales(chartGeom, timeMax, readsMax);
-        drawAxes(readsOverTimeSVG, chartGeom, newState.readsOverTimeScales)
-      } else {
-        newState.readsOverTimeScales = this.state.readsOverTimeScales;
+      // console.log("CDU overall")
+      const newState = {
+        readsOverTimeScales: this.state.readsOverTimeScales,
+        readsPerChannelScales: this.state.readsPerChannelScales
+      };
+
+      /* CALCULATE MAXES & UPDATE SCALES IF NECESSARY */
+      const timeMaxReadsMax = getMaxsOfReadsOverTime(this.props.readsOverTime);
+      if (haveMaxesChanged(this.state.readsOverTimeScales, ...timeMaxReadsMax)) {
+        newState.readsOverTimeScales = calcScales(chartGeom, ...timeMaxReadsMax);
+        drawAxes(this.state.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales)
       }
-      /* draw data (it must have updated) */
-      drawScatter(readsOverTimeSVG, chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
+      const rpc = processReadsPerChannel(this.props.readsPerChannel);
+      if (haveMaxesChanged(this.state.readsPerChannelScales, rpc.maxX, rpc.maxY)) {
+        newState.readsPerChannelScales = calcScales(chartGeom, rpc.maxX, rpc.maxY);
+        drawAxes(this.state.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales)
+      }
+      /* NOTE the heat map scales never need updating */
+      const coverageMaxes = getCoverageMaxes(this.props.coveragePerChannel);
+      if (haveMaxesChanged(this.state.coveragePerChannelScales, ...coverageMaxes)) {
+        newState.coveragePerChannelScales = calcScales(chartGeom, ...coverageMaxes);
+        drawAxes(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales)
+      }
+
+
+      /* REDRAW EVERYTHING (DATA HAS UPDATED) */
+      drawScatter(this.state.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
+      drawVerticalBarChart(this.state.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales, rpc.xy, channelColours)
+      drawRefHeatMap(this.state.winningReferencesSVG, chartGeom, this.state.refMatchPerChannelScales, this.props.refMatchPerChannel, this.state.heatColourScale)
+      drawCoverageSparkLines(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel)
+
+
       this.setState(newState)
-      // console.timeEnd("CDU for channel ", this.state.channelNumber)
     }
   }
   render() {
@@ -99,7 +219,7 @@ class OverallSummary extends React.Component {
           </div>
           <div {...panelElement}>
             <div {...chartTitle}>{"Number of reads per channel"}</div>
-            <svg ref={(r) => {this.nReadsPerChannelDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            <svg ref={(r) => {this.readsPerChannelDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
           </div>
         </div>
       </div>
