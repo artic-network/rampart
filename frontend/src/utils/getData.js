@@ -1,48 +1,42 @@
 
-const processData = (data) => {
-  // arrives as "reference","start","end","identity" (last 3 are ints)
-  return data.map((d) => ({
-    reference: d[0],
-    start: d[1],
-    end: d[2],
-    identity: d[3],
-    length: d[2] - d[1] + 1,
-    location: (d[1] + d[2]) / 2
-  }))
-}
+// arrives as "channel", "reference","start","end","identity"
+// all are INTs except reference (string)
+const processData = (d) => ({
+  channel: d[0],
+  reference: d[1],
+  start: d[2],
+  end: d[3],
+  identity: d[4],
+  length: d[3] - d[2] + 1,
+  location: (d[2] + d[3]) / 2
+})
 
-const timeBetweenUpdates = 1000;
+const timeBetweenUpdates = 2000;
 
-const getDataUpdate = (appendData) => {
-  fetch("http://localhost:3001/getDataUpdate")
-    .then((res) => res.json())
-    .then((res) => {
-      const processedData = res.map((d) => processData(d))
-      appendData(processedData);
-      setTimeout(() => getDataUpdate(appendData), timeBetweenUpdates);
+const requestReads = (changeStatusCallback, addDataCallback) => {
+  fetch("http://localhost:3001/requestReads")
+    .then((res) => res.text()) // should never fail
+    .then((responseBodyAsText) => {
+      try {
+        const bodyAsJson = JSON.parse(responseBodyAsText);
+        const processedData = bodyAsJson.map((d) => processData(d));
+        addDataCallback(processedData);
+      } catch (e) {
+        console.log(e)
+        console.log("requestReads -> response:", responseBodyAsText)
+      }
     })
     .catch((err) => {
-      console.error(err)
+      console.error("Error in requestReads:", err)
+      changeStatusCallback("Error fetching or setting initial data from server");
     })
 }
 
-
-export const getData = function getData(changeStatus, setData, appendData) {
-  changeStatus("Querying server for initial data");
-  fetch("http://localhost:3001/getInitialData")
-      .then((res) => res.json())
-      .then((res) => {
-        changeStatus("Data returned");
-        const processedData = res.map((d, i) => ({
-          version: 1,
-          info: `Nanopore channel ${i}`,
-          data: processData(d)
-        }));
-        setData(processedData);
-        setTimeout(() => getDataUpdate(appendData), timeBetweenUpdates);
-      })
-      .catch((err) => {
-        console.error(err)
-        changeStatus("Error fetching or setting initial data from server");
-      })
+export const getData = function getData(changeStatusCallback, addDataCallback) {
+  changeStatusCallback("Querying server for data");
+  requestReads(changeStatusCallback, addDataCallback);
+  setInterval(
+    () => requestReads(changeStatusCallback, addDataCallback),
+    timeBetweenUpdates
+  );
 }
