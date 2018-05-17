@@ -1,19 +1,11 @@
 # rampart
 Read Assignment, Mapping, and Phylogenetic Analysis in Real Time
 
+## Status
+in development
 
 ## How to run
-
-#### Prerequisites / set up
-* install `node` (I recommend via `nvm`) and `yarn`
-* `cd backend; yarn; cd ..`
-* `cd frontend; yarn; cd ..`
-
-#### Start the server
-* `cd backend`
-* `node server.js --plex=X` where X is the number of lanes you wish to simulate
-* wait until the terminal indicates that the data is loaded
-
-#### Start the frontend (in development mode)
-* `cd frontend; yarn start`
-* visit `localhost:3000`
+* install `node` (I recommend via `nvm`) and `yarn` (e.g. `brew install yarn --without-node`)
+* `yarn` to install packages (dependencies of the server and the frontend)
+* `npm run server &` which starts the server (to deliver reads)
+* `npm run start` which starts the frontend (available at [http://localhost:3000/](http://localhost:3000/))

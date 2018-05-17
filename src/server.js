@@ -4,17 +4,17 @@ const cors = require('cors')
 const fs = require('fs');
 const path = require("path");
 
-const args = process.argv.slice(2);
-/* get plex from command line arguments */
-let plex = 1;
-for (let i = 0; i < args.length; i++) {
-  if (args[i].startsWith("--plex")) {
-    plex = parseInt(args[i].split("=")[1], 10)
-  }
-}
+// const args = process.argv.slice(2);
+// /* get plex from command line arguments */
+// let plex = 1;
+// for (let i = 0; i < args.length; i++) {
+//   if (args[i].startsWith("--plex")) {
+//     plex = parseInt(args[i].split("=")[1], 10)
+//   }
+// }
 
 const readFilePaths = [];
-const dataDir = "../data/read_files"
+const dataDir = path.join("data", "read_files"); // relative to the terminal when run, not where the source is located
 fs.readdirSync(dataDir).forEach(file => {
   const filePath = path.join(dataDir, file);
   if (fs.lstatSync(filePath).isFile()) {
