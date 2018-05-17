@@ -4,9 +4,8 @@ import { select } from "d3-selection";
 import { rgb } from "d3-color";
 import { interpolateHcl } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
-import { line, curveCatmullRom } from "d3-shape";
 import {flexRowContainer, outerStyles, panelTitle, chartTitle} from "./Panel";
-import {calcScales, drawAxes, drawScatter, drawVerticalBarChart} from "../utils/constructChart";
+import {calcScales, drawAxes, drawScatter, drawVerticalBarChart, drawCurve} from "../utils/constructChart";
 
 const channelColours = ["#462EB9", "#3E58CF", "#4580CA", "#549DB2", "#69B091", "#83BA70", "#A2BE57", "#C1BA47", "#D9AD3D", "#E69136", "#E4632E", "#DC2F24"];
 
@@ -64,28 +63,6 @@ const drawRefHeatMap = (svg, chartGeom, scales, cfData, colourScale) => {
     .attr("x", d => scales.x(d[0]-1))
     .attr("y", d => scales.y(d[1]))
     .attr("fill", d => colourScale(d[2]));
-}
-
-const drawCoverageSparkLines = (svg, chartGeom, scales, data) => {
-  /* data is array of channelData */
-  /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
-  const makeLinePath = line()
-    .x((d) =>scales.x(d.key))
-    .y((d) =>scales.y(d.value))
-    .curve(curveCatmullRom.alpha(0.5));
-
-  svg.selectAll(".line").remove();
-  try {
-    svg.selectAll(".line")
-      .data(data)
-      .enter().append("path")
-      .attr("class", "line")
-      .attr("fill", "none")
-      .attr("stroke", (d, i) => channelColours[i])
-      .attr('d', makeLinePath);
-  } catch (err) {
-    console.log("d3 spark lines error", err)
-  }
 }
 
 const getCoverageMaxes = (coveragePerChannel) => {
@@ -151,7 +128,7 @@ class OverallSummary extends React.Component {
     drawRefHeatMap(newState.winningReferencesSVG, chartGeom, newState.refMatchPerChannelScales, this.props.refMatchPerChannel, newState.heatColourScale)
     // coverage
     drawAxes(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales)
-    drawCoverageSparkLines(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel)
+    drawCurve(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
 
 
     this.setState(newState);
@@ -188,7 +165,7 @@ class OverallSummary extends React.Component {
       drawScatter(this.state.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
       drawVerticalBarChart(this.state.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales, rpc.xy, channelColours)
       drawRefHeatMap(this.state.winningReferencesSVG, chartGeom, this.state.refMatchPerChannelScales, this.props.refMatchPerChannel, this.state.heatColourScale)
-      drawCoverageSparkLines(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel)
+      drawCurve(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
 
 
       this.setState(newState)

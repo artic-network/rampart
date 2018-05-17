@@ -2,6 +2,7 @@ import {colours} from "../styles/colours"
 // import { select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
 import { axisBottom, axisLeft } from "d3-axis";
+import { line, curveCatmullRom } from "d3-shape";
 export const dataFont = "Lato"; // should be centralised
 
 export const calcScales = (chartGeom, maxX, maxY) => {
@@ -101,4 +102,26 @@ export const drawRefChart = (svg, chartGeom, scales, data) => {
     .attr("fill", "white")
     .text(d => d.key);
 
+}
+
+export const drawCurve = (svg, chartGeom, scales, data, colours) => {
+  /* data is array of channelData */
+  /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
+  const makeLinePath = line()
+    .x((d) =>scales.x(d.key))
+    .y((d) =>scales.y(d.value))
+    .curve(curveCatmullRom.alpha(0.5));
+
+  svg.selectAll(".line").remove();
+  try {
+    svg.selectAll(".line")
+      .data(data)
+      .enter().append("path")
+      .attr("class", "line")
+      .attr("fill", "none")
+      .attr("stroke", (d, i) => colours[i])
+      .attr('d', makeLinePath);
+  } catch (err) {
+    console.log("d3 spark lines error", err)
+  }
 }

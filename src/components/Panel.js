@@ -1,6 +1,6 @@
 import React from 'react';
 import { css } from 'glamor'
-import {calcScales, drawAxes, drawBarChart, drawRefChart} from "../utils/constructChart";
+import {calcScales, drawAxes, drawRefChart, drawCurve} from "../utils/constructChart";
 import { select } from "d3-selection";
 import { getHistogramMaxes, getMaxNumReadsForRefs } from "../utils/manipulateReads.js"
 
@@ -25,8 +25,8 @@ const panelContainerExpanded = {
 }
 
 const ExpandToggle = ({open, callback}) => (
-  <div style={{position: "absolute", top: "10px", right: "20px", cursor: "pointer"}} onClick={callback}>
-    X
+  <div style={{position: "absolute", top: "10px", right: "10px", cursor: "pointer"}} onClick={callback}>
+    {open ? "contract" : "expand"}
   </div>
 )
 //
@@ -76,10 +76,6 @@ const chartGeom = {
   spaceTop: 10
 };
 
-const makeScalesDrawEverything = () => {
-  console.log("DRAW!")
-}
-
 class Panel extends React.Component {
   constructor(props) {
     super(props);
@@ -111,11 +107,11 @@ class Panel extends React.Component {
 
       /* draw coverage graph */
       drawAxes(coverageSVG, chartGeom, coverageScales)
-      drawBarChart(coverageSVG, chartGeom, coverageScales, this.props.coverage)
+      drawCurve(coverageSVG, chartGeom, coverageScales, [this.props.coverage], ["black"])
 
       /* draw read length distribution graph */
       drawAxes(readLengthSVG, chartGeom, readLengthScales)
-      drawBarChart(readLengthSVG, chartGeom, readLengthScales, this.props.readLength)
+      drawCurve(readLengthSVG, chartGeom, readLengthScales, [this.props.readLength], ["black"])
 
       /* draw read length distribution graph */
       drawAxes(refMatchSVG, chartGeom, refMatchScales)
@@ -125,7 +121,7 @@ class Panel extends React.Component {
   render() {
     return (
       <div style={this.state.expanded ? panelContainerExpanded : panelContainerCollapsed}>
-        <ExpandToggle callback={() => this.setState({expanded: !this.state.expanded})}/>
+        <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
         <div {...panelTitle}>
           {`Channel ${this.props.channelNumber} (todo: name here).
           ${this.props.reads.size()} reads.
