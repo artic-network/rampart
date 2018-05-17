@@ -4,6 +4,33 @@ import {calcScales, drawAxes, drawBarChart, drawRefChart} from "../utils/constru
 import { select } from "d3-selection";
 import { getHistogramMaxes, getMaxNumReadsForRefs } from "../utils/manipulateReads.js"
 
+
+const panelContainerCollapsed = {
+  position: "relative",
+  width: "98%",
+  height: "50px", // collapsed
+  minHeight: "50px", // collapsed
+  // backgroundColor: "orange",
+  margin: "10px 10px 10px 10px",
+  transition: "height 0.5s ease-out",
+  "-webkit-transition": "height 0.5s ease-out",
+  border: "1px solid gray",
+}
+
+const panelContainerExpanded = {
+  ...panelContainerCollapsed,
+  height: "300px",
+  minHeight: "300px",
+  // backgroundColor: "blue"
+}
+
+const ExpandToggle = ({open, callback}) => (
+  <div style={{position: "absolute", top: "10px", right: "20px", cursor: "pointer"}} onClick={callback}>
+    X
+  </div>
+)
+//
+//
 export const outerStyles = css({
   width: '100%',
   margin: 'auto',
@@ -18,7 +45,7 @@ export const flexRowContainer = css({
 })
 
 const panelElement = css({
-  width: '33%',
+  width: '25%',
   margin: 'auto'
 })
 
@@ -32,145 +59,98 @@ export const panelTitle = css({
   "fontSize": "1.3em"
 })
 
-const resetStyle = css({
-  backgroundColor: 'rgba(0, 0, 0, 0.15)',
-  borderRadius: 4,
-  fontFamily: "lato",
-  fontWeight: "bold",
-  float: "right"
-})
-
+// const resetStyle = css({
+//   backgroundColor: 'rgba(0, 0, 0, 0.15)',
+//   borderRadius: 4,
+//   fontFamily: "lato",
+//   fontWeight: "bold",
+//   float: "right"
+// })
+//
 const chartGeom = {
-  width: 500,
-  height: 300,
+  width: 300,
+  height: 200,
   spaceLeft: 40,
   spaceRight: 10,
   spaceBottom: 20,
   spaceTop: 10
 };
 
+const makeScalesDrawEverything = () => {
+  console.log("DRAW!")
+}
+
 class Panel extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      coverageScales: undefined,
-      readLengthScales: undefined,
-      refMatchScales: undefined
+      expanded: false
     }
     this.coverageDOMRef = undefined;
     this.readLengthDOMRef = undefined;
     this.refMatchDOMRef = undefined;
   }
   componentDidMount() {
-    /* create the scales */
-    /* coverage */
-    const coverageMaxes = getHistogramMaxes(this.props.coverage)
-    const coverageSVG = select(this.coverageDOMRef)
-    const coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
-    /* read length */
-    const readLengthMaxes = getHistogramMaxes(this.props.readLength)
-    const readLengthSVG = select(this.readLengthDOMRef)
-    const readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
-    /* reference match */
-    const refMatchSVG = select(this.refMatchDOMRef)
-    const refMatchMax = getMaxNumReadsForRefs(this.props.refMatch)
-    const refMatchScales = calcScales(chartGeom, refMatchMax, this.props.refMatch.length)
-    /* note: refMatch scales: x is num reads, y is num references */
-
-    /* draw coverage graph */
-    drawAxes(coverageSVG, chartGeom, coverageScales)
-    drawBarChart(coverageSVG, chartGeom, coverageScales, this.props.coverage)
-
-    /* draw read length distribution graph */
-    drawAxes(readLengthSVG, chartGeom, readLengthScales)
-    drawBarChart(readLengthSVG, chartGeom, readLengthScales, this.props.readLength)
-
-    /* draw read length distribution graph */
-    drawAxes(refMatchSVG, chartGeom, refMatchScales)
-    drawRefChart(refMatchSVG, chartGeom, refMatchScales, this.props.refMatch)
-
-    this.setState({
-      coverageScales,
-      readLengthScales,
-      refMatchScales
-    })
-
   }
   componentDidUpdate(prevProps) {
-    if (prevProps.version !== this.props.version) {
-      // console.time("CDU for channel ", this.state.channelNumber)
-      const coverageSVG = select(this.coverageDOMRef)
-      const readLengthSVG = select(this.readLengthDOMRef)
-      const refMatchSVG = select(this.refMatchDOMRef)
-      const newState = {};
-      /* do scales need updating? */
+    if (this.state.expanded) {
+      /* create the scales */
+      /* coverage */
       const coverageMaxes = getHistogramMaxes(this.props.coverage)
-      if (coverageMaxes.x !== this.state.coverageScales.x.domain()[1] ||
-        coverageMaxes.y !== this.state.coverageScales.y.domain()[1]) {
-        newState.coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
-        drawAxes(coverageSVG, chartGeom, newState.coverageScales)
-      } else {
-        newState.coverageScales = this.state.coverageScales;
-      }
-
+      const coverageSVG = select(this.coverageDOMRef)
+      const coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
+      /* read length */
       const readLengthMaxes = getHistogramMaxes(this.props.readLength)
-      if (readLengthMaxes.x !== this.state.readLengthScales.x.domain()[1] ||
-        readLengthMaxes.y !== this.state.readLengthScales.y.domain()[1]) {
-        newState.readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
-        drawAxes(readLengthSVG, chartGeom, newState.readLengthScales)
-      } else {
-        newState.readLengthScales = this.state.readLengthScales
-      }
-
+      const readLengthSVG = select(this.readLengthDOMRef)
+      const readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
+      /* reference match */
+      const refMatchSVG = select(this.refMatchDOMRef)
       const refMatchMax = getMaxNumReadsForRefs(this.props.refMatch)
-      if (readLengthMaxes.x !== this.state.refMatchScales.x.domain()[1]) {
-        newState.refMatchScales = calcScales(chartGeom, refMatchMax, this.props.refMatch.length)
-        drawAxes(refMatchSVG, chartGeom, newState.refMatchScales)
-      } else {
-        newState.refMatchScales = this.state.refMatchScales
-      }
+      const refMatchScales = calcScales(chartGeom, refMatchMax, this.props.refMatch.length)
+      /* note: refMatch scales: x is num reads, y is num references */
 
-      /* draw data (it must have updated) */
-      drawBarChart(coverageSVG, chartGeom, newState.coverageScales, this.props.coverage)
-      drawBarChart(readLengthSVG, chartGeom, newState.readLengthScales, this.props.readLength)
-      drawRefChart(refMatchSVG, chartGeom, newState.refMatchScales, this.props.refMatch)
+      /* draw coverage graph */
+      drawAxes(coverageSVG, chartGeom, coverageScales)
+      drawBarChart(coverageSVG, chartGeom, coverageScales, this.props.coverage)
 
-      this.setState(newState)
-      // console.timeEnd("CDU for channel ", this.state.channelNumber)
+      /* draw read length distribution graph */
+      drawAxes(readLengthSVG, chartGeom, readLengthScales)
+      drawBarChart(readLengthSVG, chartGeom, readLengthScales, this.props.readLength)
+
+      /* draw read length distribution graph */
+      drawAxes(refMatchSVG, chartGeom, refMatchScales)
+      drawRefChart(refMatchSVG, chartGeom, refMatchScales, this.props.refMatch)
     }
   }
-
   render() {
-    // <button {...resetStyle} onClick={() => {console.log("reset filters")}}>
-    //   reset filters
-    // </button>
     return (
-      <div {...outerStyles}>
-        <div {...flexRowContainer}>
-          <div {...panelTitle}>
-            {`Channel ${this.props.channelNumber} (array idx ${this.props.channelNumber-1}),
-            ${this.props.reads.size()} reads.
-            `}
-          </div>
-
+      <div style={this.state.expanded ? panelContainerExpanded : panelContainerCollapsed}>
+        <ExpandToggle callback={() => this.setState({expanded: !this.state.expanded})}/>
+        <div {...panelTitle}>
+          {`Channel ${this.props.channelNumber} (todo: name here).
+          ${this.props.reads.size()} reads.
+          100x coverage.
+          Status: huh?!?
+          `}
         </div>
-        <div {...flexRowContainer}>
-          <div {...panelElement}>
-            <div {...chartTitle}>{"coverage"}</div>
-            <svg ref={(r) => {this.coverageDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+        {this.state.expanded ? (
+          <div {...flexRowContainer}>
+            <div {...panelElement}>
+              <div {...chartTitle}>{"coverage"}</div>
+              <svg ref={(r) => {this.coverageDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            </div>
+            <div {...panelElement}>
+              <div {...chartTitle}>{"read length"}</div>
+              <svg ref={(r) => {this.readLengthDOMRef = r}}  height={chartGeom.height} width={chartGeom.width}/>
+            </div>
+            <div {...panelElement}>
+              <div {...chartTitle}>{"reference"}</div>
+              <svg ref={(r) => {this.refMatchDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            </div>
           </div>
-          <div {...panelElement}>
-            <div {...chartTitle}>{"read length"}</div>
-            <svg ref={(r) => {this.readLengthDOMRef = r}}  height={chartGeom.height} width={chartGeom.width}/>
-          </div>
-          <div {...panelElement}>
-            <div {...chartTitle}>{"reference"}</div>
-            <svg ref={(r) => {this.refMatchDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
-          </div>
-        </div>
+        ) : null}
       </div>
     )
-
   }
 }
 

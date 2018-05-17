@@ -75,13 +75,17 @@ const drawCoverageSparkLines = (svg, chartGeom, scales, data) => {
     .curve(curveCatmullRom.alpha(0.5));
 
   svg.selectAll(".line").remove();
-  svg.selectAll(".line")
-    .data(data)
-    .enter().append("path")
-    .attr("class", "line")
-    .attr("fill", "none")
-    .attr("stroke", (d, i) => channelColours[i])
-    .attr('d', makeLinePath);
+  try {
+    svg.selectAll(".line")
+      .data(data)
+      .enter().append("path")
+      .attr("class", "line")
+      .attr("fill", "none")
+      .attr("stroke", (d, i) => channelColours[i])
+      .attr('d', makeLinePath);
+  } catch (err) {
+    console.log("d3 spark lines error", err)
+  }
 }
 
 const getCoverageMaxes = (coveragePerChannel) => {
