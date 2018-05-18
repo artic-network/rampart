@@ -1,10 +1,8 @@
 import React from 'react';
 import { css } from 'glamor'
-import {calcScales, drawAxes, drawRefChart} from "../utils/constructChart";
-import {drawCurve, drawCoverage} from "../utils/coverage";
-import { select } from "d3-selection";
-import { getHistogramMaxes, getMaxNumReadsForRefs } from "../utils/manipulateReads.js"
-
+import CoveragePlot from "./Coverage";
+import ReadLengthDistribution from "./ReadLengthDistribution";
+import ReferenceMatches from "./ReferenceMatches";
 
 const panelContainerCollapsed = {
   position: "relative",
@@ -22,7 +20,6 @@ const panelContainerExpanded = {
   ...panelContainerCollapsed,
   height: "300px",
   minHeight: "300px",
-  // backgroundColor: "blue"
 }
 
 const ExpandToggle = ({open, callback}) => (
@@ -30,32 +27,12 @@ const ExpandToggle = ({open, callback}) => (
     {open ? "contract" : "expand"}
   </div>
 )
-//
-//
-export const outerStyles = css({
-  width: 'calc(100% - 30px)',
-  height: "300px",
-  minHeight: "300px", // TODO
-  boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset',
-  margin: "10px 10px 10px 10px"
-})
 
-export const flexRowContainer = css({
+const flexRowContainer = css({
   display: "flex",
   'flexDirection': 'row',
   justifyContent: 'space-between',
   height: "calc(100% - 25px)"
-})
-
-const panelElement = css({
-  width: '25%',
-  margin: 'auto',
-  height: "100%"
-})
-
-export const chartTitle = css({
-  "fontWeight": "bold",
-  "fontSize": "1em"
 })
 
 export const panelTitle = css({
@@ -63,64 +40,10 @@ export const panelTitle = css({
   "fontSize": "1.3em"
 })
 
-// const resetStyle = css({
-//   backgroundColor: 'rgba(0, 0, 0, 0.15)',
-//   borderRadius: 4,
-//   fontFamily: "lato",
-//   fontWeight: "bold",
-//   float: "right"
-// })
-//
-const chartGeom = {
-  width: 300,
-  height: 200,
-  spaceLeft: 40,
-  spaceRight: 10,
-  spaceBottom: 20,
-  spaceTop: 10
-};
-
 class Panel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      expanded: false
-    }
-    this.coverageDOMRef = undefined;
-    this.readLengthDOMRef = undefined;
-    this.refMatchDOMRef = undefined;
-  }
-  componentDidMount() {
-  }
-  componentDidUpdate(prevProps) {
-    if (this.state.expanded) {
-      /* create the scales */
-      /* coverage */
-      const coverageMaxes = getHistogramMaxes(this.props.coverage)
-      const coverageSVG = select(this.coverageDOMRef)
-      const coverageScales = calcScales(chartGeom, coverageMaxes.x, coverageMaxes.y)
-      /* read length */
-      const readLengthMaxes = getHistogramMaxes(this.props.readLength)
-      const readLengthSVG = select(this.readLengthDOMRef)
-      const readLengthScales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y)
-      /* reference match */
-      const refMatchSVG = select(this.refMatchDOMRef)
-      const refMatchMax = getMaxNumReadsForRefs(this.props.refMatch)
-      const refMatchScales = calcScales(chartGeom, refMatchMax, this.props.refMatch.length)
-      /* note: refMatch scales: x is num reads, y is num references */
-
-      /* draw coverage graph */
-      drawAxes(coverageSVG, chartGeom, coverageScales)
-      drawCoverage(coverageSVG, chartGeom, coverageScales, [this.props.coverage], ["black"])
-
-      /* draw read length distribution graph */
-      drawAxes(readLengthSVG, chartGeom, readLengthScales)
-      drawCurve(readLengthSVG, chartGeom, readLengthScales, [this.props.readLength], ["black"])
-
-      /* draw read length distribution graph */
-      drawAxes(refMatchSVG, chartGeom, refMatchScales)
-      drawRefChart(refMatchSVG, chartGeom, refMatchScales, this.props.refMatch)
-    }
+    this.state = {expanded: false}
   }
   render() {
     return (
@@ -135,18 +58,25 @@ class Panel extends React.Component {
         </div>
         {this.state.expanded ? (
           <div {...flexRowContainer}>
-            <div {...panelElement}>
-              <div {...chartTitle}>{"coverage"}</div>
-              <svg ref={(r) => {this.coverageDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
-            </div>
-            <div {...panelElement}>
-              <div {...chartTitle}>{"read length"}</div>
-              <svg ref={(r) => {this.readLengthDOMRef = r}}  height={chartGeom.height} width={chartGeom.width}/>
-            </div>
-            <div {...panelElement}>
-              <div {...chartTitle}>{"reference"}</div>
-              <svg ref={(r) => {this.refMatchDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
-            </div>
+            <CoveragePlot
+              style={{width: '30%', margin: 'auto', height: "100%"}}
+              title={"Coverage"}
+              coveragePerChannel={[this.props.coverage]}
+              version={this.props.version}
+              colours={["black"]}
+            />
+            <ReadLengthDistribution
+              style={{width: '30%', margin: 'auto', height: "100%"}}
+              title={"Read Lengths"}
+              readLength={this.props.readLength}
+              version={this.props.version}
+            />
+            <ReferenceMatches
+              style={{width: '30%', margin: 'auto', height: "100%"}}
+              title={"Reference Matches"}
+              refMatch={this.props.refMatch}
+              version={this.props.version}
+            />
           </div>
         ) : null}
       </div>

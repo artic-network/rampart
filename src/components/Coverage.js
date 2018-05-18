@@ -2,9 +2,9 @@ import React from 'react';
 import { select } from "d3-selection";
 import { line, curveCatmullRom } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
-import {channelColours, chartTitleCSS} from "../utils/commonStyles";
+import {chartTitleCSS} from "../utils/commonStyles";
 
-const drawCurve = (svg, chartGeom, scales, data, colours) => {
+export const drawCurve = (svg, chartGeom, scales, data, colours) => {
   /* data is array of channelData */
   /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
   const makeLinePath = line()
@@ -62,7 +62,7 @@ class CoveragePlot extends React.Component {
     }
     newState.scales = calcScales(newState.chartGeom, ...getCoverageMaxes(this.props.coveragePerChannel));
     drawAxes(newState.SVG, newState.chartGeom, newState.scales)
-    drawCurve(newState.SVG, newState.chartGeom, newState.scales, this.props.coveragePerChannel, channelColours)
+    drawCurve(newState.SVG, newState.chartGeom, newState.scales, this.props.coveragePerChannel, this.props.colours)
     this.setState(newState);
   }
 
@@ -76,7 +76,7 @@ class CoveragePlot extends React.Component {
         newState.scales = calcScales(this.state.chartGeom, ...coverageMaxes);
         drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
       }
-      drawCurve(this.state.SVG, this.state.chartGeom, newState.scales, this.props.coveragePerChannel, channelColours)
+      drawCurve(this.state.SVG, this.state.chartGeom, newState.scales, this.props.coveragePerChannel, this.props.colours)
       this.setState(newState)
     }
   }

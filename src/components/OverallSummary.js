@@ -4,6 +4,7 @@ import CoveragePlot from "./Coverage";
 import ReadsOverTime from "./ReadsOverTime";
 import ReadsPerChannel from "./ReadsPerChannel";
 import ReferenceHeatmap from "./ReferenceHeatmap";
+import {channelColours} from "../utils/commonStyles";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
@@ -41,6 +42,7 @@ class OverallSummary extends React.Component {
             title={"Coverage"}
             coveragePerChannel={this.props.coveragePerChannel}
             version={this.props.version}
+            colours={channelColours}
           />
           <ReadsOverTime
             style={{width: '25%', margin: 'auto', height: "100%"}}
