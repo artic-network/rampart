@@ -14,6 +14,16 @@ const container = css({
   'flexDirection': 'column'
 })
 
+const Line = (props) => (
+  <hr style={{
+    width: "calc(100% - 40px)",
+    margin: "20px 20px 20px 20px",
+    border: "0",
+    height: "1px",
+    background: "#333",
+    backgroundImage: "linear-gradient(to right, #ccc, #333, #ccc)"
+  }}/>
+)
 
 class App extends Component {
   constructor(props) {
@@ -100,6 +110,7 @@ class App extends Component {
         <Header status={this.state.status} name={this.state.name} />
         {this.state.data ? (
           <div>
+            <Line/>
             <OverallSummary
               nTotalReads={this.state.nTotalReads}
               readsOverTime={this.state.readsOverTime}
@@ -109,6 +120,7 @@ class App extends Component {
               readsPerChannel={this.state.readsPerChannel}
               refMatchPerChannel={this.state.refMatchPerChannel}
             />
+            <Line/>
             {this.state.readsPerChannel.map((reads, idx) => (
               <Panel
                 key={idx}

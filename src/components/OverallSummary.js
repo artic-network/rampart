@@ -10,7 +10,6 @@ const panelContainer = css({
   width: 'calc(100% - 30px)',
   height: "300px",
   minHeight: "300px", // TODO
-  boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset',
   margin: "10px 10px 10px 10px"
 })
 
