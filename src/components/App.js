@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import crossfilter from "crossfilter"
 import Header from "./Header";
+import Footer from "./Footer";
 import Panel from "./Panel"
 import LoadingStatus from "./LoadingStatus"
 import '../styles/global'; // sets global CSS
@@ -124,20 +125,10 @@ class App extends Component {
         ) : (
           <LoadingStatus status={this.state.status}/>
         )}
+        <Footer/>
       </div>
     )
   }
 }
-
-[0, 1, 2, 3].reduce(function (accumulator, currentValue) {
-  return accumulator + currentValue;
-}, 0);
-
-// <Panel key={"overview"} version={d.version} data={d.data} info={d.info}/>
-
-// {this.state.channels.length ?
-//   this.generatePanels() :
-//   <LoadingStatus status={this.state.status}/>
-// }
 
 export default App;

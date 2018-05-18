@@ -1,9 +1,17 @@
 import {css} from 'glamor';
-import colours from "./colours";
+// import colours from "./colours";
 
 
 css.global('body', {
   "fontFamily": "Lato",
+})
+
+css.global('a', {
+  textDecoration: "none",
+  color: "#5097BA",
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: "94%"
 })
 
 css.global('h1', {
