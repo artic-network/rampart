@@ -130,6 +130,7 @@ class App extends Component {
                 coverage={this.state.coveragePerChannel[idx]}
                 readLength={this.state.readLengthPerChannel[idx]}
                 refMatch={this.state.refMatchPerChannel[idx]}
+                name={this.state.samples[idx+1]}
                 channelNumber={idx+1}
               />
             ))}

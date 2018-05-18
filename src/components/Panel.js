@@ -39,6 +39,10 @@ export const panelTitle = css({
   "fontSize": "1.3em"
 })
 
+/* TODO: make this more meaningful - lower 95th percent? */
+const averageCoverage = (data) =>
+  parseInt(data.reduce((tot, cv) => tot + cv.value, 0) / data.length, 10);
+
 class Panel extends React.Component {
   constructor(props) {
     super(props);
@@ -49,10 +53,10 @@ class Panel extends React.Component {
       <div style={this.state.expanded ? panelContainerExpanded : panelContainerCollapsed}>
         <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
         <div {...panelTitle}>
-          {`Channel ${this.props.channelNumber} (todo: name here).
+          {`#${this.props.channelNumber} ${this.props.name}.
           ${this.props.reads.size()} reads.
-          100x coverage.
-          Status: huh?!?
+          ${averageCoverage(this.props.coverage)}x coverage.
+          Status: to do
           `}
         </div>
         {this.state.expanded ? (
