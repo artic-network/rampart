@@ -1,0 +1,141 @@
+{
+  "genes": {
+    "GP": {
+      "start": 6038,
+      "end": 8068,
+      "strand": 1
+    },
+    "sGP": {
+      "start": 6038,
+      "end": 7133,
+      "strand": 1
+    },
+    "L": {
+      "start": 11580,
+      "end": 18219,
+      "strand": 1
+    },
+    "VP40": {
+      "start": 4478,
+      "end": 5459,
+      "strand": 1
+    },
+    "NP": {
+      "start": 469,
+      "end": 2689,
+      "strand": 1
+    },
+    "VP30": {
+      "start": 8508,
+      "end": 9375,
+      "strand": 1
+    },
+    "VP24": {
+      "start": 10344,
+      "end": 11100,
+      "strand": 1
+    },
+    "VP35": {
+      "start": 3128,
+      "end": 4151,
+      "strand": 1
+    }
+  },
+  "primers": {
+    "Ebov_1": {
+      "forward": [32, 59],
+      "reverse": [1035, 1057]
+    },
+    "Ebov_2": {
+      "forward": [907, 929],
+      "reverse": [1859, 1881]
+    },
+    "Ebov_3": {
+      "forward": [1730, 1753],
+      "reverse": [2689, 2711]
+    },
+    "Ebov_4": {
+      "forward": [2555, 2577],
+      "reverse": [3556, 3578]
+    },
+    "Ebov_5": {
+      "forward": [3417, 3439],
+      "reverse": [4409, 4431]
+    },
+    "Ebov_6": {
+      "forward": [4274, 4303],
+      "reverse": [5279, 5301]
+    },
+    "Ebov_7": {
+      "forward": [5149, 5171],
+      "reverse": [6030, 6052]
+    },
+    "Ebov_8": {
+      "forward": [5895, 5917],
+      "reverse": [6792, 6814]
+    },
+    "Ebov_9": {
+      "forward": [6656, 6678],
+      "reverse": [7592, 7614]
+    },
+    "Ebov_10": {
+      "forward": [7438, 7460],
+      "reverse": [8406, 8428]
+    },
+    "Ebov_11": {
+      "forward": [8239, 8269],
+      "reverse": [9267, 9289]
+    },
+    "Ebov_12": {
+      "forward": [9139, 9166],
+      "reverse": [10026, 10048]
+    },
+    "Ebov_13": {
+      "forward": [9895, 9920],
+      "reverse": [10787, 10809]
+    },
+    "Ebov_14": {
+      "forward": [10651, 10673],
+      "reverse": [11646, 11668]
+    },
+    "Ebov_15": {
+      "forward": [11517, 11540],
+      "reverse": [12467, 12489]
+    },
+    "Ebov_16": {
+      "forward": [12337, 12365],
+      "reverse": [13276, 13298]
+    },
+    "Ebov_17": {
+      "forward": [13141, 13171],
+      "reverse": [14031, 14053]
+    },
+    "Ebov_18": {
+      "forward": [13897, 13919],
+      "reverse": [14781, 14803]
+    },
+    "Ebov_19": {
+      "forward": [14651, 14673],
+      "reverse": [15621, 15643]
+    },
+    "Ebov_20": {
+      "forward": [15480, 15502],
+      "reverse": [16471, 16493]
+    },
+    "Ebov_21": {
+      "forward": [16331, 16358],
+      "reverse": [17311, 17333]
+    },
+    "Ebov_22": {
+      "forward": [17182, 17210],
+      "reverse": [18161, 18183]
+    },
+    "Ebov_23": {
+      "forward": [17941, 17968],
+      "reverse": [18894, 18916]
+    }
+  },
+  "genome": {
+    "length": 18959
+  }
+}
