@@ -1,6 +1,7 @@
 import React from 'react';
 import { css } from 'glamor'
-import {calcScales, drawAxes, drawRefChart, drawCurve} from "../utils/constructChart";
+import {calcScales, drawAxes, drawRefChart} from "../utils/constructChart";
+import {drawCurve, drawCoverage} from "../utils/coverage";
 import { select } from "d3-selection";
 import { getHistogramMaxes, getMaxNumReadsForRefs } from "../utils/manipulateReads.js"
 
@@ -32,21 +33,24 @@ const ExpandToggle = ({open, callback}) => (
 //
 //
 export const outerStyles = css({
-  width: '100%',
-  margin: 'auto',
-  minHeight: "400px", // TODO
-  boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset'
+  width: 'calc(100% - 30px)',
+  height: "300px",
+  minHeight: "300px", // TODO
+  boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset',
+  margin: "10px 10px 10px 10px"
 })
 
 export const flexRowContainer = css({
   display: "flex",
   'flexDirection': 'row',
-  justifyContent: 'space-between'
+  justifyContent: 'space-between',
+  height: "calc(100% - 25px)"
 })
 
 const panelElement = css({
   width: '25%',
-  margin: 'auto'
+  margin: 'auto',
+  height: "100%"
 })
 
 export const chartTitle = css({
@@ -107,7 +111,7 @@ class Panel extends React.Component {
 
       /* draw coverage graph */
       drawAxes(coverageSVG, chartGeom, coverageScales)
-      drawCurve(coverageSVG, chartGeom, coverageScales, [this.props.coverage], ["black"])
+      drawCoverage(coverageSVG, chartGeom, coverageScales, [this.props.coverage], ["black"])
 
       /* draw read length distribution graph */
       drawAxes(readLengthSVG, chartGeom, readLengthScales)

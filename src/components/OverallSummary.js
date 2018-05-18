@@ -4,25 +4,53 @@ import { select } from "d3-selection";
 import { rgb } from "d3-color";
 import { interpolateHcl } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
-import {flexRowContainer, outerStyles, panelTitle, chartTitle} from "./Panel";
-import {calcScales, drawAxes, drawScatter, drawVerticalBarChart, drawCurve} from "../utils/constructChart";
+import {calcScales, drawAxes, drawScatter, drawVerticalBarChart} from "../utils/constructChart";
+import {drawCoverage} from "../utils/coverage";
 
 const channelColours = ["#462EB9", "#3E58CF", "#4580CA", "#549DB2", "#69B091", "#83BA70", "#A2BE57", "#C1BA47", "#D9AD3D", "#E69136", "#E4632E", "#DC2F24"];
 
-
-const panelElement = css({
-  width: '25%',
-  margin: 'auto'
+const panelContainer = css({
+  width: 'calc(100% - 30px)',
+  height: "300px",
+  minHeight: "300px", // TODO
+  boxShadow: '0px 2px rgba(0, 0, 0, 0.14) inset',
+  margin: "10px 10px 10px 10px"
 })
 
-const chartGeom = {
-  width: 375,
-  height: 250,
+export const panelTitle = css({
+  "fontWeight": "bold",
+  "fontSize": "1.3em"
+})
+
+const flexRow = css({
+  display: "flex",
+  'flexDirection': 'row',
+  justifyContent: 'space-between',
+  height: "calc(100% - 25px)"
+})
+
+const chartContainer = css({
+  width: '25%',
+  margin: 'auto',
+  height: "100%"
+})
+
+export const chartTitle = css({
+  textAlign: "center",
+  "fontWeight": "bold",
+  "fontSize": "1em"
+})
+
+
+/* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
+const calcChartGeom = (DOMRect) => ({
+  width: DOMRect.width,
+  height: DOMRect.height - 20, // title line
   spaceLeft: 40,
   spaceRight: 10,
   spaceBottom: 20,
   spaceTop: 10
-};
+});
 
 
 const getMaxsOfReadsOverTime = (readsOverTime) => {
@@ -82,19 +110,24 @@ const getCoverageMaxes = (coveragePerChannel) => {
 class OverallSummary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {chartGeom: {}};
     this.coverageDOMRef = undefined;
     this.winningReferencesDOMRef = undefined;
     this.readsOverTimeDOMRef = undefined;
     this.readsPerChannelDOMRef = undefined;
   }
   componentDidMount() {
+    console.log("CDU", this.panelDOMRef.getBoundingClientRect())
+    const chartGeom = calcChartGeom(this.panelDOMRef.getBoundingClientRect());
     const newState = {
       readsOverTimeSVG: select(this.readsOverTimeDOMRef),
       readsPerChannelSVG: select(this.readsPerChannelDOMRef),
       winningReferencesSVG: select(this.winningReferencesDOMRef),
-      coverageSVG: select(this.coverageDOMRef)
+      coverageSVG: select(this.coverageDOMRef),
+      chartGeom
     }
+
+
     /* create the scales */
     /* reads over time */
     newState.readsOverTimeScales = calcScales(chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
@@ -128,7 +161,7 @@ class OverallSummary extends React.Component {
     drawRefHeatMap(newState.winningReferencesSVG, chartGeom, newState.refMatchPerChannelScales, this.props.refMatchPerChannel, newState.heatColourScale)
     // coverage
     drawAxes(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales)
-    drawCurve(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
+    drawCoverage(newState.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
 
 
     this.setState(newState);
@@ -141,31 +174,32 @@ class OverallSummary extends React.Component {
         readsOverTimeScales: this.state.readsOverTimeScales,
         readsPerChannelScales: this.state.readsPerChannelScales
       };
+      // const chartGeom = calcChartGeom(this.panelDOMRef.getBoundingClientRect());
 
       /* CALCULATE MAXES & UPDATE SCALES IF NECESSARY */
       const timeMaxReadsMax = getMaxsOfReadsOverTime(this.props.readsOverTime);
       if (haveMaxesChanged(this.state.readsOverTimeScales, ...timeMaxReadsMax)) {
-        newState.readsOverTimeScales = calcScales(chartGeom, ...timeMaxReadsMax);
-        drawAxes(this.state.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales)
+        newState.readsOverTimeScales = calcScales(this.state.chartGeom, ...timeMaxReadsMax);
+        drawAxes(this.state.readsOverTimeSVG, this.state.chartGeom, newState.readsOverTimeScales)
       }
       const rpc = processReadsPerChannel(this.props.readsPerChannel);
       if (haveMaxesChanged(this.state.readsPerChannelScales, rpc.maxX, rpc.maxY)) {
-        newState.readsPerChannelScales = calcScales(chartGeom, rpc.maxX, rpc.maxY);
-        drawAxes(this.state.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales)
+        newState.readsPerChannelScales = calcScales(this.state.chartGeom, rpc.maxX, rpc.maxY);
+        drawAxes(this.state.readsPerChannelSVG, this.state.chartGeom, newState.readsPerChannelScales)
       }
       /* NOTE the heat map scales never need updating */
       const coverageMaxes = getCoverageMaxes(this.props.coveragePerChannel);
       if (haveMaxesChanged(this.state.coveragePerChannelScales, ...coverageMaxes)) {
-        newState.coveragePerChannelScales = calcScales(chartGeom, ...coverageMaxes);
-        drawAxes(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales)
+        newState.coveragePerChannelScales = calcScales(this.state.chartGeom, ...coverageMaxes);
+        drawAxes(this.state.coverageSVG, this.state.chartGeom, newState.coveragePerChannelScales)
       }
 
 
       /* REDRAW EVERYTHING (DATA HAS UPDATED) */
-      drawScatter(this.state.readsOverTimeSVG, chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
-      drawVerticalBarChart(this.state.readsPerChannelSVG, chartGeom, newState.readsPerChannelScales, rpc.xy, channelColours)
-      drawRefHeatMap(this.state.winningReferencesSVG, chartGeom, this.state.refMatchPerChannelScales, this.props.refMatchPerChannel, this.state.heatColourScale)
-      drawCurve(this.state.coverageSVG, chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
+      drawScatter(this.state.readsOverTimeSVG, this.state.chartGeom, newState.readsOverTimeScales, this.props.readsOverTime)
+      drawVerticalBarChart(this.state.readsPerChannelSVG, this.state.chartGeom, newState.readsPerChannelScales, rpc.xy, channelColours)
+      drawRefHeatMap(this.state.winningReferencesSVG, this.state.chartGeom, this.state.refMatchPerChannelScales, this.props.refMatchPerChannel, this.state.heatColourScale)
+      drawCoverage(this.state.coverageSVG, this.state.chartGeom, newState.coveragePerChannelScales, this.props.coveragePerChannel, channelColours)
 
 
       this.setState(newState)
@@ -175,32 +209,47 @@ class OverallSummary extends React.Component {
     // <button {...resetStyle} onClick={() => {console.log("reset filters")}}>
     //   reset filters
     // </button>
+    console.log("RENDER", this.state.chartGeom)
     return (
-      <div {...outerStyles}>
-        <div {...flexRowContainer}>
-          <div {...panelTitle}>
-            {`Overall Summary.
-            Total reads: ${this.props.nTotalReads}.
-            Time elapsed: ${this.props.readsOverTime.slice(-1)[0][0]}s.
-            `}
-          </div>
+      <div {...panelContainer}>
+        <div {...panelTitle}>
+          {`Overall Summary.
+          Total reads: ${this.props.nTotalReads}.
+          Time elapsed: ${this.props.readsOverTime.slice(-1)[0][0]}s.
+          `}
         </div>
-        <div {...flexRowContainer}>
-          <div {...panelElement}>
+        <div {...flexRow}>
+          <div {...chartContainer} ref={(r) => {this.panelDOMRef = r}}>
             <div {...chartTitle}>{"coverage"}</div>
-            <svg ref={(r) => {this.coverageDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            <svg
+              ref={(r) => {this.coverageDOMRef = r}}
+              height={this.state.chartGeom.height || 0}
+              width={this.state.chartGeom.width || 0}
+            />
           </div>
-          <div {...panelElement}>
+          <div {...chartContainer}>
             <div {...chartTitle}>{"Winning References"}</div>
-            <svg ref={(r) => {this.winningReferencesDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            <svg
+              ref={(r) => {this.winningReferencesDOMRef = r}}
+              height={this.state.chartGeom.height || 0}
+              width={this.state.chartGeom.width || 0}
+            />
           </div>
-          <div {...panelElement}>
+          <div {...chartContainer}>
             <div {...chartTitle}>{"Reads over time"}</div>
-            <svg ref={(r) => {this.readsOverTimeDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            <svg
+              ref={(r) => {this.readsOverTimeDOMRef = r}}
+              height={this.state.chartGeom.height || 0}
+              width={this.state.chartGeom.width || 0}
+            />
           </div>
-          <div {...panelElement}>
+          <div {...chartContainer}>
             <div {...chartTitle}>{"Number of reads per channel"}</div>
-            <svg ref={(r) => {this.readsPerChannelDOMRef = r}} height={chartGeom.height} width={chartGeom.width}/>
+            <svg
+              ref={(r) => {this.readsPerChannelDOMRef = r}}
+              height={this.state.chartGeom.height || 0}
+              width={this.state.chartGeom.width || 0}
+            />
           </div>
         </div>
       </div>
