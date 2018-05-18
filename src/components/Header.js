@@ -21,7 +21,11 @@ class Header extends React.Component {
 
         <h1>RAMPART</h1>
 
-        <h2>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</h2>
+        <h2 style={{marginTop: "-10px"}}>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</h2>
+
+        <h3 style={{marginTop: "-10px"}}>{`Status: ${this.props.status}`}</h3>
+        <h3 style={{marginTop: "-10px"}}>{`Run name: ${this.props.name}`}</h3>
+
       </div>
     )
 

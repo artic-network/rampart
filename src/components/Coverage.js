@@ -56,6 +56,7 @@ class CoveragePlot extends React.Component {
     this.state = {chartGeom: {}};
   }
   componentDidMount() {
+    console.log(this.props.annotation)
     const newState = {
       SVG: select(this.DOMref),
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())

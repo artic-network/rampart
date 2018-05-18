@@ -4,15 +4,6 @@ const cors = require('cors')
 const fs = require('fs');
 const path = require("path");
 
-// const args = process.argv.slice(2);
-// /* get plex from command line arguments */
-// let plex = 1;
-// for (let i = 0; i < args.length; i++) {
-//   if (args[i].startsWith("--plex")) {
-//     plex = parseInt(args[i].split("=")[1], 10)
-//   }
-// }
-
 const readFilePaths = [];
 const dataDir = path.join("data", "read_files"); // relative to the terminal when run, not where the source is located
 fs.readdirSync(dataDir).forEach(file => {
@@ -28,11 +19,20 @@ let processingRequest = false;
 const app = express()
 app.use(cors())
 
+app.get('/requestRunInfo', (req, res) => {
+  console.log("Begin new run")
+  readFilePathsIdx = 0; /* reset */
+  const annotation = JSON.parse(fs.readFileSync(path.join("data", "ebola_annotation.json")));
+  const data = JSON.parse(fs.readFileSync(path.join("data", "run_info.json")));
+  data.annotation = annotation;
+  res.json(data);
+});
+
 app.get('/requestReads', (req, res) => {
   if (processingRequest) {
     return res.send('still not done with the last request.');
   }
-  if (readFilePathsIdx + 1 === readFilePaths.length) {
+  if (readFilePathsIdx + 2 === readFilePaths.length) {
     return res.send('data exhausted.');
   }
   processingRequest = true

@@ -42,6 +42,7 @@ class OverallSummary extends React.Component {
             title={"Coverage"}
             coveragePerChannel={this.props.coveragePerChannel}
             version={this.props.version}
+            annotation={this.props.annotation}
             colours={channelColours}
           />
           <ReadsOverTime

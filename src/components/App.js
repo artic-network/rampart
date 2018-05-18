@@ -6,7 +6,7 @@ import LoadingStatus from "./LoadingStatus"
 import '../styles/global'; // sets global CSS
 import '../styles/fonts.css'; // sets global fonts
 import { css } from 'glamor'
-import { getData, getDataUpdate } from "../utils/getData"
+import { getData } from "../utils/getData"
 import OverallSummary from "./OverallSummary";
 const container = css({
   display: "flex",
@@ -19,10 +19,16 @@ class App extends Component {
     super(props);
     this.state = {
       data: undefined,
-      status: "App loading",
-      multiplex: 12 /*TODO don't hardcode */
+      status: "App Loading",
+      name: "",
+      samples: [],
+      annotation: {},
+      numChannels: 1 /* will be updated */
     };
     this.changeStatus = (status) => {this.setState({status})}
+    this.setRunInfo = (info) => {
+      this.setState({...info})
+    }
     this.addData = (newData) => {
       this.setState(this.calcNewState(newData))
     }
@@ -36,7 +42,7 @@ class App extends Component {
       newState.startTime = Date.now();
       newState.nTotalReads = newData.length;
       newState.readsOverTime = [[0, newData.length]];
-      const dataPerChannel = [...Array(this.state.multiplex)].map(() => []);
+      const dataPerChannel = [...Array(this.state.numChannels)].map(() => []);
       newData.forEach((res) => {
         dataPerChannel[res.channel-1].push(res); /* [0] is channel 1. How could this possible cause bugs?!? */
       })
@@ -68,7 +74,7 @@ class App extends Component {
         parseInt((Date.now() - this.state.startTime) / 1000, 10),
         this.state.nTotalReads
       ])
-      const newDataPerChannel = [...Array(this.state.multiplex)].map(() => []);
+      const newDataPerChannel = [...Array(this.state.numChannels)].map(() => []);
       newData.forEach((res) => {
         newDataPerChannel[res.channel-1].push(res);
       })
@@ -85,22 +91,19 @@ class App extends Component {
     return newState;
   }
   componentDidMount() {
-    getData(this.changeStatus, this.addData);
+    getData(this.changeStatus, this.setRunInfo, this.addData);
   }
   render() {
     return (
       <div {...container}>
-        <Header/>
-        status: {this.state.status}
-        <br/>
-        reads: {this.state.data ? this.state.data.length : "none yet"}
-        <br/>
+        <Header status={this.state.status} name={this.state.name} />
         {this.state.data ? (
           <div>
             <OverallSummary
               nTotalReads={this.state.nTotalReads}
               readsOverTime={this.state.readsOverTime}
               version={this.state.versions.reduce((tot, cv) => tot + cv)}
+              annotation={this.state.annotation}
               coveragePerChannel={this.state.coveragePerChannel}
               readsPerChannel={this.state.readsPerChannel}
               refMatchPerChannel={this.state.refMatchPerChannel}
@@ -110,6 +113,7 @@ class App extends Component {
                 key={idx}
                 reads={reads}
                 version={this.state.versions[idx]}
+                annotation={this.state.annotation}
                 coverage={this.state.coveragePerChannel[idx]}
                 readLength={this.state.readLengthPerChannel[idx]}
                 refMatch={this.state.refMatchPerChannel[idx]}

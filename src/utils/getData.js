@@ -20,23 +20,35 @@ const requestReads = (changeStatusCallback, addDataCallback) => {
       try {
         const bodyAsJson = JSON.parse(responseBodyAsText);
         const processedData = bodyAsJson.map((d) => processData(d));
+        changeStatusCallback("Periodically fetching reads");
         addDataCallback(processedData);
       } catch (e) {
         console.log(e)
-        // console.log("requestReads -> response:", responseBodyAsText)
+        // changeStatusCallback(responseBodyAsText);
       }
+    })
+    .catch((err) => {
+      console.error("Error in requestReads:", err)
+      changeStatusCallback("Error fetching data");
+    })
+}
+
+export const getData = function getData(changeStatusCallback, setRunInfoCallback, addDataCallback) {
+  changeStatusCallback("Querying server for data");
+
+  fetch("http://localhost:3001/requestRunInfo")
+    .then((res) => res.json())
+    .then((jsonData) => {
+      // console.log("setting run info to:", jsonData)
+      setRunInfoCallback(jsonData);
+      changeStatusCallback("Connected. Awaiting initial read data.");
+      setInterval(
+        () => requestReads(changeStatusCallback, addDataCallback),
+        timeBetweenUpdates
+      );
     })
     .catch((err) => {
       console.error("Error in requestReads:", err)
       changeStatusCallback("Error fetching or setting initial data from server");
     })
-}
-
-export const getData = function getData(changeStatusCallback, addDataCallback) {
-  changeStatusCallback("Querying server for data");
-  requestReads(changeStatusCallback, addDataCallback);
-  setInterval(
-    () => requestReads(changeStatusCallback, addDataCallback),
-    timeBetweenUpdates
-  );
 }

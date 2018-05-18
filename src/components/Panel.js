@@ -9,10 +9,9 @@ const panelContainerCollapsed = {
   width: "98%",
   height: "50px", // collapsed
   minHeight: "50px", // collapsed
-  // backgroundColor: "orange",
   margin: "10px 10px 10px 10px",
   transition: "height 0.5s ease-out",
-  "-webkit-transition": "height 0.5s ease-out",
+  WebkitTransition: "height 0.5s ease-out",
   border: "1px solid gray",
 }
 
@@ -62,6 +61,7 @@ class Panel extends React.Component {
               style={{width: '30%', margin: 'auto', height: "100%"}}
               title={"Coverage"}
               coveragePerChannel={[this.props.coverage]}
+              annotation={this.props.annotation}
               version={this.props.version}
               colours={["black"]}
             />
