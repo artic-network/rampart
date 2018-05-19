@@ -15,7 +15,8 @@ const panelContainer = css({
 
 export const panelTitle = css({
   "fontWeight": "bold",
-  "fontSize": "1.3em"
+  "fontSize": "1.3em",
+  "paddingLeft": "20px"
 })
 
 const flexRow = css({

@@ -37,7 +37,8 @@ const flexRowContainer = css({
 
 export const panelTitle = css({
   "fontWeight": "bold",
-  "fontSize": "1.3em"
+  "fontSize": "1.3em",
+  "paddingLeft": "20px"
 })
 
 /* TODO: make this more meaningful - lower 95th percent? */
@@ -57,10 +58,9 @@ class Panel extends React.Component {
       <div style={this.state.expanded ? panelContainerExpanded : panelContainerCollapsed}>
         <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
         <div {...panelTitle}>
-          {`#${this.props.channelNumber} ${this.props.name}.
+          {`#${this.props.channelNumber} (${this.props.name}).
           ${this.props.reads.size()} reads.
           ${averageCoverage(this.props.coverage)}x coverage.
-          Status: to do
           `}
         </div>
         {this.state.expanded ? (
