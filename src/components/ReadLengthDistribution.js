@@ -26,21 +26,21 @@ class ReadLengthDistribution extends React.Component {
     super(props);
     this.state = {chartGeom: {}};
   }
-  redraw(SVG, chartGeom, data) {
+  redraw(SVG, chartGeom, data, colour) {
     const readLengthMaxes = getMaxes(data)
     const scales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y);
     drawAxes(SVG, chartGeom, scales)
-    drawCurve(SVG, chartGeom, scales, [data], ["black"])
+    drawCurve(SVG, chartGeom, scales, [data], [colour])
   }
   componentDidMount() {
     const SVG = select(this.DOMref);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-    this.redraw(SVG, chartGeom, this.props.readLength);
+    this.redraw(SVG, chartGeom, this.props.readLength, this.props.colour);
     this.setState({SVG, chartGeom});
   }
   componentDidUpdate(prevProps) {
     if (prevProps.version !== this.props.version) {
-      this.redraw(this.state.SVG, this.state.chartGeom, this.props.readLength);
+      this.redraw(this.state.SVG, this.state.chartGeom, this.props.readLength, this.props.colour);
     }
   }
   render() {

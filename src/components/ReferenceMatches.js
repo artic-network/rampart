@@ -1,6 +1,6 @@
 import React from 'react';
 import { select } from "d3-selection";
-import {calcScales, drawAxes} from "../utils/commonFunctions";
+import {calcScales, drawXAxis} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
@@ -13,16 +13,11 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-const colours = [
-  '#b2182b',
-  '#ef8a62',
-  '#fddbc7',
-  '#d1e5f0',
-  '#67a9cf',
-  '#2166ac'
-]
 
-const drawRefChart = (svg, chartGeom, scales, data) => {
+const drawRefChart = (svg, chartGeom, scales, data, fill) => {
+  const barHeight = (chartGeom.height - chartGeom.spaceBottom - chartGeom.spaceTop) / data.length - 2;
+
+
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")
     .data(data)
@@ -30,17 +25,18 @@ const drawRefChart = (svg, chartGeom, scales, data) => {
     .attr("class", "bar")
     .attr("x", scales.x(0) + 1)
     .attr("width", d => scales.x(d.value))
-    .attr("y", (d, i) => scales.y(i) - 20)
-    .attr("height", 20)
-    .attr("fill",(d, i) => colours[i]);
+    .attr("y", (d, i) => scales.y(i) - barHeight)
+    .attr("height", barHeight)
+    .attr("fill", fill);
   /* labels */
   svg.selectAll(".text").remove();
   svg.selectAll(".text")
     .data(data)
     .enter().append("text")
     .attr("class", "text")
-    .attr("x", scales.x(0) + 1)
-    .attr("y", (d, i) => scales.y(i) - 2)
+    .attr("x", scales.x(0) + 5)
+    .attr("y", (d, i) => scales.y(i) - 0.5*barHeight)
+    .attr("alignment-baseline", "middle")
     .attr("font-family", "lato")
     .attr("font-size", "20px")
     .attr("fill", "white")
@@ -60,8 +56,8 @@ class ReferenceMatches extends React.Component {
   redraw(SVG, chartGeom, data) {
     const refMatchMax = getMaxNumReadsForRefs(data);
     const scales = calcScales(chartGeom, refMatchMax, data.length);
-    drawAxes(SVG, chartGeom, scales);
-    drawRefChart(SVG, chartGeom, scales, data);
+    drawXAxis(SVG, chartGeom, scales, 5);
+    drawRefChart(SVG, chartGeom, scales, data, this.props.colour);
   }
   componentDidMount() {
     const SVG = select(this.DOMref);

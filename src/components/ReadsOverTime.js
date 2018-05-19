@@ -15,19 +15,19 @@ const calcChartGeom = (DOMRect) => ({
 
 const getMaxsOfReadsOverTime = (readsOverTime) => {
   const finalPoint = readsOverTime.slice(-1)[0];
-  const timeMax = finalPoint[0] > 60 ? finalPoint[0] : 30;
-  const readsMax = finalPoint[1] > 10000 ? finalPoint[1] : 10000;
+  const timeMax = (parseInt(finalPoint[0]/30, 10) +1) * 30;
+  const readsMax = (parseInt(finalPoint[1]/10000, 10) +1) * 10000;
   return [timeMax, readsMax]
 }
 
 
-const drawScatter = (svg, chartGeom, scales, data) => {
+const drawScatter = (svg, chartGeom, scales, data, radius) => {
   svg.selectAll(".scatterDot").remove();
   svg.selectAll(".scatterDot")
     .data(data)
     .enter().append("circle")
     .attr("class", "scatterDot")
-    .attr("r", 5)
+    .attr("r", radius)
     .attr("cx", d => scales.x(d[0]))
     .attr("cy", d => scales.y(d[1]))
     .attr("fill", "black");
@@ -45,7 +45,7 @@ class ReadsOverTime extends React.Component {
     }
     newState.scales = calcScales(newState.chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
     drawAxes(newState.SVG, newState.chartGeom, newState.scales)
-    drawScatter(newState.SVG, newState.chartGeom, newState.scales, this.props.readsOverTime)
+    drawScatter(newState.SVG, newState.chartGeom, newState.scales, this.props.readsOverTime, 5)
     this.setState(newState);
   }
 
@@ -59,7 +59,8 @@ class ReadsOverTime extends React.Component {
         newState.scales = calcScales(this.state.chartGeom, ...timeMaxReadsMax);
         drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
       }
-      drawScatter(this.state.SVG, this.state.chartGeom, newState.scales, this.props.readsOverTime)
+      const radius = timeMaxReadsMax[0] > 60 ? 2 : 5;
+      drawScatter(this.state.SVG, this.state.chartGeom, newState.scales, this.props.readsOverTime, radius)
       this.setState(newState)
     }
   }

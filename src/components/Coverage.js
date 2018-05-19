@@ -43,7 +43,7 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
 
   primersSel.append("rect")
     .attr("class", "primer")
-    .attr("x", (name) => {console.log(name); return scales.x(primers[name].forward[0])})
+    .attr("x", (name) => scales.x(primers[name].forward[0]))
     .attr("y", (d, i) => i%2 ? primerRoof : primerRoof + primerHeight)
     .attr("width", (name) => scales.x(primers[name]["reverse"][1]) - scales.x(primers[name].forward[0]))
     .attr("height", primerHeight)
@@ -95,13 +95,16 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-const getMaxCoverage = (coveragePerChannel) =>
-  coveragePerChannel.reduce((outerAcc, channelData) => {
+const getMaxCoverage = (coveragePerChannel) => {
+  const trueMax = coveragePerChannel.reduce((outerAcc, channelData) => {
     const channelMax = channelData.reduce((innerAcc, point) => {
       return point.value > innerAcc ? point.value : innerAcc;
     }, 0);
     return channelMax > outerAcc ? channelMax : outerAcc;
-  }, 0)
+  }, 0);
+  return (parseInt(trueMax / 50, 10) + 1) * 50;
+}
+
 
 class CoveragePlot extends React.Component {
   constructor(props) {
@@ -109,7 +112,6 @@ class CoveragePlot extends React.Component {
     this.state = {chartGeom: {}};
   }
   componentDidMount() {
-    console.log("ANN", this.props.annotation)
     const newState = {
       SVG: select(this.DOMref),
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())

@@ -3,6 +3,7 @@ import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
 import ReferenceMatches from "./ReferenceMatches";
+import {channelColours} from "../utils/commonStyles";
 
 const panelContainerCollapsed = {
   position: "relative",
@@ -46,7 +47,10 @@ const averageCoverage = (data) =>
 class Panel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {expanded: false}
+    this.state = {
+      expanded: false,
+      colour: channelColours[props.channelNumber - 1]
+    }
   }
   render() {
     return (
@@ -67,19 +71,21 @@ class Panel extends React.Component {
               coveragePerChannel={[this.props.coverage]}
               annotation={this.props.annotation}
               version={this.props.version}
-              colours={["black"]}
+              colours={[this.state.colour]}
             />
             <ReadLengthDistribution
               style={{width: '30%', margin: 'auto', height: "100%"}}
               title={"Read Lengths"}
               readLength={this.props.readLength}
               version={this.props.version}
+              colour={this.state.colour}
             />
             <ReferenceMatches
               style={{width: '30%', margin: 'auto', height: "100%"}}
               title={"Reference Matches"}
               refMatch={this.props.refMatch}
               version={this.props.version}
+              colour={this.state.colour}
             />
           </div>
         ) : null}

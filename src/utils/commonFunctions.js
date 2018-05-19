@@ -15,7 +15,7 @@ const removeYAxis = (svg) => {
   svg.selectAll(".y.axis").remove();
 };
 
-export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {
+export const drawXAxis = (svg, chartGeom, scales, numTicks) => {
   removeXAxis(svg);
   svg.append("g")
     .attr("class", "x axis")
@@ -23,6 +23,9 @@ export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {
     .style("font-family", dataFont)
     .style("font-size", "12px")
     .call(axisBottom(scales.x).ticks(numTicks.x));
+}
+
+export const drawYAxis = (svg, chartGeom, scales, numTicks) => {
   removeYAxis(svg);
   svg.append("g")
     .attr("class", "y axis")
@@ -30,7 +33,13 @@ export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {
     .style("font-family", dataFont)
     .style("font-size", "12px")
     .call(axisLeft(scales.y).ticks(numTicks.y));
+}
+
+export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {
+  drawXAxis(svg, chartGeom, scales, numTicks.x)
+  drawYAxis(svg, chartGeom, scales, numTicks.y)
 };
+
 export const calcScales = (chartGeom, maxX, maxY) => {
   return {
     x: scaleLinear()

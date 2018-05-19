@@ -15,12 +15,15 @@ const calcChartGeom = (DOMRect) => ({
 
 const processReadsPerChannel = (readsPerChannel) => {
   const xy = readsPerChannel.map((cf, idx) => [idx+1, cf.size()]);
+  const trueMaxY = xy.reduce((max, cv) => cv[1] > max ? cv[1] : max, 0);
   return {
     xy,
     maxX: readsPerChannel.length,
-    maxY: xy.reduce((max, cv) => cv[1] > max ? cv[1] : max, 0)
+    maxY: (parseInt(trueMaxY/1000, 10) +1) * 1000
   }
 }
+
+const barWidth = 16;
 
 const drawBars = (svg, chartGeom, scales, data, fills) => {
   svg.selectAll(".bar").remove();
@@ -28,8 +31,8 @@ const drawBars = (svg, chartGeom, scales, data, fills) => {
     .data(data)
     .enter().append("rect")
     .attr("class", "bar")
-    .attr("x", d => scales.x(d[0]))
-    .attr("width", 10) // TODO
+    .attr("x", d => scales.x(d[0]) - barWidth/2)
+    .attr("width", barWidth)
     .attr("y", d => scales.y(d[1]))
     .attr("fill",(d, i) => fills[i])
     .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d[1]));
