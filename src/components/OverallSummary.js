@@ -8,8 +8,8 @@ import {channelColours} from "../utils/commonStyles";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
-  height: "300px",
-  minHeight: "300px", // TODO
+  height: "350px", /* adjusting these will also adjust the graphs */
+  minHeight: "350px",
   margin: "10px 10px 10px 10px"
 })
 

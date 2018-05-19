@@ -17,8 +17,8 @@ const panelContainerCollapsed = {
 
 const panelContainerExpanded = {
   ...panelContainerCollapsed,
-  height: "300px",
-  minHeight: "300px",
+  height: "350px",
+  minHeight: "350px",
 }
 
 const ExpandToggle = ({open, callback}) => (

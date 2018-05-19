@@ -28,11 +28,32 @@ export const drawCurve = (svg, chartGeom, scales, data, colours) => {
 
 
 /* draw the genes (annotations) */
-const drawGenes = (svg, chartGeom, scales, annotation) => {
-  svg.selectAll(".annotation").remove();
+const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
+  // svg.selectAll(".gene").remove(); /* only added once, don't need to remove what's not there */
+
+  const primers = annotation.primers
+  const primerNames = Object.keys(primers);
+  const primerHeight = 8;
+  const primerRoof = chartGeom.height - chartGeom.spaceBottom + 20; /* all primers & genes below this */
+
+  const primersSel = svg.selectAll(".primer")
+    .data(primerNames)
+    .enter()
+    .append("g");
+
+  primersSel.append("rect")
+    .attr("class", "primer")
+    .attr("x", (name) => {console.log(name); return scales.x(primers[name].forward[0])})
+    .attr("y", (d, i) => i%2 ? primerRoof : primerRoof + primerHeight)
+    .attr("width", (name) => scales.x(primers[name]["reverse"][1]) - scales.x(primers[name].forward[0]))
+    .attr("height", primerHeight)
+    .style("fill", "black")
+    .style("stroke", "none");
+
+
   const geneHeight = 15;
-  const spaceAvailable = chartGeom.spaceBottom - 10; /* allow for x labels */
-  const geneYLinePositiveStrand = chartGeom.height - spaceAvailable + geneHeight;
+  const geneRoof = primerRoof + 2*primerHeight + 5;
+  const calcYOfGene = (name) => genes[name].strand === 1 ? geneRoof : geneRoof+geneHeight;
 
   const genes = annotation.genes
   const geneNames = Object.keys(annotation.genes);
@@ -44,21 +65,23 @@ const drawGenes = (svg, chartGeom, scales, annotation) => {
 
   genesSel.append("rect")
     .attr("class", "gene")
-    .attr("x", (name) => {console.log(name); return scales.x(genes[name].start)})
-    .attr("y", (name) => genes[name].strand === 1 ? geneYLinePositiveStrand : geneYLinePositiveStrand-geneHeight)
+    .attr("x", (name) => scales.x(genes[name].start))
+    .attr("y", calcYOfGene)
     .attr("width", (name) => scales.x(genes[name].end) - scales.x(genes[name].start))
     .attr("height", geneHeight)
     .style("fill", "none")
     .style("stroke", "black");
 
+  /* https://bl.ocks.org/emmasaunders/0016ee0a2cab25a643ee9bd4855d3464 for text attr values */
   genesSel.append("text")
     .attr("x", (name) => scales.x(genes[name].start) + (scales.x(genes[name].end) - scales.x(genes[name].start))/2)
-    .attr("y", (name) => genes[name].strand === 1 ? geneYLinePositiveStrand : geneYLinePositiveStrand-geneHeight)
-    .attr("dy", ".9em")
-    .attr("text-anchor", "middle")
-    .attr("alignment-baseline", "ideographic")
+    .attr("y", calcYOfGene)
+    .attr("dy", "2px") /* positive values bump down text */
+    .attr("text-anchor", "middle") /* centered horizontally */
+    .attr("font-size", "14px")
+    .attr("alignment-baseline", "hanging") /* i.e. y value specifies top of text */
     .style("fill", "black")
-    .text((name) => name);
+    .text((name) => name.length > 3 ? "" : name);
 };
 
 
@@ -94,8 +117,8 @@ class CoveragePlot extends React.Component {
     newState.scales = calcScales(newState.chartGeom, this.props.annotation.genome.length, getMaxCoverage(this.props.coveragePerChannel));
     drawAxes(newState.SVG, newState.chartGeom, newState.scales)
     drawCurve(newState.SVG, newState.chartGeom, newState.scales, this.props.coveragePerChannel, this.props.colours)
+    drawGenomeAnnotation(newState.SVG, newState.chartGeom, newState.scales, this.props.annotation);
     this.setState(newState);
-    drawGenes(newState.SVG, newState.chartGeom, newState.scales, this.props.annotation)
   }
 
   componentDidUpdate(prevProps) {
