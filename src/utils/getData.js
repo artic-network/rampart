@@ -13,8 +13,10 @@ const processData = (d) => ({
 
 const timeBetweenUpdates = 2000;
 
+const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
+
 const requestReads = (changeStatusCallback, addDataCallback) => {
-  fetch("http://localhost:3001/requestReads")
+  fetch(`${prefix}/requestReads`)
     .then((res) => res.text()) // should never fail
     .then((responseBodyAsText) => {
       try {
@@ -36,7 +38,7 @@ const requestReads = (changeStatusCallback, addDataCallback) => {
 export const getData = function getData(changeStatusCallback, setRunInfoCallback, addDataCallback) {
   changeStatusCallback("Querying server for data");
 
-  fetch("http://localhost:3001/requestRunInfo")
+  fetch(`${prefix}/requestRunInfo`)
     .then((res) => res.json())
     .then((jsonData) => {
       // console.log("setting run info to:", jsonData)
