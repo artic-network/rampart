@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require("path");
 
 const readFilePaths = [];
-const dataDir = path.join("data", "read_files"); // relative to the terminal when run, not where the source is located
+const dataDir = path.join(__dirname, "..", "data", "read_files"); // relative to the terminal when run, not where the source is located
 fs.readdirSync(dataDir).forEach(file => {
   const filePath = path.join(dataDir, file);
   if (fs.lstatSync(filePath).isFile()) {
@@ -22,8 +22,8 @@ app.use(cors())
 app.get('/requestRunInfo', (req, res) => {
   console.log("Begin new run")
   readFilePathsIdx = 0; /* reset */
-  const annotation = JSON.parse(fs.readFileSync(path.join("data", "ebola_annotation.json")));
-  const data = JSON.parse(fs.readFileSync(path.join("data", "run_info.json")));
+  const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "ebola_annotation.json")));
+  const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "run_info.json")));
   data.annotation = annotation;
   res.json(data);
 });
@@ -50,4 +50,13 @@ app.get('/requestReads', (req, res) => {
     })
 })
 
-app.listen(3001, () => console.log('Development MinIon data generator running. Rampart Frontend should now work.'))
+/* serve the html & javascript */
+// https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#deployment
+app.use(express.static(path.join(__dirname, "..", 'build')));
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, "..", 'build', 'index.html'));
+});
+
+app.set('port', process.env.PORT || 3001);
+app.listen(app.get('port'), () => console.log('Development MinIon data generator running. Rampart Frontend should now work.'))
