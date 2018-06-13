@@ -1,18 +1,10 @@
 {
   "samples": [
-    "PL78344",
-    "J00314",
-    "MK27245",
-    "LIBR02866",
-    "G6012.0",
-    "J00366",
-    "PL76266",
-    "V20146578tmp",
-    "EG_FORE_2015-1971",
-    "EG_079450",
-    "V16895",
-    "MK29050"
+  	"zero",
+    "barcode01",
+    "barcode03",
+    "barcode04"
   ],
-  "name": "Example Ebola Run",
-  "numChannels": 12
+  "name": "EBOV Validation Run",
+  "numChannels": 3
 }
