@@ -11,6 +11,8 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import mappy as mp
 
+barcodes = [ "barcode01", "barcode03", "barcode04" ]
+
 count = 0
 read_mappings = []
 
@@ -50,7 +52,12 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 			end = h.r_en
 			identity = h.mlen / h.blen
 		
-			line = '"{}","{}","{}","{}","{}"\n'.format(barcode, h.ctg, start, end, identity)
+			if barcode not in barcodes:
+				raise ValueError('unknown barcode')
+			
+			index = barcodes.index(barcode) + 1
+			
+			line = '"{}","{}","{}","{}","{}"\n'.format(index, h.ctg, start, end, identity)
 
 			read_mappings.append(line)
 
