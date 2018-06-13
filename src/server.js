@@ -1,5 +1,4 @@
 const express = require('express')
-const csv = require('csvtojson')
 const cors = require('cors')
 const fs = require('fs');
 const path = require("path");
@@ -13,42 +12,60 @@ fs.readdirSync(dataDir).forEach(file => {
   }
 })
 console.log("There are ", readFilePaths.length, "read files available.\n")
-let readFilePathsIdx = 0;
-let processingRequest = false;
 
 const app = express()
 app.use(cors())
 
+let filenamesRead = [];
+
+/* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
 app.get('/requestRunInfo', (req, res) => {
   console.log("Begin new run")
-  readFilePathsIdx = 0; /* reset */
   const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "ebola_annotation.json")));
   const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "run_info.json")));
   data.annotation = annotation;
+  filenamesRead = []; // frontend has restarted - it needs all the data!
   res.json(data);
 });
+
+
+/* FRONTEND REQUEST READS */
+let processingRequest = false;
+
+const stripQuotes = (el) => el.substr(1, el.length-2)
 
 app.get('/requestReads', (req, res) => {
   if (processingRequest) {
     return res.send('still not done with the last request.');
   }
-  if (readFilePathsIdx + 2 === readFilePaths.length) {
-    return res.send('data exhausted.');
-  }
-  processingRequest = true
+  console.log("requestReads...")
   const data = [];
-  csv({noheader: false})
-    .fromFile(readFilePaths[readFilePathsIdx])
-    .on('csv', (row) => {
-      //          "channel",          "reference",  "start",              "end",                "identity"
-      data.push([parseInt(row[0], 10), row[1],  parseInt(row[2], 10), parseInt(row[3], 10), parseInt(row[4], 10)])
-    })
-    .on('done', () => {
-      res.json(data);
-      processingRequest = false;
-      readFilePathsIdx++;
-    })
+  // syncronously scan the files & read them. TODO: time this code
+  fs.readdirSync(path.join(__dirname, "..", "data", "real_time_reads")).forEach((file) => {
+    if (filenamesRead.indexOf(file) === -1) {
+      console.log("use ", file)
+
+      const rows = fs.readFileSync(path.join(__dirname, "..", "data", "real_time_reads", file), 'utf8').split("\n");
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i].split(",").map(stripQuotes)
+        if (row.length === 5) {
+          //          "channel",          "reference",  "start",              "end",                "identity"
+          data.push([parseInt(row[0], 10), row[1],  parseInt(row[2], 10), parseInt(row[3], 10), parseInt(row[4], 10)])
+        }
+      }
+      filenamesRead.push(file) // don't use again
+    }
+  })
+  if (data.length) {
+    res.json(data);
+    processingRequest = false;
+  } else {
+    res.send('No more reads at this time.')
+    processingRequest = false;
+  }
 })
+
+
 
 /* serve the html & javascript */
 // https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#deployment

@@ -25,8 +25,8 @@ const requestReads = (changeStatusCallback, addDataCallback) => {
         changeStatusCallback("Periodically fetching reads");
         addDataCallback(processedData);
       } catch (e) {
-        console.log(e)
-        // changeStatusCallback(responseBodyAsText);
+        console.log(responseBodyAsText)
+        changeStatusCallback(responseBodyAsText);
       }
     })
     .catch((err) => {
