@@ -1,4 +1,4 @@
-import { scaleLinear } from "d3-scale";
+import { scaleLinear, scaleOrdinal } from "d3-scale";
 import { axisBottom, axisLeft } from "d3-axis";
 
 const dataFont = "Lato"; // should be centralised
@@ -45,6 +45,18 @@ export const calcScales = (chartGeom, maxX, maxY) => {
     x: scaleLinear()
       .domain([0, maxX])
       .range([chartGeom.spaceLeft, chartGeom.width - chartGeom.spaceRight]),
+    y: scaleLinear()
+      .domain([0, maxY])
+      .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
+  }
+}
+
+export const calcScalesOrdinalX = (chartGeom, nX, maxY) => {
+  const xRangePerPoint = (chartGeom.width - chartGeom.spaceRight - chartGeom.spaceLeft) / nX;
+  return {
+    x: scaleOrdinal()
+      .domain([...Array(nX).keys()].map(x => x+1))
+      .range([...Array(nX).keys()].map(x => (x+1)*xRangePerPoint + chartGeom.spaceLeft)),
     y: scaleLinear()
       .domain([0, maxY])
       .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])

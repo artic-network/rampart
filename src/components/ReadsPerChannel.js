@@ -1,6 +1,6 @@
 import React from 'react';
 import { select } from "d3-selection";
-import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
+import {haveMaxesChanged, calcScalesOrdinalX, drawAxes} from "../utils/commonFunctions";
 import {channelColours, chartTitleCSS} from "../utils/commonStyles";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
@@ -50,7 +50,7 @@ class ReadsPerChannel extends React.Component {
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
     }
     const rpc = processReadsPerChannel(this.props.readsPerChannel);
-    newState.scales = calcScales(newState.chartGeom, rpc.maxX, rpc.maxY);
+    newState.scales = calcScalesOrdinalX(newState.chartGeom, rpc.maxX, rpc.maxY);
     drawAxes(newState.SVG, newState.chartGeom, newState.scales)
     drawBars(newState.SVG, newState.chartGeom, newState.scales, rpc.xy, channelColours)
     this.setState(newState);
@@ -63,7 +63,7 @@ class ReadsPerChannel extends React.Component {
       };
       const rpc = processReadsPerChannel(this.props.readsPerChannel);
       if (haveMaxesChanged(this.state.scales, rpc.maxX, rpc.maxY)) {
-        newState.scales = calcScales(this.state.chartGeom, rpc.maxX, rpc.maxY);
+        newState.scales = calcScalesOrdinalX(this.state.chartGeom, rpc.maxX, rpc.maxY);
         drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
       }
       drawBars(this.state.SVG, this.state.chartGeom, newState.scales, rpc.xy, channelColours)
