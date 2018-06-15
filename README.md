@@ -19,7 +19,10 @@ in development
 
 ## Live mapping from Albacore
 * start Albacore:
+
 ```read_fast5_basecaller.py --resume -c r94_450bps_linear.cfg -i MinKNOW/data/reads/ -s basecalled_reads -o fastq -t 4 -r --barcoding -q 1000 -t 20```
 
 * start mapping daemon:
+
 ```scripts/read_mapping_daemon.py -r ../artic-ebov/reference_genomes/ebov-reference-genomes-10.fasta -n 1000 -m basecalled_reads/workspace/pass data/real_time_reads/```
+
