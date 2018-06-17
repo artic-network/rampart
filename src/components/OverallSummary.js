@@ -38,7 +38,7 @@ class OverallSummary extends React.Component {
         </div>
         <div {...flexRow}>
           <CoveragePlot
-            style={{width: '25%', margin: 'auto', height: "100%"}}
+            style={{width: '35%', margin: 'auto', height: "100%"}}
             title={"Coverage"}
             coveragePerChannel={this.props.coveragePerChannel}
             version={this.props.version}
@@ -52,7 +52,7 @@ class OverallSummary extends React.Component {
             version={this.props.version}
           />
           <ReadsPerChannel
-            style={{width: '25%', margin: 'auto', height: "100%"}}
+            style={{width: '15%', margin: 'auto', height: "100%"}}
             title={"Total Reads per Channel"}
             readsPerChannel={this.props.readsPerChannel}
             version={this.props.version}
