@@ -10,7 +10,7 @@ import {chartTitleCSS} from "../utils/commonStyles";
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 60,
+  spaceLeft: 280,
   spaceRight: 10,
   spaceBottom: 60,
   spaceTop: 10
@@ -47,7 +47,7 @@ const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
       .attr('y', (d, i) => scales.y(i+1) + 0.5*cellDims.height) /* +1 as that's what we do in the data reduction above */
       .attr('x', chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
-      .attr("font-size", "16px")
+      .attr("font-size", "12px")
       .attr("alignment-baseline", "middle") /* i.e. y value specifies top of text */
 
   svg.selectAll(".channel")
@@ -75,7 +75,7 @@ const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
 
 
   const legendDataValues = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const legendBoxWidth = (chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / (legendDataValues.length -1);
+  const legendBoxWidth = (chartGeom.width - chartGeom.spaceRight) / (legendDataValues.length -1);
   const legendBoxHeight = 12;
   const legendRoof = chartGeom.height - chartGeom.spaceBottom + 32;
 
@@ -86,14 +86,14 @@ const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
 
   legend.append("rect")
     .attr('y', legendRoof)
-    .attr("x", (d, i) => chartGeom.spaceLeft + legendBoxWidth * i)
+    .attr("x", (d, i) => legendBoxWidth * i)
     .attr("width", legendBoxWidth)
     .attr("height", legendBoxHeight)
     .style("fill", (d) => colourScale(d));
 
   legend.append("text")
     .text((d, i) => i ? d+"%" : "")
-    .attr('x', (d, i) => chartGeom.spaceLeft + legendBoxWidth * i)
+    .attr('x', (d, i) => legendBoxWidth * i)
     .attr('y', legendRoof + legendBoxHeight + 2)
     .attr("text-anchor", "middle")
     .attr("font-size", "12px")
