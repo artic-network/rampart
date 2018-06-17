@@ -23,7 +23,7 @@ const processReadsPerChannel = (readsPerChannel) => {
   }
 }
 
-const barWidth = 16;
+const barWidth = 32;
 
 const drawBars = (svg, chartGeom, scales, data, fills) => {
   svg.selectAll(".bar").remove();
