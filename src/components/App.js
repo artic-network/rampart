@@ -63,7 +63,7 @@ class App extends Component {
       This only needs to be done once - it automagically updates! */
       newState.coveragePerChannel = newState.readsPerChannel.map((r) =>
         r.dimension((d) => d.location)
-          .group((d) => Math.ceil(d/100)*100) /* this makes a histogram with x values (bases) rounded to closest 100 */
+          .group((d) => Math.ceil(d/1000)*1000) /* this makes a histogram with x values (bases) rounded to closest 1000 */
           .all()
       )
       newState.readLengthPerChannel = newState.readsPerChannel.map((r) =>
