@@ -17,11 +17,11 @@ class Header extends React.Component {
     return (
       <div {...child}>
         {"RAMPART is built by "}
-        <a href={"https://twitter.com/hamesjadfield"}>James Hadfield</a>
+        <a href={"https://twitter.com/hamesjadfield"} target="_blank" >James Hadfield</a>
         {", "}
-        <a href={"https://twitter.com/pathogenomenick"}>Nick Loman</a>
+        <a href={"https://twitter.com/pathogenomenick"} target="_blank" >Nick Loman</a>
         {" and "}
-        <a href={"https://twitter.com/arambaut"}>Andrew Rambaut</a>
+        <a href={"https://twitter.com/arambaut"} target="_blank" >Andrew Rambaut</a>
         {"."}
       </div>
     )
