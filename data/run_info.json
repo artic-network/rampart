@@ -5,6 +5,18 @@
     "barcode03",
     "barcode04"
   ],
+  "referenceLabels": [
+	"Yambuku-Mayinga|DRC|1976",
+	"Kikwit-807223|DRC|1995",
+	"Boende-Lokolia|DRC|2014",
+	"Gabon|Gabon|1994",
+	"1Eko|Gabon|1996",
+	"1Ikot|Gabon|1996",
+	"9_Luebo|DRC|2007",
+	"Ilembe|Gabon|2002",
+	"Kelle_1|DRC|2003",
+	"Makona-Gueckedou-C07|Guinea|2014"
+  ],
   "name": "EBOV Validation Run",
   "numChannels": 3
 }
