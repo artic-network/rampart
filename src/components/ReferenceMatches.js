@@ -38,9 +38,11 @@ const drawRefChart = (svg, chartGeom, scales, data, fill) => {
     .attr("y", (d, i) => scales.y(i) - 0.5*barHeight)
     .attr("alignment-baseline", "middle")
     .attr("font-family", "lato")
-    .attr("font-size", "20px")
+      .attr("font-size", "15px")
     .attr("fill", "white")
-    .text(d => d.key);
+      .attr("stroke", "black")
+      .attr("stroke-width", "0.25px")
+      .text(d => d.key);
 
 }
 
