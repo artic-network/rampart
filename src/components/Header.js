@@ -5,7 +5,9 @@ import { css } from 'glamor'
 const child = css({
   width: '100%',
   margin: 'auto',
-
+  background: '#005C68',
+  color: '#F6EECA',
+  borderRadius: '5px'
 })
 
 class Header extends React.Component {
