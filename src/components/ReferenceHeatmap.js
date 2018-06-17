@@ -120,7 +120,8 @@ class ReferenceHeatmap extends React.Component {
       .domain([0, 100])
       // .range(heatColours)
       .interpolate(interpolateHcl)
-        .range([rgb('#D8E6E7'), rgb('#218380')]
+      .range([rgb('#F6EECA'), rgb('#F1605D')]
+        // .range([rgb('#D8E6E7'), rgb('#218380')]
       // .range([rgb("#007AFF"), rgb('#FFF500')]
       );
     // console.log(this.props.refMatchPerChannel);
