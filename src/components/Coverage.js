@@ -1,6 +1,6 @@
 import React from 'react';
 import { select } from "d3-selection";
-import { line, curveCatmullRom } from "d3-shape";
+import { line, curveCatmullRom, curveStep } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 
@@ -10,7 +10,8 @@ export const drawCurve = (svg, chartGeom, scales, data, colours) => {
   const makeLinePath = line()
     .x((d) =>scales.x(d.key))
     .y((d) =>scales.y(d.value))
-    .curve(curveCatmullRom.alpha(0.3));
+      .curve(curveStep);
+    // .curve(curveCatmullRom.alpha(0.3));
 
   svg.selectAll(".line").remove();
   try {
