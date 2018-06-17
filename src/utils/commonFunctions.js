@@ -56,7 +56,7 @@ export const calcScalesOrdinalX = (chartGeom, nX, maxY) => {
   return {
     x: scaleOrdinal()
       .domain([...Array(nX).keys()].map(x => x+1))
-      .range([...Array(nX).keys()].map(x => (x+1)*xRangePerPoint + chartGeom.spaceLeft)),
+      .range([...Array(nX).keys()].map(x => (x+1)*xRangePerPoint)),
     y: scaleLinear()
       .domain([0, maxY])
       .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
