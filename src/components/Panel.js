@@ -14,6 +14,8 @@ const panelContainerCollapsed = {
   transition: "height 0.5s ease-out",
   WebkitTransition: "height 0.5s ease-out",
   border: "1px solid gray",
+    borderRadius: "5px",
+    borderLeft: "5px solid gray",
 }
 
 const panelContainerExpanded = {
@@ -38,7 +40,7 @@ const flexRowContainer = css({
 export const panelTitle = css({
   "fontWeight": "bold",
   "fontSize": "1.3em",
-  "paddingLeft": "20px"
+  "paddingLeft": "20px",
 })
 
 /* TODO: make this more meaningful - lower 95th percent? */
@@ -54,8 +56,9 @@ class Panel extends React.Component {
     }
   }
   render() {
+    let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };
     return (
-      <div style={this.state.expanded ? panelContainerExpanded : panelContainerCollapsed}>
+      <div style={panelStyles}>
         <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
         <div {...panelTitle}>
           {`#${this.props.channelNumber} (${this.props.name}).
