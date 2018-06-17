@@ -120,7 +120,10 @@ class ReferenceHeatmap extends React.Component {
       .domain([0, 100])
       // .range(heatColours)
       .interpolate(interpolateHcl)
-      .range([rgb("#007AFF"), rgb('#FFF500')]);
+        .range([rgb('#D8E6E7'), rgb('#218380')]
+      // .range([rgb("#007AFF"), rgb('#FFF500')]
+      );
+    // console.log(this.props.refMatchPerChannel);
     drawHeatMap(SVG, chartGeom, scales, cellDims, this.props.refMatchPerChannel, heatColourScale)
     this.setState({SVG, chartGeom, cellDims, scales, heatColourScale});
   }

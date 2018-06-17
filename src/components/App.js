@@ -110,7 +110,6 @@ class App extends Component {
         <Header status={this.state.status} name={this.state.name} />
         {this.state.data ? (
           <div>
-            <Line/>
             <OverallSummary
               nTotalReads={this.state.nTotalReads}
               readsOverTime={this.state.readsOverTime}
@@ -120,7 +119,6 @@ class App extends Component {
               readsPerChannel={this.state.readsPerChannel}
               refMatchPerChannel={this.state.refMatchPerChannel}
             />
-            <Line/>
             {this.state.readsPerChannel.map((reads, idx) => (
               <Panel
                 key={idx}

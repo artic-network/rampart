@@ -47,7 +47,7 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
     .attr("y", (d, i) => i%2 ? primerRoof : primerRoof + primerHeight)
     .attr("width", (name) => scales.x(primers[name]["reverse"][1]) - scales.x(primers[name].forward[0]))
     .attr("height", primerHeight)
-    .style("fill", "black")
+    .style("fill", "lightgray")
     .style("stroke", "none");
 
 
@@ -70,7 +70,7 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
     .attr("width", (name) => scales.x(genes[name].end) - scales.x(genes[name].start))
     .attr("height", geneHeight)
     .style("fill", "none")
-    .style("stroke", "black");
+    .style("stroke", "gray");
 
   /* https://bl.ocks.org/emmasaunders/0016ee0a2cab25a643ee9bd4855d3464 for text attr values */
   genesSel.append("text")
