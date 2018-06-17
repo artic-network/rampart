@@ -12,6 +12,7 @@ if __name__ == '__main__':
     See the real read_mapping_daemon for actual reads.
     """
 
+    indir = "./data/read_files/"
     outdir = "./data/real_time_reads/"
     print("Mock read mapping daemon running. Files produced in {}.".format(outdir))
 
@@ -23,13 +24,15 @@ if __name__ == '__main__':
     for f in files:
         os.remove(f)
 
+	
+    source_files = glob.glob(indir + "*")
 
     i = 0;
     while True:
         # produce a mapped read around 30% of the time
         if random.random() > 0.7:
-            i+=1
             new_read_path = outdir + "mapped_" + datetime.datetime.now().isoformat() + '.csv'
-            old_read_path = "./data/read_files/reads_1k_{}.csv".format(i)
+            old_read_path = source_files[i]
+            i+=1
             shutil.copyfile(old_read_path, new_read_path)
         time.sleep(1)
