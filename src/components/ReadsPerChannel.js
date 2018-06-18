@@ -2,6 +2,7 @@ import React from 'react';
 import { select } from "d3-selection";
 import {haveMaxesChanged, calcScalesOrdinalX, drawAxes} from "../utils/commonFunctions";
 import {channelColours, chartTitleCSS} from "../utils/commonStyles";
+import {scaleLinear, scaleOrdinal} from "d3-scale";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -23,16 +24,28 @@ const processReadsPerChannel = (readsPerChannel) => {
   }
 }
 
-const barWidth = 32;
+const calcScales = (chartGeom, nX, maxY) => {
+    const xRangePerPoint = (chartGeom.width - chartGeom.spaceRight - chartGeom.spaceLeft) / nX;
+    return {
+        x: scaleOrdinal()
+            .domain([...Array(nX).keys()].map(x => x+1))
+            .range([...Array(nX).keys()].map(x => (x+1)*xRangePerPoint + (chartGeom.spaceLeft / 2))),
+        y: scaleLinear()
+            .domain([0, maxY])
+            .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
+    }
+}
 
-const drawBars = (svg, chartGeom, scales, data, fills) => {
+const columnWidth = 32;
+
+const drawColumns = (svg, chartGeom, scales, data, fills) => {
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")
     .data(data)
     .enter().append("rect")
     .attr("class", "bar")
-    .attr("x", d => scales.x(d[0]) - barWidth/2)
-    .attr("width", barWidth)
+    .attr("x", d => scales.x(d[0]) - columnWidth/2)
+    .attr("width", columnWidth)
     .attr("y", d => scales.y(d[1]))
     .attr("fill",(d, i) => fills[i])
     .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d[1]));
@@ -50,9 +63,9 @@ class ReadsPerChannel extends React.Component {
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
     }
     const rpc = processReadsPerChannel(this.props.readsPerChannel);
-    newState.scales = calcScalesOrdinalX(newState.chartGeom, rpc.maxX, rpc.maxY);
+    newState.scales = calcScales(newState.chartGeom, rpc.maxX, rpc.maxY);
     drawAxes(newState.SVG, newState.chartGeom, newState.scales)
-    drawBars(newState.SVG, newState.chartGeom, newState.scales, rpc.xy, channelColours)
+    drawColumns(newState.SVG, newState.chartGeom, newState.scales, rpc.xy, channelColours)
     this.setState(newState);
   }
 
@@ -63,10 +76,10 @@ class ReadsPerChannel extends React.Component {
       };
       const rpc = processReadsPerChannel(this.props.readsPerChannel);
       if (haveMaxesChanged(this.state.scales, rpc.maxX, rpc.maxY)) {
-        newState.scales = calcScalesOrdinalX(this.state.chartGeom, rpc.maxX, rpc.maxY);
+        newState.scales = calcScales(this.state.chartGeom, rpc.maxX, rpc.maxY);
         drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
       }
-      drawBars(this.state.SVG, this.state.chartGeom, newState.scales, rpc.xy, channelColours)
+      drawColumns(this.state.SVG, this.state.chartGeom, newState.scales, rpc.xy, channelColours)
       this.setState(newState)
     }
   }
