@@ -51,7 +51,7 @@ export const channelColours7 = [
     "#4F6D7A",
     "#56A3A6"]
 
-export const channelColours = channelColours7;
+export const channelColours = channelColours6;
 
 export const chartTitleCSS = css({
   textAlign: "center",
