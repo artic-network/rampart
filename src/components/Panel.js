@@ -8,8 +8,8 @@ import {channelColours} from "../utils/commonStyles";
 const panelContainerCollapsed = {
   position: "relative",
   width: "98%",
-  height: "50px", // collapsed
-  minHeight: "50px", // collapsed
+  height: "30px", // collapsed
+  minHeight: "30px", // collapsed
   margin: "10px 10px 10px 10px",
   transition: "height 0.5s ease-out",
   WebkitTransition: "height 0.5s ease-out",
@@ -69,7 +69,7 @@ class Panel extends React.Component {
         {this.state.expanded ? (
           <div {...flexRowContainer}>
             <CoveragePlot
-              style={{width: '30%', margin: 'auto', height: "100%"}}
+              style={{width: '35%', margin: 'auto', height: "100%"}}
               title={"Coverage"}
               coveragePerChannel={[this.props.coverage]}
               annotation={this.props.annotation}
@@ -84,7 +84,7 @@ class Panel extends React.Component {
               colour={this.state.colour}
             />
             <ReferenceMatches
-              style={{width: '30%', margin: 'auto', height: "100%"}}
+              style={{width: '25%', margin: 'auto', height: "100%"}}
               title={"Reference Matches"}
               refMatch={this.props.refMatch}
               version={this.props.version}
