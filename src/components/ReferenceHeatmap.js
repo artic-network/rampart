@@ -31,15 +31,31 @@ const calcCellDims = (chartGeom, cfData) => {
 
 const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
   /* step1 : flatten cfData */
-  /* data point structure for d3: [channel # (1-based),  ref idx (1-based), ref match % (over [0, 100])] */
+
+  const references = [];
+  cfData.forEach((outerObj) => {
+    outerObj.forEach((innerObj) => {
+      if (references.indexOf(innerObj.key) === -1) {
+        references.push(innerObj.key)
+      }
+    })
+  });
+  const referencesIdxLookup = {};
+  references.forEach((cv, idx) => {referencesIdxLookup[cv] = idx});
+
+  /* data point structure for d3: [barcode # (1-based),  ref idx (1-based), ref match % (over [0, 100])] */
   const data = cfData.reduce((acc, laneData, laneIdx) => {
-    const totalReadsInLane = laneData.reduce((acc, cv) => acc + cv.value, 0);
-    const points = laneData.map((cellData, refIdx) => [laneIdx+1, refIdx+1, cellData.value / totalReadsInLane * 100]);
+    /* process the per-barcode data here */
+    console.log("here", acc, laneData, laneIdx)
+    const totalReadsInBarcode = laneData.reduce((acc, cv) => acc + cv.value, 0);
+    const points = laneData.map((cellData) => {
+      return [laneIdx+1, referencesIdxLookup[cellData.key]+1, cellData.value / totalReadsInBarcode * 100];
+    })
     return acc.concat(points)
   }, []);
 
   svg.selectAll(".refLabel")
-      .data(cfData[0].map((x) => x.key)) /* get the labels */
+      .data(references) /* get the labels */
       .enter()
       .append("text")
       .attr("class", "refLabel")
