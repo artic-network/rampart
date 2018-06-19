@@ -14,6 +14,7 @@ import mappy as mp
 barcodes = [ "barcode01", "barcode03", "barcode04" ]
 
 count = 0
+date_stamp = ""
 read_mappings = []
 
 def create_index(reference_file):
@@ -26,6 +27,7 @@ def create_index(reference_file):
 
 def map_to_reference(aligner, query_path, channel_name, reads_per_file, destination_folder):
 	global count
+	global date_stamp
 	global read_mappings
 
 	path = query_path.split("/")
@@ -44,7 +46,10 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 	
 	for name, seq, qual, comment in mp.fastx_read(query_path, read_comment=True): # read one sequence
 		read_time = re.search(r'start_time=([^\s]+)', comment).group(1)
-
+		if date_stamp == "":
+			date_stamp = read_time
+		
+		
 		try:
 			h = next(aligner.map(seq))
 		
@@ -63,7 +68,7 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 
 			count += 1
 			if count >= reads_per_file:
-				file_name = 'mapped_' + datetime.datetime.now().isoformat() + '.csv'
+				file_name = 'mapped_' + str(count) + "_" + date_stamp + '.csv'
 				
 				print("Reached " + str(reads_per_file) + " reads mapped, writing " + file_name)
 				 
@@ -74,6 +79,7 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 
 				f.close()
 				read_mappings = []
+				date_stamp = ""
 				count = 0
 		except:
 			unmatched += 1
