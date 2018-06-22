@@ -14,11 +14,21 @@ import mappy as mp
 barcodes = [ "barcode01", "barcode03", "barcode04" ]
 
 count = 0
+read_count = 1
 date_stamp = ""
 read_mappings = []
+reference_names = []
 
 def create_index(reference_file):
 	aligner = mp.Aligner(reference_file, best_n = 1)
+
+	print("Reading references:")
+	
+	for name, seq, qual in mp.fastx_read(reference_file, read_comment=False):
+		print(name)
+		reference_names.append(name)
+
+	print()
 
 	if not aligner:
 		raise Exception("ERROR: failed to load/build index file '{}'".format(reference_file))
@@ -27,8 +37,10 @@ def create_index(reference_file):
 
 def map_to_reference(aligner, query_path, channel_name, reads_per_file, destination_folder):
 	global count
+	global read_count
 	global date_stamp
 	global read_mappings
+	global reference_names
 
 	path = query_path.split("/")
 	query_file = path[-1]
@@ -56,19 +68,21 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 			start = h.r_st
 			end = h.r_en
 			identity = h.mlen / h.blen
+			reference_index = reference_names.index(h.ctg) + 1
 		
 			if barcode not in barcodes:
 				raise ValueError('unknown barcode')
 			
 			index = barcodes.index(barcode) + 1
 			
-			line = '"{}","{}","{}","{}","{}"\n'.format(index, h.ctg, start, end, identity)
+			line = '"{}","{}","{}","{}","{}"\n'.format(index, reference_index, start, end, identity)
 
 			read_mappings.append(line)
 
 			count += 1
+			read_count += 1
 			if count >= reads_per_file:
-				file_name = 'mapped_' + str(count) + "_" + date_stamp + '.csv'
+				file_name = 'mapped_' + str(read_count) + "_" + date_stamp + '.csv'
 				
 				print("Reached " + str(reads_per_file) + " reads mapped, writing " + file_name)
 				 
@@ -140,7 +154,7 @@ class Watcher(PatternMatchingEventHandler):
 		#print(event.src_path, event.event_type)  
 		 
 		if event.event_type == 'created':
-			# print("Appending " + event.src_path + " to queue")
+			#print("Appending " + event.src_path + " to queue")
 			file_queue.append(event.src_path)
 
 	def on_modified(self, event):
@@ -173,13 +187,12 @@ if __name__ == '__main__':
 		print("       barcode: " + channel_name)
 	print("reads_per_file: " + str(reads_per_file))
 	print()
-	print("Started - waiting for reads")
-	print()
 
 	aligner = create_index(reference_file)
 	
 	file_queue = deque([])
 	
+
 	# start the thread that processes files push to the stack
 	mapper = Mapper(aligner, channel_name, reads_per_file, destination_folder, file_queue)
 	mapper.start()
@@ -187,6 +200,9 @@ if __name__ == '__main__':
 	observer = Observer()
 	observer.schedule(Watcher(file_queue), path=source_folder, recursive=True)
 	observer.start()
+
+	print("Started - waiting for reads")
+	print()
 
 	try:
 		while True:
