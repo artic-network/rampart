@@ -11,13 +11,14 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import mappy as mp
 
-barcodes = [ "barcode01", "barcode03", "barcode04" ]
+barcodes = [ "barcode01", "barcode03", "barcode04", "unclassified" ]
 
 count = 0
 read_count = 1
-date_stamp = ""
+time_stamp = ""
 read_mappings = []
 reference_names = []
+unmatched_counts = [0, 0, 0, 0]
 
 def create_index(reference_file):
 	aligner = mp.Aligner(reference_file, best_n = 1)
@@ -35,21 +36,16 @@ def create_index(reference_file):
 	
 	return aligner
 
-def map_to_reference(aligner, query_path, channel_name, reads_per_file, destination_folder):
+def map_to_reference(aligner, query_path, barcode, reads_per_file, destination_folder):
 	global count
 	global read_count
-	global date_stamp
+	global time_stamp
 	global read_mappings
 	global reference_names
+	global unmatched_counts
 
 	path = query_path.split("/")
 	query_file = path[-1]
-	barcode = channel_name
-	if barcode is None:
-		barcode = path[-2]
-
-	if barcode == "unclassified":
-		return
 
 	print("Mapping query file: " + query_file + " with barcode: " + barcode);
 	
@@ -58,44 +54,62 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 	
 	for name, seq, qual, comment in mp.fastx_read(query_path, read_comment=True): # read one sequence
 		read_time = re.search(r'start_time=([^\s]+)', comment).group(1)
-		if date_stamp == "":
-			date_stamp = read_time
+		if time_stamp == "":
+			time_stamp = read_time
 		
-		
+		if barcode not in barcodes:
+			raise ValueError('unknown barcode')
+	
+		barcode_index = barcodes.index(barcode)
+
 		try:
 			h = next(aligner.map(seq))
 		
 			start = h.r_st
 			end = h.r_en
 			identity = h.mlen / h.blen
-			reference_index = reference_names.index(h.ctg) + 1
-		
-			if barcode not in barcodes:
-				raise ValueError('unknown barcode')
+			reference_index = reference_names.index(h.ctg) + 1		
 			
-			index = barcodes.index(barcode) + 1
-			
-			line = '"{}","{}","{}","{}","{}"\n'.format(index, reference_index, start, end, identity)
+			line = "\t\t[{}, {}, {}, {}, {}],\n".format(barcode_index + 1, reference_index, start, end, identity)
 
 			read_mappings.append(line)
 
 			count += 1
 			read_count += 1
 			if count >= reads_per_file:
-				file_name = 'mapped_' + str(read_count) + "_" + date_stamp + '.csv'
+				file_name = 'mapped_' + str(read_count) + "_" + date_stamp + '.json'
 				
 				print("Reached " + str(reads_per_file) + " reads mapped, writing " + file_name)
 				 
 				with open(destination_folder + "/" + file_name, 'w') as f:
-					f.write('\"channel\",\"reference\",\"start\",\"end",\"identity\"\n')
+					f.write("json {")
+					f.write("\t\"timeStamp\": \"{}\",".format(time_stamp))
+					f.write("\t\"unmappedReadsPerBarcode\": [")
+					first = True
+					for unmatched in unmatched_counts:
+						if first:
+							first = False
+						else:
+							f.write(", ")	
+						f.write(str(unmatched))
+						
+					f.write("], ")
+					f.write("\t\"readData\": [")
+					
+					# "3-d array, first index: barcode number, 2nd index: read number, 3rd index: [ref#, start base, end base, identity]
 					for line in read_mappings:
 						f.write(line)
 
+					f.write("\t]")
+					f.write("}")
+
 				f.close()
 				read_mappings = []
-				date_stamp = ""
+				time_stamp = ""
 				count = 0
+				unmatched_counts = [0, 0, 0]
 		except:
+			unmatched_counts[barcode_index] += 1
 			unmatched += 1
 			print(name + " unmatched")
 		
@@ -109,14 +123,12 @@ def map_to_reference(aligner, query_path, channel_name, reads_per_file, destinat
 # in the deque then it may not have finished writing).
 class Mapper(threading.Thread):
 	aligner = None
-	channel_name = ""
 	reads_per_file = 100
 	destination_folder = ""
 	file_queue = None
 	
-	def __init__(self, aligner, channel_name, reads_per_file, destination_folder, file_queue):
+	def __init__(self, aligner, reads_per_file, destination_folder, file_queue):
 		self.aligner = aligner
-		self.channel_name = channel_name
 		self.reads_per_file = reads_per_file
 		self.destination_folder = destination_folder
 		self.file_queue = file_queue
@@ -125,19 +137,21 @@ class Mapper(threading.Thread):
         
 	def run (self):
 		while True:
-			# if there is more than one file in the deque then the first one must
-			# have finished writing so is ready to map
-			if len(file_queue) > 1:
-				map_to_reference(aligner, file_queue.popleft(), channel_name, reads_per_file, destination_folder)				
+			for barcode in barcodes:
+				# if there is more than one file in the deque then the first one must
+				# have finished writing so is ready to map
+				if len(file_queues[barcode]) > 1:
+					map_to_reference(aligner, file_queues[barcode].popleft(), barcode, reads_per_file, destination_folder)	
+				time.sleep(100)			
 
 # The Watcher watches the source folder and if a file is created then it pops
 # its name into the deque for the mapping thread to deal with.
 class Watcher(PatternMatchingEventHandler):
 	patterns = ["*.fastq", "*.fasta"]
-	file_queue = None
+	file_queues = None
 
-	def __init__(self, file_queue, *args, **kwargs):
-		self.file_queue = file_queue
+	def __init__(self, file_queues, *args, **kwargs):
+		self.file_queues = file_queues
 		
 		super(Watcher, self).__init__(*args, **kwargs)
 
@@ -154,8 +168,11 @@ class Watcher(PatternMatchingEventHandler):
 		#print(event.src_path, event.event_type)  
 		 
 		if event.event_type == 'created':
-			#print("Appending " + event.src_path + " to queue")
-			file_queue.append(event.src_path)
+			path = event.src_path.split("/")
+			barcode = path[-2]
+
+			print("Appending " + event.src_path + " to queue for barcode, " + barcode)
+			file_queues[barcode].append(event.src_path)
 
 	def on_modified(self, event):
 		self.process(event)
@@ -190,15 +207,18 @@ if __name__ == '__main__':
 
 	aligner = create_index(reference_file)
 	
-	file_queue = deque([])
+	file_queues = {}
+
+	for barcode in barcodes:
+		file_queues[barcode] = deque([])
 	
 
 	# start the thread that processes files push to the stack
-	mapper = Mapper(aligner, channel_name, reads_per_file, destination_folder, file_queue)
+	mapper = Mapper(aligner, reads_per_file, destination_folder, file_queues)
 	mapper.start()
 
 	observer = Observer()
-	observer.schedule(Watcher(file_queue), path=source_folder, recursive=True)
+	observer.schedule(Watcher(file_queues), path=source_folder, recursive=True)
 	observer.start()
 
 	print("Started - waiting for reads")
