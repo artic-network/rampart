@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import time  
 import re
 import argparse
@@ -111,7 +112,7 @@ def map_to_reference(aligner, query_path, barcode, reads_per_file, destination_f
 		except:
 			unmatched_counts[barcode_index] += 1
 			unmatched += 1
-			print(name + " unmatched")
+			# print(name + " unmatched")
 		
 		i += 1	
 	
@@ -142,7 +143,7 @@ class Mapper(threading.Thread):
 				# have finished writing so is ready to map
 				if len(file_queues[barcode]) > 1:
 					map_to_reference(aligner, file_queues[barcode].popleft(), barcode, reads_per_file, destination_folder)	
-				time.sleep(100)			
+				time.sleep(0.1)			
 
 # The Watcher watches the source folder and if a file is created then it pops
 # its name into the deque for the mapping thread to deal with.
@@ -171,7 +172,7 @@ class Watcher(PatternMatchingEventHandler):
 			path = event.src_path.split("/")
 			barcode = path[-2]
 
-			print("Appending " + event.src_path + " to queue for barcode, " + barcode)
+			print("Appending " + event.src_path + " to queue for barcode: " + barcode)
 			file_queues[barcode].append(event.src_path)
 
 	def on_modified(self, event):
@@ -180,6 +181,15 @@ class Watcher(PatternMatchingEventHandler):
 	def on_created(self, event):
 		self.process(event)
 	
+def add_existing_files (source_folder, file_queues):
+	for filename in glob.iglob(source_folder + '**/*.fastq', recursive=True):
+		path = filename.split("/")
+		barcode = path[-2]
+
+		print("Appending " + path[-1] + " to queue for barcode: " + barcode)
+
+		file_queues[barcode].append(filename)
+
 if __name__ == '__main__':	
 	parser = argparse.ArgumentParser(description='A daemon process for mapping base-called reads to reference sequences.')
 	parser.add_argument("-r", "--reference_file", help="the path to the file of reference sequences", action="store")
@@ -212,6 +222,7 @@ if __name__ == '__main__':
 	for barcode in barcodes:
 		file_queues[barcode] = deque([])
 	
+	add_existing_files(source_folder, file_queues)
 
 	# start the thread that processes files push to the stack
 	mapper = Mapper(aligner, reads_per_file, destination_folder, file_queues)
