@@ -12,13 +12,14 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import mappy as mp
 
-barcodes = [ "barcode01", "barcode03", "barcode04", "unclassified" ]
+barcodes = [ "BC01", "BC03", "BC04", "none" ]
 
 count = 0
 read_count = 1
 time_stamp = ""
 read_mappings = []
 reference_names = []
+matched_counts = [0, 0, 0, 0]
 unmatched_counts = [0, 0, 0, 0]
 
 def create_index(reference_file):
@@ -37,54 +38,72 @@ def create_index(reference_file):
 	
 	return aligner
 
-def map_to_reference(aligner, query_path, barcode, reads_per_file, destination_folder):
+def map_to_reference(aligner, query_path, default_barcode, reads_per_file, destination_folder):
 	global count
 	global read_count
 	global time_stamp
 	global read_mappings
 	global reference_names
+	global matched_counts
 	global unmatched_counts
+	global unbarcoded_count
 
 	path = query_path.split("/")
 	query_file = path[-1]
 
-	print("Mapping query file: " + query_file + " with barcode: " + barcode);
+	print("Mapping query file: " + query_file)
 	
 	i = 0
 	unmatched = 0
+
+	barcode = default_barcode
 	
 	for name, seq, qual, comment in mp.fastx_read(query_path, read_comment=True): # read one sequence
 		read_time = re.search(r'start_time=([^\s]+)', comment).group(1)
+		if default_barcode is None:
+			barcode = re.search(r'barcode=([^\s]+)', comment).group(1)
+		
 		if time_stamp == "":
 			time_stamp = read_time
 		
 		if barcode not in barcodes:
-			raise ValueError('unknown barcode')
+			raise ValueError('unknown barcode, ' + barcode)
 	
 		barcode_index = barcodes.index(barcode)
 
 		try:
+			count += 1
+			read_count += 1
+
 			h = next(aligner.map(seq))
 		
 			start = h.r_st
 			end = h.r_en
 			identity = h.mlen / h.blen
-			reference_index = reference_names.index(h.ctg) + 1		
+			reference_index = reference_names.index(h.ctg)		
 			
-			line = "\t\t[{}, {}, {}, {}, {}],\n".format(barcode_index + 1, reference_index, start, end, identity)
+			matched_counts[barcode_index] += 1
 
+			line = "\t\t[{}, {}, {}, {}, {}],\n".format(barcode_index + 1, reference_index + 1, start, end, identity)
 			read_mappings.append(line)
 
-			count += 1
-			read_count += 1
 			if count >= reads_per_file:
-				file_name = 'mapped_' + str(read_count) + "_" + date_stamp + '.json'
+				file_name = 'mapped_' + str(read_count) + "_" + time_stamp + '.json'
 				
-				print("Reached " + str(reads_per_file) + " reads mapped, writing " + file_name)
-				 
+				print("Reached " + str(reads_per_file) + " mapped reads, writing " + file_name)
+				print("  matches by barcode [unmatched]:")
+				total_matched = 0
+				total_unmatched = 0
+				for j in range(0, len(barcodes)):
+					print("  " + barcodes[j] + ": " + str(matched_counts[j]) + " [" + str(unmatched_counts[j]) + "]")
+					total_matched += matched_counts[j]
+					total_unmatched += unmatched_counts[j]
+				print("  Total: " + str(total_matched) + " [" + str(total_unmatched) + "]")
+				print()
+
 				with open(destination_folder + "/" + file_name, 'w') as f:
-					f.write("json {")
-					f.write("\t\"timeStamp\": \"{}\",".format(time_stamp))
+					f.write("json {\n")
+					f.write("\t\"timeStamp\": \"{}\",\n".format(time_stamp))
 					f.write("\t\"unmappedReadsPerBarcode\": [")
 					first = True
 					for unmatched in unmatched_counts:
@@ -94,29 +113,31 @@ def map_to_reference(aligner, query_path, barcode, reads_per_file, destination_f
 							f.write(", ")	
 						f.write(str(unmatched))
 						
-					f.write("], ")
-					f.write("\t\"readData\": [")
+					f.write("],\n")
+					f.write("\t\"readData\": [\n")
 					
-					# "3-d array, first index: barcode number, 2nd index: read number, 3rd index: [ref#, start base, end base, identity]
 					for line in read_mappings:
 						f.write(line)
 
-					f.write("\t]")
+					f.write("\t]\n")
 					f.write("}")
 
 				f.close()
+
 				read_mappings = []
 				time_stamp = ""
 				count = 0
-				unmatched_counts = [0, 0, 0]
+				matched_counts = [0, 0, 0, 0]
+				unmatched_counts = [0, 0, 0, 0]
+
 		except:
 			unmatched_counts[barcode_index] += 1
 			unmatched += 1
 			# print(name + " unmatched")
 		
-		i += 1	
+		i += 1
 	
-	print("Finished mapping " + str(i) + " reads, " + str(unmatched) + " unmatched");
+	print("Finished mapping query file: " + query_file + " - " + str(i) + " reads, " + str(unmatched) + " unmatched")
 	#print("Read mappings: " + str(count) + " / " + str(reads_per_file));
 
 # This thread class watches the file deque and if there are two or more files
@@ -127,9 +148,11 @@ class Mapper(threading.Thread):
 	reads_per_file = 100
 	destination_folder = ""
 	file_queue = None
+	barcode = None
 	
-	def __init__(self, aligner, reads_per_file, destination_folder, file_queue):
+	def __init__(self, aligner, barcode, reads_per_file, destination_folder, file_queue):
 		self.aligner = aligner
+		self.barcode = barcode
 		self.reads_per_file = reads_per_file
 		self.destination_folder = destination_folder
 		self.file_queue = file_queue
@@ -138,21 +161,20 @@ class Mapper(threading.Thread):
         
 	def run (self):
 		while True:
-			for barcode in barcodes:
-				# if there is more than one file in the deque then the first one must
-				# have finished writing so is ready to map
-				if len(file_queues[barcode]) > 1:
-					map_to_reference(aligner, file_queues[barcode].popleft(), barcode, reads_per_file, destination_folder)	
-				time.sleep(0.1)			
+			# if there is more than one file in the deque then the first one must
+			# have finished writing so is ready to map
+			if len(file_queue) > 1:
+				map_to_reference(aligner, file_queue.popleft(), barcode, reads_per_file, destination_folder)	
+			time.sleep(0.1)			
 
 # The Watcher watches the source folder and if a file is created then it pops
 # its name into the deque for the mapping thread to deal with.
 class Watcher(PatternMatchingEventHandler):
 	patterns = ["*.fastq", "*.fasta"]
-	file_queues = None
+	file_queue = None
 
-	def __init__(self, file_queues, *args, **kwargs):
-		self.file_queues = file_queues
+	def __init__(self, file_queue, *args, **kwargs):
+		self.file_queue = file_queue
 		
 		super(Watcher, self).__init__(*args, **kwargs)
 
@@ -170,10 +192,8 @@ class Watcher(PatternMatchingEventHandler):
 		 
 		if event.event_type == 'created':
 			path = event.src_path.split("/")
-			barcode = path[-2]
-
-			print("Appending " + event.src_path + " to queue for barcode: " + barcode)
-			file_queues[barcode].append(event.src_path)
+			print("Appending " + path[-1] + " to queue")
+			file_queue.append(event.src_path)
 
 	def on_modified(self, event):
 		self.process(event)
@@ -181,28 +201,26 @@ class Watcher(PatternMatchingEventHandler):
 	def on_created(self, event):
 		self.process(event)
 	
-def add_existing_files (source_folder, file_queues):
+def add_existing_files (source_folder, file_queue):
 	for filename in glob.iglob(source_folder + '**/*.fastq', recursive=True):
 		path = filename.split("/")
-		barcode = path[-2]
 
-		print("Appending " + path[-1] + " to queue for barcode: " + barcode)
+		print("Appending " + path[-1] + " to queue")
 
-		file_queues[barcode].append(filename)
+		file_queue.append(filename)
 
 if __name__ == '__main__':	
 	parser = argparse.ArgumentParser(description='A daemon process for mapping base-called reads to reference sequences.')
 	parser.add_argument("-r", "--reference_file", help="the path to the file of reference sequences", action="store")
 	parser.add_argument("-n", "--reads_per_file", help="the number of read mappings per output file", action="store", type=int, default=1000)
 	parser.add_argument("-b", "--barcode", help="the label of the sample if not using de-multiplexed directories", action="store")
-	parser.add_argument("-m", "--multiplexed", help="is the data multiplexed - use the directories as barcode names", action="store_true")
 	parser.add_argument('watch_directory', help='path to the reads folder to be watched')
 	parser.add_argument('output_directory', help='path to the directory where read mapping files will be written')
 	args = parser.parse_args()
 
 	reference_file = args.reference_file
 	reads_per_file = args.reads_per_file
-	channel_name = args.barcode
+	barcode = args.barcode
 	source_folder = args.watch_directory
 	destination_folder = args.output_directory
 	
@@ -210,30 +228,28 @@ if __name__ == '__main__':
 	print("     reference: " + reference_file)
 	print("      watching: " + source_folder)
 	print("   destination: " + destination_folder)
-	if not args.multiplexed:
-		print("       barcode: " + channel_name)
+	if barcode is not None:
+		print("       barcode: " + barcode)
 	print("reads_per_file: " + str(reads_per_file))
 	print()
 
 	aligner = create_index(reference_file)
 	
-	file_queues = {}
-
-	for barcode in barcodes:
-		file_queues[barcode] = deque([])
+	file_queue = deque([])
 	
-	add_existing_files(source_folder, file_queues)
-
-	# start the thread that processes files push to the stack
-	mapper = Mapper(aligner, reads_per_file, destination_folder, file_queues)
+	# start the thread that processes files pulled from the stack
+	mapper = Mapper(aligner, barcode, reads_per_file, destination_folder, file_queue)
 	mapper.start()
 
+	# start the observer that watches for new files and pushes them to the stack
 	observer = Observer()
-	observer.schedule(Watcher(file_queues), path=source_folder, recursive=True)
+	observer.schedule(Watcher(file_queue), path=source_folder, recursive=True)
 	observer.start()
 
 	print("Started - waiting for reads")
 	print()
+
+	add_existing_files(source_folder, file_queue)
 
 	try:
 		while True:
