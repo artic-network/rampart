@@ -4,7 +4,8 @@ import glob
 import time  
 import re
 import argparse
-import datetime
+import operator
+from datetime import datetime
 import threading
 from collections import deque
 
@@ -16,7 +17,6 @@ barcodes = [ "BC01", "BC03", "BC04", "none" ]
 
 count = 0
 read_count = 1
-time_stamp = ""
 read_mappings = []
 reference_names = []
 matched_counts = [0, 0, 0, 0]
@@ -41,12 +41,10 @@ def create_index(reference_file):
 def map_to_reference(aligner, query_path, default_barcode, reads_per_file, destination_folder):
 	global count
 	global read_count
-	global time_stamp
 	global read_mappings
 	global reference_names
 	global matched_counts
 	global unmatched_counts
-	global unbarcoded_count
 
 	path = query_path.split("/")
 	query_file = path[-1]
@@ -63,8 +61,7 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 		if default_barcode is None:
 			barcode = re.search(r'barcode=([^\s]+)', comment).group(1)
 		
-		if time_stamp == "":
-			time_stamp = read_time
+		time_stamp = datetime.strptime(read_time, "%Y-%m-%dT%H:%M:%SZ")
 		
 		if barcode not in barcodes:
 			raise ValueError('unknown barcode, ' + barcode)
@@ -84,11 +81,15 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 			
 			matched_counts[barcode_index] += 1
 
-			line = "\t\t[{}, {}, {}, {}, {}],\n".format(barcode_index + 1, reference_index + 1, start, end, identity)
-			read_mappings.append(line)
+			record = {
+				'time_stamp' : time_stamp, 
+				'barcode_index' : barcode_index + 1, 
+				'reference_index' : reference_index + 1, 
+				'start' : start, 'end' : end, 'identity' : identity }
+			read_mappings.append(record)
 
 			if count >= reads_per_file:
-				file_name = 'mapped_' + str(read_count) + "_" + time_stamp + '.json'
+				file_name = 'mapped_' + str(read_count) + '.json'
 				
 				print("Reached " + str(reads_per_file) + " mapped reads, writing " + file_name)
 				print("  matches by barcode [unmatched]:")
@@ -101,9 +102,13 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 				print("  Total: " + str(total_matched) + " [" + str(total_unmatched) + "]")
 				print()
 
+				read_mappings.sort(key = operator.itemgetter('time_stamp'))
+
+				first_time_stamp = read_mappings[0]['time_stamp']
+
 				with open(destination_folder + "/" + file_name, 'w') as f:
 					f.write("json {\n")
-					f.write("\t\"timeStamp\": \"{}\",\n".format(time_stamp))
+					f.write("\t\"timeStamp\": \"" + first_time_stamp.isoformat() + "\",\n")
 					f.write("\t\"unmappedReadsPerBarcode\": [")
 					first = True
 					for unmatched in unmatched_counts:
@@ -116,7 +121,19 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 					f.write("],\n")
 					f.write("\t\"readData\": [\n")
 					
-					for line in read_mappings:
+					for record in read_mappings:
+						time_stamp = record['time_stamp']
+						time_delta = time_stamp - first_time_stamp
+						# if time_delta.seconds > 1000:
+						# 	print(time_delta.seconds)
+
+						line = "\t\t[{}, {}, {}, {}, {}, {}],\n".format(
+							time_delta.seconds, 
+							record['barcode_index'], 
+							record['reference_index'], 
+							record['start'], 
+							record['end'], 
+							record['identity'])
 						f.write(line)
 
 					f.write("\t]\n")
@@ -125,7 +142,6 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 				f.close()
 
 				read_mappings = []
-				time_stamp = ""
 				count = 0
 				matched_counts = [0, 0, 0, 0]
 				unmatched_counts = [0, 0, 0, 0]
