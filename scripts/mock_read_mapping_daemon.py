@@ -24,7 +24,7 @@ if __name__ == '__main__':
     for f in files:
         os.remove(f)
 
-	
+
     source_files = glob.glob(indir + "*")
 
     i = 0;
