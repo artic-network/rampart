@@ -2,7 +2,7 @@ import sys, os
 import glob
 import random
 import shutil
-import time, datetime
+import time
 
 if __name__ == '__main__':
     """This file is only temporary.
@@ -24,15 +24,16 @@ if __name__ == '__main__':
     for f in files:
         os.remove(f)
 
-	
     source_files = glob.glob(indir + "*")
 
     i = 0;
     while True:
         # produce a mapped read around 30% of the time
-        if random.random() > 0.7:
-            new_read_path = outdir + "mapped_" + datetime.datetime.now().isoformat() + '.csv'
-            old_read_path = source_files[i]
+        if random.random() < 0.3:
+            shutil.copyfile(source_files[i], os.path.join(outdir, os.path.basename(source_files[i])))
             i+=1
-            shutil.copyfile(old_read_path, new_read_path)
+            if i == len(source_files):
+                print("No more JSONs to copy over. EXITING")
+                break
+
         time.sleep(1)
