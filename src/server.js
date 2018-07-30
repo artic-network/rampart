@@ -3,24 +3,16 @@ const cors = require('cors')
 const fs = require('fs');
 const path = require("path");
 
-const readFilePaths = [];
-const dataDir = path.join(__dirname, "..", "data", "read_files"); // relative to the terminal when run, not where the source is located
-fs.readdirSync(dataDir).forEach(file => {
-  const filePath = path.join(dataDir, file);
-  if (fs.lstatSync(filePath).isFile()) {
-    readFilePaths.push(filePath)
-  }
-})
-console.log("There are ", readFilePaths.length, "read files available.\n")
-
 const app = express()
 app.use(cors())
 
 let filenamesRead = [];
+let processingRequest = false;
+const readDir = path.join(__dirname, "..", "data", "real_time_reads");
 
 /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
 app.get('/requestRunInfo', (req, res) => {
-  console.log("Begin new run")
+  console.log("Client attaching. Sending info & annotation data.")
   const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "ebola_annotation.json")));
   const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "run_info.json")));
   data.annotation = annotation;
@@ -29,42 +21,30 @@ app.get('/requestRunInfo', (req, res) => {
 });
 
 
-/* FRONTEND REQUEST READS */
-let processingRequest = false;
-
-const stripQuotes = (el) => el.substr(1, el.length-2)
-
+/* REQUEST AVAILABLE READS */
 app.get('/requestReads', (req, res) => {
   if (processingRequest) {
-    return res.send('still not done with the last request.');
+    res.statusMessage = 'Still processing previous request.'
+    return res.status(500).end();
   }
-  console.log("requestReads...")
-  const data = [];
-  // syncronously scan the files & read them. TODO: time this code
-  fs.readdirSync(path.join(__dirname, "..", "data", "real_time_reads")).forEach((file) => {
-    if (filenamesRead.indexOf(file) === -1) {
-      console.log("use ", file)
-
-      const rows = fs.readFileSync(path.join(__dirname, "..", "data", "real_time_reads", file), 'utf8').split("\n");
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].split(",").map(stripQuotes)
-        if (row.length === 5) {
-          //          "channel",          "reference",  "start",              "end",                "identity"
-          data.push([parseInt(row[0], 10), row[1],  parseInt(row[2], 10), parseInt(row[3], 10), parseInt(row[4], 10)])
-        }
+  /* find "new" read files. Could be made async at some point */
+  const ret = [];
+  fs.readdirSync(readDir).forEach((file) => {
+    if (file.endsWith(".json") && filenamesRead.indexOf(file) === -1) {
+      try {
+        ret.push(JSON.parse(fs.readFileSync(path.join(readDir, file), 'utf8')));
+        filenamesRead.push(file)
+      } catch (err) {
+        console.log("Error processing file", file);
       }
-      filenamesRead.push(file) // don't use again
     }
-  })
-  if (data.length) {
-    res.json(data);
-    processingRequest = false;
-  } else {
-    res.send('No more reads at this time.')
-    processingRequest = false;
+  });
+  if (!ret.length) {
+    res.statusMessage = 'No (valid) reads to process.'
+    return res.status(500).end();
   }
+  res.json(ret);
 })
-
 
 
 /* serve the html & javascript */
@@ -75,5 +55,9 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, "..", 'build', 'index.html'));
 });
 
-app.set('port', process.env.PORT || 3001);
-app.listen(app.get('port'), () => console.log('Development MinIon data generator running. Rampart Frontend should now work.'))
+const port = process.env.PORT || 3001;
+app.set('port', port);
+app.listen(app.get('port'), () => {
+  console.log(`RAMPART server listening & serving built bundle on http://localhost:${port}`);
+  console.log(`For development of the client it's easier to run "npm run start"`);
+});

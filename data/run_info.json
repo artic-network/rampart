@@ -2,6 +2,7 @@
   "samples": [
   	"zero",
     "barcode01",
+    "barcode02",
     "barcode03",
     "barcode04"
   ],
@@ -18,5 +19,5 @@
 	"Makona-Gueckedou-C07|Guinea|2014"
   ],
   "name": "EBOV Validation Run",
-  "numChannels": 3
+  "numChannels": 4
 }
