@@ -46,7 +46,7 @@ const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
   /* data point structure for d3: [barcode # (1-based),  ref idx (1-based), ref match % (over [0, 100])] */
   const data = cfData.reduce((acc, laneData, laneIdx) => {
     /* process the per-barcode data here */
-    console.log("here", acc, laneData, laneIdx)
+    // console.log("here", acc, laneData, laneIdx)
     const totalReadsInBarcode = laneData.reduce((acc, cv) => acc + cv.value, 0);
     const points = laneData.map((cellData) => {
       return [laneIdx+1, referencesIdxLookup[cellData.key]+1, cellData.value / totalReadsInBarcode * 100];

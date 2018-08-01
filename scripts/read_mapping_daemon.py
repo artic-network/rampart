@@ -3,6 +3,7 @@ import sys
 import glob
 import time
 import re
+import json
 import argparse
 import operator
 from datetime import datetime
@@ -13,14 +14,35 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import mappy as mp
 
-barcodes = [ "BC01", "BC03", "BC04", "none" ]
+# barcodes = [ "BC01", "BC03", "BC04", "none" ]
+# barcodes = [ "barcode01", "barcode03", "barcode04", "barcode09"]
 
 count = 0
 read_count = 1
 read_mappings = []
 reference_names = []
-matched_counts = [0, 0, 0, 0]
-unmatched_counts = [0, 0, 0, 0]
+matched_counts = None
+unmatched_counts = None
+
+def parse_run_info(json_path):
+	global barcodes
+	global matched_counts
+	global unmatched_counts
+
+	with open(json_path, 'r') as fh:
+		j = json.load(fh)
+	barcodes = j["samples"]
+	print("Barcodes:", barcodes)
+	matched_counts = [0 for x in barcodes]
+	unmatched_counts = [0 for x in barcodes]
+	symmetric_difference = set(j["referenceLabels"]) ^ set(reference_names)
+	if symmetric_difference:
+		print("The referenceLabels in the run_info.json do not match the reference_names from the reference file.")
+		print("The run_info contained ", set(j["referenceLabels"]) - set(reference_names))
+		print("The run_info contained ", set(reference_names) - set(j["referenceLabels"]))
+		print("FATAL.")
+		sys.exit(2)
+
 
 def create_index(reference_file):
 	aligner = mp.Aligner(reference_file, best_n = 1)
@@ -64,7 +86,7 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 		time_stamp = datetime.strptime(read_time, "%Y-%m-%dT%H:%M:%SZ")
 
 		if barcode not in barcodes:
-			raise ValueError('unknown barcode, ' + barcode)
+			raise ValueError('unknown barcode "' + barcode + '"... skipping')
 
 		barcode_index = barcodes.index(barcode)
 
@@ -121,7 +143,7 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 					f.write("],\n")
 					f.write("\t\"readData\": [\n")
 
-					for idx, record in read_mappings.enumerate():
+					for idx, record in enumerate(read_mappings):
 						time_stamp = record['time_stamp']
 						time_delta = time_stamp - first_time_stamp
 						# if time_delta.seconds > 1000:
@@ -145,8 +167,8 @@ def map_to_reference(aligner, query_path, default_barcode, reads_per_file, desti
 
 				read_mappings = []
 				count = 0
-				matched_counts = [0, 0, 0, 0]
-				unmatched_counts = [0, 0, 0, 0]
+				matched_counts = [0 for x in barcodes]
+				unmatched_counts = [0 for x in barcodes]
 
 		except:
 			unmatched_counts[barcode_index] += 1
@@ -168,12 +190,13 @@ class Mapper(threading.Thread):
 	file_queue = None
 	barcode = None
 
-	def __init__(self, aligner, barcode, reads_per_file, destination_folder, file_queue):
+	def __init__(self, aligner, barcode, reads_per_file, destination_folder, file_queue, die_when_done):
 		self.aligner = aligner
 		self.barcode = barcode
 		self.reads_per_file = reads_per_file
 		self.destination_folder = destination_folder
 		self.file_queue = file_queue
+		self.die_when_done = die_when_done
 
 		threading.Thread.__init__(self)
 
@@ -182,7 +205,13 @@ class Mapper(threading.Thread):
 			# if there is more than one file in the deque then the first one must
 			# have finished writing so is ready to map
 			if len(file_queue) > 1:
-				map_to_reference(aligner, file_queue.popleft(), barcode, reads_per_file, destination_folder)
+				try:
+					map_to_reference(aligner, file_queue.popleft(), self.barcode, reads_per_file, destination_folder)
+				except ValueError as err:
+					print(err)
+			elif self.die_when_done:
+				print("mapping thread terminating as there are no more reads in the deque")
+				return;
 			time.sleep(0.1)
 
 # The Watcher watches the source folder and if a file is created then it pops
@@ -219,8 +248,8 @@ class Watcher(PatternMatchingEventHandler):
 	def on_created(self, event):
 		self.process(event)
 
-def add_existing_files (source_folder, file_queue):
-	for filename in glob.iglob(source_folder + '**/*.fastq', recursive=True):
+def add_existing_files(source_folder, file_queue):
+	for filename in glob.iglob(os.path.join(source_folder, "**", "*.fastq"), recursive=True):
 		path = filename.split("/")
 
 		print("Appending " + path[-1] + " to queue")
@@ -229,16 +258,18 @@ def add_existing_files (source_folder, file_queue):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='A daemon process for mapping base-called reads to reference sequences.')
-	parser.add_argument("-r", "--reference_file", help="the path to the file of reference sequences", action="store")
+	parser.add_argument("-r", "--reference_file", required=True, help="the path to the file of reference sequences", action="store")
+	parser.add_argument("-i", "--run_info", required=True, help="the run_info JSON used by RAMPART (contains the barcode name(s))", action="store")
 	parser.add_argument("-n", "--reads_per_file", help="the number of read mappings per output file", action="store", type=int, default=1000)
-	parser.add_argument("-b", "--barcode", help="the label of the sample if not using de-multiplexed directories", action="store")
+	parser.add_argument("--sample_name", help="the label of the sample if not using de-multiplexed directories", action="store")
+	parser.add_argument("--dont_observe", help="Don't watch for new files, just map what's there", action="store_true")
 	parser.add_argument('watch_directory', help='path to the reads folder to be watched')
 	parser.add_argument('output_directory', help='path to the directory where read mapping files will be written')
 	args = parser.parse_args()
 
 	reference_file = args.reference_file
 	reads_per_file = args.reads_per_file
-	barcode = args.barcode
+	sample_name = args.sample_name
 	source_folder = args.watch_directory
 	destination_folder = args.output_directory
 
@@ -246,33 +277,34 @@ if __name__ == '__main__':
 	print("     reference: " + reference_file)
 	print("      watching: " + source_folder)
 	print("   destination: " + destination_folder)
-	if barcode is not None:
-		print("       barcode: " + barcode)
+	if sample_name is not None:
+		print("        sample: " + sample_name)
 	print("reads_per_file: " + str(reads_per_file))
 	print()
 
 	aligner = create_index(reference_file)
+	run_info = parse_run_info(args.run_info)
 
 	file_queue = deque([])
 
-	# start the thread that processes files pulled from the stack
-	mapper = Mapper(aligner, barcode, reads_per_file, destination_folder, file_queue)
-	mapper.start()
-
-	# start the observer that watches for new files and pushes them to the stack
-	observer = Observer()
-	observer.schedule(Watcher(file_queue), path=source_folder, recursive=True)
-	observer.start()
-
-	print("Started - waiting for reads")
-	print()
-
 	add_existing_files(source_folder, file_queue)
 
-	try:
-		while True:
-			time.sleep(1)
-	except KeyboardInterrupt:
-		observer.stop()
+	# start the thread that processes files pulled from the stack
+	mapper = Mapper(aligner, sample_name, reads_per_file, destination_folder, file_queue, args.dont_observe)
+	mapper.start()
 
-	observer.join()
+	if not args.dont_observe:
+		# start the observer that watches for new files and pushes them to the stack
+		observer = Observer()
+		observer.schedule(Watcher(file_queue), path=source_folder, recursive=True)
+		observer.start()
+		print("Started - waiting for reads")
+		print()
+
+		try:
+			while True:
+				time.sleep(1)
+		except KeyboardInterrupt:
+			observer.stop()
+
+		observer.join()

@@ -2,21 +2,21 @@
   "samples": [
   	"zero",
     "barcode01",
-    "barcode02",
     "barcode03",
-    "barcode04"
+    "barcode04",
+    "barcode09"
   ],
   "referenceLabels": [
-	"Yambuku-Mayinga|DRC|1976",
-	"Kikwit-807223|DRC|1995",
-	"Boende-Lokolia|DRC|2014",
-	"Gabon|Gabon|1994",
-	"1Eko|Gabon|1996",
-	"1Ikot|Gabon|1996",
-	"9_Luebo|DRC|2007",
-	"Ilembe|Gabon|2002",
-	"Kelle_1|DRC|2003",
-	"Makona-Gueckedou-C07|Guinea|2014"
+    "KR063671|Yambuku-Mayinga|DRC|1976-10-01",
+    "KR063672|Kikwit-807223|DRC|1995-04-01",
+    "KM519951|Boende-Lokolia|DRC|2014",
+    "KC242792|Gabon|Gabon|1994",
+    "KC242793|1Eko|Gabon|1996",
+    "KC242798|1Ikot|Gabon|1996",
+    "KC242784|9_Luebo|DRC|2007",
+    "KC242800|Ilembe|Gabon|2002",
+    "KF113528|Kelle_1|DRC|2003",
+    "KJ660347|Makona-Gueckedou-C07|Guinea|2014-01-20"
   ],
   "name": "EBOV Validation Run",
   "numChannels": 4
