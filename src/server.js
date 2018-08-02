@@ -27,9 +27,12 @@ app.get('/requestReads', (req, res) => {
     res.statusMessage = 'Still processing previous request.'
     return res.status(500).end();
   }
-  /* find "new" read files. Could be made async at some point */
+  /* find "new" read files. Could be made async at some point,
+  but i'm imagining there will only be one client listening */
   const ret = [];
-  fs.readdirSync(readDir).forEach((file) => {
+  const files = fs.readdirSync(readDir);
+
+  files.forEach((file) => {
     if (file.endsWith(".json") && filenamesRead.indexOf(file) === -1) {
       try {
         ret.push(JSON.parse(fs.readFileSync(path.join(readDir, file), 'utf8')));
@@ -43,6 +46,11 @@ app.get('/requestReads', (req, res) => {
     res.statusMessage = 'No (valid) reads to process.'
     return res.status(500).end();
   }
+  /* sort the elements in ret according to their timestamps */
+  ret.sort((a, b) =>
+    (new Date(a.timeStamp)).getTime() < (new Date(b.timeStamp)).getTime() ? -1 : 1
+  );
+
   res.json(ret);
 })
 

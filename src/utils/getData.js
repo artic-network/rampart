@@ -32,9 +32,11 @@ const addJSONToState = (state, setState, json) => {
   /* the JSON is an array of mapping datafiles */
   json.forEach((data) => {
     newState.nTotalReads += data.readData.length;
+    let prevReadCount = 0;
+    if (newState.readsOverTime.length) prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
     newState.readsOverTime.push([
       parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
-      data.readData.length
+      prevReadCount + data.readData.length
     ]);
     /* summarise the reads per barcode */
     const readsPerBarcode = [...Array(state.numChannels)].map(() => []);
