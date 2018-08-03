@@ -55,43 +55,68 @@ class Panel extends React.Component {
       colour: channelColours[props.channelNumber - 1]
     }
   }
+  renderNoDataHeader() {
+    return (
+      <div {...panelTitle}>
+        {`#${this.props.channelNumber} (${this.props.name}).
+        has no reads (yet)`}
+      </div>
+    )
+  }
+  renderHeader() {
+    return (
+      <div {...panelTitle}>
+        {`#${this.props.channelNumber} (${this.props.name}).
+        ${this.props.reads.size()} reads.
+        ${averageCoverage(this.props.coverage)}x coverage.
+        `}
+      </div>
+    )
+  }
+  renderPanels() {
+    return (
+      <div {...flexRowContainer}>
+        <CoveragePlot
+          style={{width: '35%', margin: 'auto', height: "100%"}}
+          title={"Coverage"}
+          coveragePerChannel={[this.props.coverage]}
+          annotation={this.props.annotation}
+          version={this.props.version}
+          colours={[this.state.colour]}
+        />
+        <ReadLengthDistribution
+          style={{width: '30%', margin: 'auto', height: "100%"}}
+          title={"Read Lengths"}
+          readLength={this.props.readLength}
+          version={this.props.version}
+          colour={this.state.colour}
+        />
+        <ReferenceMatches
+          style={{width: '25%', margin: 'auto', height: "100%"}}
+          title={"Reference Matches"}
+          refMatch={this.props.refMatch}
+          version={this.props.version}
+          colour={this.state.colour}
+        />
+      </div>
+    )
+  }
   render() {
     let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };
+    const anyData = !!this.props.readLength.length;
+    if (anyData) {
+      return (
+        <div style={panelStyles}>
+          <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
+          {this.renderHeader()}
+          {this.state.expanded ? this.renderPanels() : null}
+        </div>
+      )
+    }
+    /* else there's no data... */
     return (
       <div style={panelStyles}>
-        <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
-        <div {...panelTitle}>
-          {`#${this.props.channelNumber} (${this.props.name}).
-          ${this.props.reads.size()} reads.
-          ${averageCoverage(this.props.coverage)}x coverage.
-          `}
-        </div>
-        {this.state.expanded ? (
-          <div {...flexRowContainer}>
-            <CoveragePlot
-              style={{width: '35%', margin: 'auto', height: "100%"}}
-              title={"Coverage"}
-              coveragePerChannel={[this.props.coverage]}
-              annotation={this.props.annotation}
-              version={this.props.version}
-              colours={[this.state.colour]}
-            />
-            <ReadLengthDistribution
-              style={{width: '30%', margin: 'auto', height: "100%"}}
-              title={"Read Lengths"}
-              readLength={this.props.readLength}
-              version={this.props.version}
-              colour={this.state.colour}
-            />
-            <ReferenceMatches
-              style={{width: '25%', margin: 'auto', height: "100%"}}
-              title={"Reference Matches"}
-              refMatch={this.props.refMatch}
-              version={this.props.version}
-              colour={this.state.colour}
-            />
-          </div>
-        ) : null}
+        {this.renderNoDataHeader()}
       </div>
     )
   }
