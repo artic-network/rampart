@@ -13,10 +13,11 @@ const readDir = path.join(__dirname, "..", "data", "real_time_reads");
 /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
 app.get('/requestRunInfo', (req, res) => {
   console.log("Client attaching. Sending info & annotation data.")
+  const data = JSON.parse(fs.readFileSync(path.join(readDir, "info.json")));
   const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "ebola_annotation.json")));
-  const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "run_info.json")));
   data.annotation = annotation;
-  filenamesRead = []; // frontend has restarted - it needs all the data!
+
+  filenamesRead = []; // frontend has restarted - it will need to re-see all the data!
   res.json(data);
 });
 
@@ -33,7 +34,7 @@ app.get('/requestReads', (req, res) => {
   const files = fs.readdirSync(readDir);
 
   files.forEach((file) => {
-    if (file.endsWith(".json") && filenamesRead.indexOf(file) === -1) {
+    if (file.match(/mapped_\d+\.json$/) && filenamesRead.indexOf(file) === -1) {
       try {
         ret.push(JSON.parse(fs.readFileSync(path.join(readDir, file), 'utf8')));
         filenamesRead.push(file)

@@ -44,11 +44,10 @@ Step 2: Basecall each of these time-sliced-fast5-directories using albacore
 mkdir basecalled_time_slices && for i in $( ls time_sliced_fast5/ ); do mkdir basecalled_time_slices/${i}; read_fast5_basecaller.py -c r94_450bps_linear.cfg -i time_sliced_fast5/${i} -s basecalled_time_slices/${i} -o fastq -r --barcoding -q 1000 -t 3; done
 ```
 
-Step 3: Map these FASTQs to a panel of reference sequences and produce a JSON per time slice
+Step 3: Map these FASTQs to a panel of reference sequences and produce a JSON per time slice. This also produces a `info.json` file which details the barcodes, references etc
 
 ```
-mkdir mapped_time_slices && for i in  $( ls basecalled_time_slices ); do mkdir mapped_time_slices/${i}; python ~/artic-network/rampart/scripts/read_mapping_daemon.py -r ~/artic-network/artic-ebov/reference_genomes/ebov-reference-genomes-10.fasta -i ~/artic-network/rampart/data/run_info.json -n 1000 --dont_observe basecalled_time_slices/${i}/workspace/pass mapped_time_slices/${i}; done
-
+mkdir mapped_time_slices && for i in  $( ls basecalled_time_slices ); do mkdir mapped_time_slices/${i}; python ~/artic-network/rampart/scripts/read_mapping_daemon.py -r ~/artic-network/artic-ebov/reference_genomes/ebov-reference-genomes-10.fasta -b zero barcode01 barcode03 barcode04 barcode09 -n 1000 --dont_observe -i basecalled_time_slices/${i}/workspace/pass -o mapped_time_slices/${i} -t "EBOV Validation Run"; done
 ```
 
 Step 4: To mimic steps 1-3 happening in real time, copy these JSONs into the RAMPRT-watched directory at some prescribed rate (60 would be pseudo-real-time)

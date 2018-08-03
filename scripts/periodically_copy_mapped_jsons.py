@@ -33,13 +33,20 @@ if __name__ == '__main__':
     source_idx = 0;
     file_counter = 0;
 
+    # copy the info.json from the first directory
+    try:
+        shutil.copyfile(os.path.join(source_folders[0], "info.json"), os.path.join(args.outdir, "info.json"))
+    except err:
+        print("No info.json found!", err)
+        sys.exit(2)
+
     while True:
         time.sleep(1)
         time_waited += 1
         print("\rWaited {}/{}s   ".format(time_waited, args.rate), end="",  flush=True)
         if time_waited >= int(args.rate):
             time_waited = 0
-            files = glob.glob(os.path.join(source_folders[source_idx], "*"))
+            files = glob.glob(os.path.join(source_folders[source_idx], "*mapped*json"))
             for filename in files:
                 shutil.copyfile(filename, os.path.join(args.outdir, "mapped_{}.json".format(file_counter)))
                 file_counter += 1

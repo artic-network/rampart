@@ -26,7 +26,7 @@ const addJSONToState = (state, setState, json) => {
     newState.startTime = processTimeStamp(json[0].timeStamp);
     newState.nTotalReads = 0;
     newState.readsOverTime = [];
-    newState.versions = [...Array(state.numChannels)].map(() => 1);
+    newState.versions = [...Array(state.barcodes.length)].map(() => 1);
   }
 
   /* the JSON is an array of mapping datafiles */
@@ -39,9 +39,9 @@ const addJSONToState = (state, setState, json) => {
       prevReadCount + data.readData.length
     ]);
     /* summarise the reads per barcode */
-    const readsPerBarcode = [...Array(state.numChannels)].map(() => []);
+    const readsPerBarcode = [...Array(state.barcodes.length)].map(() => []);
     data.readData.forEach((line) => {
-      const d = processReadDataLine(line, state.referenceLabels);
+      const d = processReadDataLine(line, state.references);
       readsPerBarcode[d.channel-1].push(d);
     });
     /* add the reads per barcode to the state as a crossfilter object */
