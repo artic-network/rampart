@@ -10,7 +10,9 @@ Rampart consists of 2 parts:
 In the future, this may include consensus sequence building & phylogenetic placement.
 Additionaly an info file summarising the references used, barcode names etc is produced.
 
-2. The server & frontend. This watches for the JSONs produced from step 1, and visualises the result. In the future this will be combined into a single electron app, however currently it is seperate scripts (see "Start the server & frontend" below).
+2. The server & frontend. This watches for the JSONs produced from step 1, and visualises the result.
+This can either be used as a localhost website or an electron app.
+(Note that the code is not production ready.)
 
 
 
@@ -69,5 +71,12 @@ python scripts/periodically_copy_mapped_jsons.py --rate 10 ~/reads/20180531_2057
 
 
 ### Start the server & frontend
-* `npm run server &` which starts the server (to deliver reads)
-* `npm run start` which starts the frontend (available at [http://localhost:3000/](http://localhost:3000/))
+
+As an electron app...
+* `npm run start` (in one terminal window).
+* _You must then close any browser windows open at localhost:3000_
+* `npm run electron` (in another)
+
+As a more traditional server process & localhost client...
+* `npm run server` (in one terminal window)
+* `npm run start` (in another) -- this should open  [http://localhost:3000/](http://localhost:3000/)
