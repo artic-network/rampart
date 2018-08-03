@@ -4,12 +4,23 @@ Read Assignment, Mapping, and Phylogenetic Analysis in Real Time
 ## Status
 In development
 
+## General data-flow
+Rampart consists of 2 parts:
+1. The basecalling & mapping daemon(s), which monitor produced fast5 files, basecall them, and produce timestamped JSONs describing the mapping results.
+In the future, this may include consensus sequence building & phylogenetic placement.
+Additionaly an info file summarising the references used, barcode names etc is produced.
+
+2. The server & frontend. This watches for the JSONs produced from step 1, and visualises the result. In the future this will be combined into a single electron app, however currently it is seperate scripts (see "Start the server & frontend" below).
+
+
+
 ## Installation
 * [Install conda](https://conda.io/docs/user-guide/install/index.html)
 * `git clone git@github.com:artic-network/rampart.git && cd rampart`
 * `conda env create -f environment.yml`
 * `source activate artic-rampart`
 * `yarn` to install javascript / node-js packages (dependencies of the server and the frontend)
+
 
 
 ## How to Run
