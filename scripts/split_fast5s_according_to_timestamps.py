@@ -45,7 +45,7 @@ if __name__ == '__main__':
     os.makedirs(args.outdir)
 
     for subdir, files in groups.items():
-        print("Copying {} fast5s to subdirectory {}...".format(len(files), subdir))
+        print("Hard-linking {} fast5s to subdirectory {}...".format(len(files), subdir))
         os.makedirs(os.path.join(args.outdir, subdir))
         for f in files:
-            shutil.copyfile(f, os.path.join(args.outdir, subdir, os.path.split(f)[-1]))
+            os.link(f, os.path.join(args.outdir, subdir, os.path.split(f)[-1]))
