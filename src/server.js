@@ -11,11 +11,18 @@ let filenamesRead = [];
 let processingRequest = false;
 const readDir = path.join(__dirname, "..", "data", "real_time_reads");
 
+if (process.argv.length !== 3) {
+  console.log("You must provide a path to the annotation JSON as an argument to server.js");
+  process.exit()
+}
+
 /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
 app.get('/requestRunInfo', (req, res) => {
+  console.log("THIS IS DIRNAME", __dirname)
   console.log("Client attaching. Sending info & annotation data.")
   const data = JSON.parse(fs.readFileSync(path.join(readDir, "info.json")));
-  const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "ebola_annotation.json")));
+  console.log(path.join(__dirname, "..", process.argv[2]))
+  const annotation = JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2])));
   data.annotation = annotation;
 
   filenamesRead = []; // frontend has restarted - it will need to re-see all the data!

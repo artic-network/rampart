@@ -1,0 +1,209 @@
+{
+  "genes": {
+    "C": {
+      "start": 108,
+      "end": 473,
+      "strand": 1
+    },
+    "Pr": {
+      "start": 474,
+      "end": 752,
+      "strand": 1
+    },
+    "M": {
+      "start": 753,
+      "end": 977,
+      "strand": 1
+    },
+    "E": {
+      "start": 978,
+      "end": 2489,
+      "strand": 1
+    },
+    "NS1": {
+      "start": 2490,
+      "end": 3545,
+      "strand": 1
+    },
+    "NS2A": {
+      "start": 3546,
+      "end": 4223,
+      "strand": 1
+    },
+    "NS2B": {
+      "start": 4224,
+      "end": 4613,
+      "strand": 1
+    },
+    "NS3": {
+      "start": 4614,
+      "end": 6464,
+      "strand": 1
+    },
+    "NS4A": {
+      "start": 6465,
+      "end": 6845,
+      "strand": 1
+    },
+    "2K": {
+      "start": 6846,
+      "end": 6914,
+      "strand": 1
+    },
+    "NS4B": {
+      "start": 6915,
+      "end": 7667,
+      "strand": 1
+    },
+    "RDRP_NS5": {
+      "start": 7668,
+      "end": 10376,
+      "strand": 1
+    }
+  },
+  "primers": {
+    "Zikv_1": {
+      "forward": [28, 52],
+      "reverse": [482, 504]
+    },
+    "Zikv_2": {
+      "forward": [658, 680],
+      "reverse": [1054, 1076]
+    },
+    "Zikv_3": {
+      "forward": [1256, 1278],
+      "reverse": [1701, 1723]
+    },
+    "Zikv_4": {
+      "forward": [1875, 1897],
+      "reverse": [2264, 2286]
+    },
+    "Zikv_5": {
+      "forward": [2444, 2466],
+      "reverse": [2902, 2924]
+    },
+    "Zikv_6": {
+      "forward": [3030, 3052],
+      "reverse": [3481, 3503]
+    },
+    "Zikv_7": {
+      "forward": [3657, 3679],
+      "reverse": [4077, 4099]
+    },
+    "Zikv_8": {
+      "forward": [4231, 4253],
+      "reverse": [4659, 4681]
+    },
+    "Zikv_9": {
+      "forward": [4851, 4873],
+      "reverse": [5304, 5326]
+    },
+    "Zikv_10": {
+      "forward": [5461, 5483],
+      "reverse": [5902, 5924]
+    },
+    "Zikv_11": {
+      "forward": [6046, 6068],
+      "reverse": [6458, 6480]
+    },
+    "Zikv_12": {
+      "forward": [6673, 6695],
+      "reverse": [7073, 7095]
+    },
+    "Zikv_13": {
+      "forward": [7230, 7252],
+      "reverse": [7685, 7707]
+    },
+    "Zikv_14": {
+      "forward": [7841, 7863],
+      "reverse": [8296, 8318]
+    },
+    "Zikv_15": {
+      "forward": [8430, 8452],
+      "reverse": [8873, 8895]
+    },
+    "Zikv_16": {
+      "forward": [9052, 9074],
+      "reverse": [9473, 9495]
+    },
+    "Zikv_17": {
+      "forward": [9637, 9659],
+      "reverse": [10104, 10126]
+    },
+    "Zikv_18": {
+      "forward": [10241, 10263],
+      "reverse": [2508, 2535]
+    },
+    "Zikv_19": {
+      "forward": [359, 381],
+      "reverse": [796, 818]
+    },
+    "Zikv_20": {
+      "forward": [978, 1000],
+      "reverse": [1393, 1415]
+    },
+    "Zikv_21": {
+      "forward": [1539, 1561],
+      "reverse": [1965, 1987]
+    },
+    "Zikv_22": {
+      "forward": [2151, 2173],
+      "reverse": [2607, 2629]
+    },
+    "Zikv_23": {
+      "forward": [2747, 2769],
+      "reverse": [3154, 3176]
+    },
+    "Zikv_24": {
+      "forward": [3334, 3356],
+      "reverse": [3763, 3785]
+    },
+    "Zikv_25": {
+      "forward": [3931, 3953],
+      "reverse": [4388, 4410]
+    },
+    "Zikv_26": {
+      "forward": [4542, 4564],
+      "reverse": [4965, 4987]
+    },
+    "Zikv_27": {
+      "forward": [5136, 5158],
+      "reverse": [5587, 5609]
+    },
+    "Zikv_28": {
+      "forward": [5746, 5768],
+      "reverse": [6178, 6200]
+    },
+    "Zikv_29": {
+      "forward": [6353, 6375],
+      "reverse": [6756, 6778]
+    },
+    "Zikv_30": {
+      "forward": [6960, 6982],
+      "reverse": [7394, 7416]
+    },
+    "Zikv_31": {
+      "forward": [7554, 7576],
+      "reverse": [7972, 7994]
+    },
+    "Zikv_32": {
+      "forward": [8167, 8189],
+      "reverse": [8582, 8604]
+    },
+    "Zikv_33": {
+      "forward": [8740, 8762],
+      "reverse": [9184, 9206]
+    },
+    "Zikv_34": {
+      "forward": [9336, 9358],
+      "reverse": [9755, 9777]
+    },
+    "Zikv_35": {
+      "forward": [9969, 9991],
+      "reverse": [10390, 10413]
+    }
+  },
+  "genome": {
+    "length": 10807
+  }
+}

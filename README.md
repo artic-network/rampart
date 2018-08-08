@@ -57,26 +57,37 @@ Step 2: Basecall each of these time-sliced-fast5-directories using albacore
 mkdir basecalled_time_slices && for i in $( ls time_sliced_fast5/ ); do mkdir basecalled_time_slices/${i}; read_fast5_basecaller.py -c r94_450bps_linear.cfg -i time_sliced_fast5/${i} -s basecalled_time_slices/${i} -o fastq -r --barcoding -q 1000 -t 3; done
 ```
 
-Step 3: Map these FASTQs to a panel of reference sequences and produce a JSON per time slice. This also produces a `info.json` file which details the barcodes, references etc
+Step 3: Map these FASTQs to a panel of reference sequences and produce a JSON per time slice.
+This also produces a `info.json` file which details the barcodes, references etc.
+The barcodes are specified in increasing order (i.e. the first corresponds to "barcode01").
 
 ```
-mkdir mapped_time_slices && for i in  $( ls basecalled_time_slices ); do mkdir mapped_time_slices/${i}; python ~/artic-network/rampart/scripts/read_mapping_daemon.py -r ~/artic-network/artic-ebov/reference_genomes/ebov-reference-genomes-10.fasta -b zero barcode01 barcode03 barcode04 barcode09 -n 1000 --dont_observe -i basecalled_time_slices/${i}/workspace/pass -o mapped_time_slices/${i} -t "EBOV Validation Run"; done
+mkdir mapped_time_slices && for i in  $( ls basecalled_time_slices ); do mkdir mapped_time_slices/${i}; python ~/artic-network/rampart/scripts/read_mapping_daemon.py -r ~/artic-network/artic-ebov/reference_genomes/ebov-reference-genomes-10.fasta -b barcode01 barcode03 barcode04 barcode09 -n 1000 --dont_observe -i basecalled_time_slices/${i}/workspace/pass -o mapped_time_slices/${i} -t "EBOV Validation Run"; done
 ```
 
-Step 4: To mimic steps 1-3 happening in real time, copy these JSONs into the RAMPRT-watched directory at some prescribed rate (60 would be pseudo-real-time)
+```
+mkdir mapped_time_slices && for i in  $( ls basecalled_time_slices ); do mkdir mapped_time_slices/${i}; python ~/artic-network/rampart/scripts/read_mapping_daemon.py -r ~/artic-network/rampart/data/zika_reference_genomes.fasta -b VI34_p1 VI35_p1 VI36_p1 VI37_p1 VI38_p1 negative VI34_p2 VI35_p2 VI36_p2 empty VI37_p2 VI38_p2 -n 1000 --dont_observe -i basecalled_time_slices/${i}/workspace/pass -o mapped_time_slices/${i} -t "ZIKV USVI 7"; done
+```
+
+Step 4: To mimic steps 1-3 happening in real time, copy these JSONs into the RAMPRT-watched directory at some prescribed rate.
+The `--rate` parameter specifies how many seconds 1 minute of capture represents.
 
 ```
 python scripts/periodically_copy_mapped_jsons.py --rate 10 ~/reads/20180531_2057_EBOV/mapped_time_slices data/real_time_reads
 ```
 
+```
+python scripts/periodically_copy_mapped_jsons.py --rate 10 ~/reads/ZIKV_USVI_7/mapped_time_slices data/real_time_reads
+```
+
 
 ### Start the server & frontend
 
-As an electron app...
+As an electron app... _CURRENTLY BROKEN_
 * `npm run start` (in one terminal window).
 * _You must then close any browser windows open at localhost:3000_
-* `npm run electron` (in another)
+* `npm run electron-dev` (in another)
 
 As a more traditional server process & localhost client...
-* `npm run server` (in one terminal window)
+* `npm run server data/ebola_annotation.json` (in one terminal window) (or `npm run server data/zika_annotation.json`)
 * `npm run start` (in another) -- this should open  [http://localhost:3000/](http://localhost:3000/)

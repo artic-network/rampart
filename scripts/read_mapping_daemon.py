@@ -68,7 +68,11 @@ def map_to_reference(aligner, query_path, reads_per_file, destination_folder):
 		try:
 			barcode_index = barcodes.index(barcode)
 		except ValueError:
-			raise ValueError('unknown barcode "' + barcode + '"... skipping')
+			generic = re.match("^barcode(\d\d)$", barcode)
+			if generic:
+				barcode_index = int(generic[1])-1
+			else:
+				raise ValueError('unknown barcode "' + barcode + '"... skipping')
 
 		time_stamp = datetime.strptime(read_time, "%Y-%m-%dT%H:%M:%SZ")
 
@@ -251,7 +255,7 @@ if __name__ == '__main__':
 
 	reference_file = args.reference_file
 	reads_per_file = args.reads_per_file
-	barcodes = args.barcodes;
+	barcodes = ["unused"] + args.barcodes;
 	source_folder = args.watch_directory
 	destination_folder = args.output_directory
 	aligner = create_index(reference_file)
