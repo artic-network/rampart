@@ -42,8 +42,9 @@ class App extends Component {
               version={this.state.versions.reduce((tot, cv) => tot + cv)}
               annotation={this.state.annotation}
               coveragePerChannel={this.state.coveragePerChannel}
-              readsPerChannel={this.state.readsPerChannel}
-              refMatchPerChannel={this.state.refMatchPerChannel}
+              references={this.state.references}
+              readsPerBarcode={this.state.readsPerBarcode}
+              refMatchPerBarcode={this.state.refMatchPerBarcode}
             />
             {this.state.readsPerChannel.map((reads, idx) => (
               <Panel
@@ -53,7 +54,7 @@ class App extends Component {
                 annotation={this.state.annotation}
                 coverage={this.state.coveragePerChannel[idx]}
                 readLength={this.state.readLengthPerChannel[idx]}
-                refMatch={this.state.refMatchPerChannel[idx]}
+                refMatch={this.state.refMatchPerBarcode[idx]}
                 name={this.state.barcodes[idx+1]}
                 channelNumber={idx+1}
               />

@@ -10,18 +10,18 @@ import {chartTitleCSS} from "../utils/commonStyles";
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 280,
+  spaceLeft: 75, // space for the reference names
   spaceRight: 10,
   spaceBottom: 60,
   spaceTop: 10
 });
 
-const calcCellDims = (chartGeom, cfData) => {
+const calcCellDims = (chartGeom, numBarcodes, numReferences) => {
   const cellPadding = 1;
   const availableWidth = chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight;
   const availableHeight = chartGeom.height - chartGeom.spaceBottom - chartGeom.spaceTop;
-  const cellWidth = availableWidth / cfData.length - cellPadding;
-  const cellHeight = availableHeight / cfData[0].length - cellPadding;
+  const cellWidth = availableWidth/numBarcodes - cellPadding;
+  const cellHeight = availableHeight/numReferences - cellPadding;
   return {
     height: cellHeight,
     width: cellWidth,
@@ -29,84 +29,85 @@ const calcCellDims = (chartGeom, cfData) => {
   }
 }
 
-const drawHeatMap = (svg, chartGeom, scales, cellDims, cfData, colourScale) => {
-  /* step1 : flatten cfData */
+const drawHeatMap = (state, props) => {
 
-  const references = [];
-  cfData.forEach((outerObj) => {
-    outerObj.forEach((innerObj) => {
-      if (references.indexOf(innerObj.key) === -1) {
-        references.push(innerObj.key)
-      }
-    })
-  });
+  /* remove the last array (which is empty) from the crossfilter data */
+  const refMatchPerBarcode = props.refMatchPerBarcode.slice(0, props.refMatchPerBarcode.length-1);
+  const references = props.references;
+
+  /* convert the (crossfilter data) refMatchPerBarcode into the format
+  [barcode_number (1-based),   ref_idx (this.props.references),    ref_match (percentage)]
+  */
   const referencesIdxLookup = {};
-  references.forEach((cv, idx) => {referencesIdxLookup[cv] = idx});
-
-  /* data point structure for d3: [barcode # (1-based),  ref idx (1-based), ref match % (over [0, 100])] */
-  const data = cfData.reduce((acc, laneData, laneIdx) => {
-    /* process the per-barcode data here */
-    // console.log("here", acc, laneData, laneIdx)
-    const totalReadsInBarcode = laneData.reduce((acc, cv) => acc + cv.value, 0);
-    const points = laneData.map((cellData) => {
-      return [laneIdx+1, referencesIdxLookup[cellData.key]+1, cellData.value / totalReadsInBarcode * 100];
-    })
-    return acc.concat(points)
+  references.forEach((name, idx) => {referencesIdxLookup[name] = idx});
+  const data = refMatchPerBarcode.reduce((acc, barcodeData, barcodeZeroBasedIdx) => {
+    const totalReadsInBarcode = barcodeData.reduce((acc, cv) => acc + cv.value, 0);
+    return acc.concat(
+      barcodeData.map((cellData) =>
+        [
+          barcodeZeroBasedIdx+1,                        // barcode_number (1-based)
+          referencesIdxLookup[cellData.key],            // index for this.props.references
+          cellData.value / totalReadsInBarcode * 100    // ref_match (percentage)
+        ]
+      )
+    );
   }, []);
 
-  svg.selectAll(".refLabel")
+  /* remove the previous renderings... */
+  state.svg.selectAll("*").remove();
+
+  /* render the reference names (on the far left) */
+  state.svg.selectAll(".refLabel")
       .data(references) /* get the labels */
       .enter()
       .append("text")
       .attr("class", "refLabel")
-      .text((d) => d)
-      .attr('y', (d, i) => scales.y(i+1) + 0.5*cellDims.height) /* +1 as that's what we do in the data reduction above */
-      .attr('x', chartGeom.spaceLeft - 2)
+      .text((d) => d.slice(0,8) + "...")
+      .attr('y', (d, i) => state.scales.y(i+1) + 0.5*state.cellDims.height) /* +1 as that's what we do in the data reduction above */
+      .attr('x', state.chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
       .attr("font-size", "12px")
       .attr("alignment-baseline", "middle") /* i.e. y value specifies top of text */
 
-  svg.selectAll(".channel")
-      .data(cfData.map((d, i) => i+1)) /* get the channels - +1 as per data reduce above */
+  /* render the column labels (barcodes) on the bottom */
+  state.svg.selectAll(".barcodeText")
+      .data(Array.from(Array(state.numBarcodes).keys()))
       .enter()
       .append("text")
-      .attr("class", "channel")
-      .text((d) => d)
-      .attr('x', (d) => scales.x(d) - 0.5*cellDims.width)
-      .attr('y', chartGeom.height - chartGeom.spaceBottom + 5)
+      .attr("class", "barcodeText")
+      .text((d) => d+1)
+      .attr('x', (d) => state.scales.x(d+1) - 0.5*state.cellDims.width)
+      .attr('y', state.chartGeom.height - state.chartGeom.spaceBottom + 5)
       .attr("text-anchor", "middle")
       .attr("font-size", "16px")
       .attr("alignment-baseline", "hanging")
 
-  svg.selectAll(".heat").remove();
-  svg.selectAll(".heat")
+  /* render the coloured cells of the heatmap */
+  state.svg.selectAll(".heatCell")
     .data(data)
     .enter().append("rect")
-    .attr("class", "heat")
-    .attr('width', cellDims.width)
-    .attr('height', cellDims.height)
-    .attr("x", d => scales.x(d[0]-1) + cellDims.padding)
-    .attr("y", d => scales.y(d[1]) + cellDims.padding)
-    .attr("fill", d => colourScale(d[2]));
+    .attr("class", "heatCell")
+    .attr('width', state.cellDims.width)
+    .attr('height', state.cellDims.height)
+    .attr("x", d => state.scales.x(d[0]-1) + state.cellDims.padding)
+    .attr("y", d => state.scales.y(d[1]+1) + state.cellDims.padding)
+    .attr("fill", d => state.heatColourScale(d[2]));
 
-
+  /* render the legend (bottom) -- includes coloured cells & text */
   const legendDataValues = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const legendBoxWidth = (chartGeom.width - chartGeom.spaceRight) / (legendDataValues.length -1);
+  const legendBoxWidth = (state.chartGeom.width - state.chartGeom.spaceRight) / (legendDataValues.length -1);
   const legendBoxHeight = 12;
-  const legendRoof = chartGeom.height - chartGeom.spaceBottom + 32;
-
-  const legend = svg.selectAll(".legend")
+  const legendRoof = state.chartGeom.height - state.chartGeom.spaceBottom + 32;
+  const legend = state.svg.selectAll(".legend")
     .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
     .enter().append("g")
       .attr("class", "legend")
-
   legend.append("rect")
     .attr('y', legendRoof)
     .attr("x", (d, i) => legendBoxWidth * i)
     .attr("width", legendBoxWidth)
     .attr("height", legendBoxHeight)
-    .style("fill", (d) => colourScale(d));
-
+    .style("fill", (d) => state.heatColourScale(d));
   legend.append("text")
     .text((d, i) => i ? d+"%" : "")
     .attr('x', (d, i) => legendBoxWidth * i)
@@ -122,33 +123,31 @@ class ReferenceHeatmap extends React.Component {
     this.state = {chartGeom: {}};
   }
   componentDidMount() {
-    const SVG = select(this.DOMref);
+    const svg = select(this.DOMref);
+    const numBarcodes = this.props.refMatchPerBarcode.length - 1;
+    const references = this.props.references;
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-    const cellDims = calcCellDims(chartGeom, this.props.refMatchPerChannel);
-
-    /* PS the scales never need updating :) */
+    const cellDims = calcCellDims(chartGeom, numBarcodes, references.length);
     const scales = calcScales(
       chartGeom,
-      this.props.refMatchPerChannel.length,
-      this.props.refMatchPerChannel[0].length
+      numBarcodes,      // maxX -- i.e. the number of barcodes
+      references.length // maxY -- i.e. the number of references
     );
+
     const heatColourScale = scaleLinear()
       .domain([0, 100])
-      // .range(heatColours)
       .interpolate(interpolateHcl)
-      // .range([rgb('#F6EECA'), rgb('#F1605D')]
         .range([rgb('#F6EECA'), rgb('#005C68')]
-        // .range([rgb('#D8E6E7'), rgb('#005C68')]
-      // .range([rgb("#007AFF"), rgb('#FFF500')]
       );
-    // console.log(this.props.refMatchPerChannel);
-    drawHeatMap(SVG, chartGeom, scales, cellDims, this.props.refMatchPerChannel, heatColourScale)
-    this.setState({SVG, chartGeom, cellDims, scales, heatColourScale});
+
+    const newState = {svg, chartGeom, cellDims, scales, heatColourScale, numBarcodes}
+    drawHeatMap(newState, this.props);
+    this.setState(newState); // may be async...
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.version !== this.props.version) {
-      drawHeatMap(this.state.SVG, this.state.chartGeom, this.state.scales, this.state.cellDims, this.props.refMatchPerChannel, this.state.heatColourScale)
+      drawHeatMap(this.state, this.props);
     }
   }
   render() {

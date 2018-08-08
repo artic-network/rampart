@@ -60,7 +60,8 @@ class OverallSummary extends React.Component {
           <ReferenceHeatmap
             style={{width: '25%', margin: 'auto', height: "100%"}}
             title={"Read Mapping Percentages to Reference"}
-            refMatchPerChannel={this.props.refMatchPerChannel}
+            references={this.props.references}
+            refMatchPerBarcode={this.props.refMatchPerBarcode}
             version={this.props.version}
           />
         </div>

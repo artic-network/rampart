@@ -73,12 +73,13 @@ const addJSONToState = (state, setState, json) => {
         .group((d) => Math.ceil(d/10)*10) /* this makes a histogram with x values (bases) rounded to closest 10 */
         .all()
     )
-    newState.refMatchPerChannel = newState.readsPerChannel.map((r) =>
-      r.dimension((d) => d.reference)
-        .group((d) => d)
-        .all()
-    )
   }
+  /* as a temporary fix, do this each time -- cells which were previously zero aren't updated otherwise */
+  newState.refMatchPerBarcode = newState.readsPerBarcode.map((r) =>
+    r.dimension((d) => d.reference)
+      .group((d) => d)
+      .all()
+  )
   newState.status = "Reads added...";
   setState(newState);
 }
