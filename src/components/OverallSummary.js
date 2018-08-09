@@ -62,7 +62,7 @@ class OverallSummary extends React.Component {
             title={"Read Mapping Percentages to Reference"}
             references={this.props.references}
             refMatchPerBarcode={this.props.refMatchPerBarcode}
-            version={this.props.version}
+            version={this.props.refMatchPerBarcodeVersion}
           />
         </div>
       </div>

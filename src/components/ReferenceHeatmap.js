@@ -30,28 +30,27 @@ const calcCellDims = (chartGeom, numBarcodes, numReferences) => {
 }
 
 const drawHeatMap = (state, props) => {
-
-  /* remove the last array (which is empty) from the crossfilter data */
-  const refMatchPerBarcode = props.refMatchPerBarcode.slice(0, props.refMatchPerBarcode.length-1);
-  const references = props.references;
-
-  /* convert the (crossfilter data) refMatchPerBarcode into the format
+  /* convert the refMatchPerBarcode data from raw counts to percentages & change to a d3-friendly.
+  Output data format:
   [barcode_number (1-based),   ref_idx (this.props.references),    ref_match (percentage)]
   */
-  const referencesIdxLookup = {};
-  references.forEach((name, idx) => {referencesIdxLookup[name] = idx});
-  const data = refMatchPerBarcode.reduce((acc, barcodeData, barcodeZeroBasedIdx) => {
-    const totalReadsInBarcode = barcodeData.reduce((acc, cv) => acc + cv.value, 0);
-    return acc.concat(
-      barcodeData.map((cellData) =>
-        [
-          barcodeZeroBasedIdx+1,                        // barcode_number (1-based)
-          referencesIdxLookup[cellData.key],            // index for this.props.references
-          cellData.value / totalReadsInBarcode * 100    // ref_match (percentage)
-        ]
-      )
+  const references = props.references;
+  const data = Array.from(new Array(state.numBarcodes*references.length));
+  let dataIdx = 0;
+  for (let barcodeIdx=1; barcodeIdx<state.numBarcodes+1; barcodeIdx++) {
+    const totalReads = props.refMatchPerBarcode.reduce((n, barcodedCounts) =>
+      n+barcodedCounts[barcodeIdx], 0
     );
-  }, []);
+    for (let refIdx=0; refIdx<references.length; refIdx++) {
+      const perc = totalReads === 0 ? 0 : props.refMatchPerBarcode[refIdx][barcodeIdx] / totalReads * 100;
+      data[dataIdx] = [
+        barcodeIdx, // barcode_number (1-based)
+        refIdx,     // index for this.props.references
+        perc
+      ];
+      dataIdx++;
+    }
+  }
 
   /* remove the previous renderings... */
   state.svg.selectAll("*").remove();
@@ -124,7 +123,7 @@ class ReferenceHeatmap extends React.Component {
   }
   componentDidMount() {
     const svg = select(this.DOMref);
-    const numBarcodes = this.props.refMatchPerBarcode.length - 1;
+    const numBarcodes = this.props.refMatchPerBarcode[0].length-1;
     const references = this.props.references;
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const cellDims = calcCellDims(chartGeom, numBarcodes, references.length);

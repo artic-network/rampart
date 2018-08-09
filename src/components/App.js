@@ -45,6 +45,7 @@ class App extends Component {
               references={this.state.references}
               readsPerBarcode={this.state.readsPerBarcode}
               refMatchPerBarcode={this.state.refMatchPerBarcode}
+              refMatchPerBarcodeVersion={this.state.refMatchPerBarcodeVersion}
             />
             {this.state.readsPerBarcode.map((reads, idx) => (
               <Panel

@@ -43,6 +43,11 @@ const addJSONToState = (state, setState, json) => {
     data.readData.forEach((line) => {
       const d = processReadDataLine(line, state.references);
       readsPerBarcode[d.channel-1].push(d);
+
+
+      //                        REF IDX    BARCODE
+      state.refMatchPerBarcode[line[2]-1][line[1]]++
+
     });
     /* add the reads per barcode to the state as a crossfilter object */
     if (!newState.readsPerBarcode) { /* set up crossfilter */
@@ -74,12 +79,11 @@ const addJSONToState = (state, setState, json) => {
         .all()
     )
   }
-  /* as a temporary fix, do this each time -- cells which were previously zero aren't updated otherwise */
-  newState.refMatchPerBarcode = newState.readsPerBarcode.map((r) =>
-    r.dimension((d) => d.reference)
-      .group((d) => d)
-      .all()
-  )
+
+  // bump versions
+  newState.refMatchPerBarcodeVersion++
+
+
   newState.status = "Reads added...";
   setState(newState);
 }
@@ -103,6 +107,20 @@ export const requestReads = (state, setState) => {
     })
 }
 
+const createInitialState = (infoJson) => {
+  const state = {
+    name: infoJson.name,
+    annotation: infoJson.annotation,
+    barcodes: infoJson.barcodes,
+    references: infoJson.references
+  }
+  state.refMatchPerBarcode = state.references.map((refName, refIdx) =>
+    state.barcodes.map((barcodeName, barcodeIdx) => 0)
+  )
+  state.refMatchPerBarcodeVersion = 0;
+  return state;
+}
+
 export const requestRunInfo = (state, setState) => {
   setState({status: "Querying server for data"})
 
@@ -113,8 +131,10 @@ export const requestRunInfo = (state, setState) => {
     })
     .then((res) => res.json())
     .then((jsonData) => {
-      console.log("setting run info to:", jsonData)
-      setState({status: "Connected to server. Awaiting initial read data.", ...jsonData})
+      const state = createInitialState(jsonData);
+      console.log("Run info JSON:", jsonData)
+      console.log("initial state:", state)
+      setState({status: "Connected to server. Awaiting initial read data.", ...state})
     })
     .catch((err) => {
       console.warn("requestRunInfo:", err)
