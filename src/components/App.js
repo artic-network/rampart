@@ -34,7 +34,7 @@ class App extends Component {
     return (
       <div {...container}>
         <Header status={this.state.status} name={this.state.name} />
-        {this.state.readsPerBarcode ? (
+        {this.state.startTime ? (
           <div>
             <OverallSummary
               readsOverTime={this.state.readsOverTime}

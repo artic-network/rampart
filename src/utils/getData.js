@@ -1,54 +1,44 @@
-import crossfilter from "crossfilter"
-
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
-
 const genomeResolution = 100; // TODO: centralise
 const readLengthResolution = 10; // TODO: centralise
-
 
 const processTimeStamp = (timeStamp) => {
   const d = new Date(timeStamp);
   return d.getTime();
 }
 
-const processReadDataLine = (line, referenceLabels) => ({
-  channel: line[1],
-  reference: referenceLabels[line[2]-1],
-  start: line[3],
-  end: line[4],
-  identity: line[5],
-  length: line[4] - line[3] + 1,
-  location: (line[3] + line[4]) / 2
-})
+// const processReadDataLine = (line, referenceLabels) => ({
+//   channel: line[1],
+//   reference: referenceLabels[line[2]-1],
+//   start: line[3],
+//   end: line[4],
+//   identity: line[5],
+//   length: line[4] - line[3] + 1,
+//   location: (line[3] + line[4]) / 2
+// })
 
 /* could be moved to the server */
 const addJSONToState = (state, setState, json) => {
   const newState = {...state};
-  let firstTime = !newState.startTime;
-  /* if we haven't yet had any reads, we have to initialise state... */
-  if (firstTime) {
+
+  /* if we haven't yet had any reads, we have to initialise timestamps via the first JSON */
+  if (!newState.startTime) {
     newState.startTime = processTimeStamp(json[0].timeStamp);
-    // newState.nTotalReads = 0;
     newState.readsOverTime = [];
     newState.versions = [...Array(state.barcodes.length)].map(() => 1);
   }
 
   /* the JSON is an array of mapping datafiles */
+  let readsAdded = 0;
   json.forEach((data) => {
-    // newState.nTotalReads += data.readData.length;
     let prevReadCount = 0;
     if (newState.readsOverTime.length) prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
     newState.readsOverTime.push([
       parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
       prevReadCount + data.readData.length
     ]);
-    /* summarise the reads per barcode */
-    const readsPerBarcode = [...Array(state.barcodes.length)].map(() => []);
+    readsAdded += data.readData.length;
     data.readData.forEach((line) => {
-      const d = processReadDataLine(line, state.references);
-      readsPerBarcode[d.channel-1].push(d);
-
-
       //                        REF IDX    BARCODE
       state.refMatchPerBarcode[line[2]-1][line[1]]++
       state.readCountPerBarcode[line[1]]++;
@@ -68,40 +58,9 @@ const addJSONToState = (state, setState, json) => {
         state.readLengthPerBarcode[line[1]][readLengthBin]++
       }
     });
-    /* add the reads per barcode to the state as a crossfilter object */
-    if (!newState.readsPerBarcode) { /* set up crossfilter */
-      newState.readsPerBarcode = readsPerBarcode.map((d) => crossfilter(d));
-    } else {
-      /* add to crossfilter & +1 the versions as needed */
-      newState.versions = readsPerBarcode.map((reads, idx) => {
-        if (reads.length) {
-          newState.readsPerBarcode[idx].add(reads);
-          return newState.versions[idx] + 1;
-        } else {
-          return newState.versions[idx]
-        }
-      })
-    }
   })
-  if (firstTime) {
-    /* we need to create dimensions / groups for each of the graphs.
-    This only needs to be done once - it automagically updates! */
-    newState.coveragePerChannel = newState.readsPerBarcode.map((r) =>
-      r.dimension((d) => d.location)
-        .group((d) => Math.ceil(d/1000)*1000) /* this makes a histogram with x values (bases) rounded to closest 1000 */
-        .all()
-    )
-    newState.readLengthPerChannel = newState.readsPerBarcode.map((r) =>
-      r.dimension((d) => d.length)
-        .group((d) => Math.ceil(d/10)*10) /* this makes a histogram with x values (bases) rounded to closest 10 */
-        .all()
-    )
-  }
-
-  // bump versions
   newState.dataVersion++
-
-  newState.status = "Reads added...";
+  newState.status = `Added ${readsAdded} reads`;
   setState(newState);
 }
 
