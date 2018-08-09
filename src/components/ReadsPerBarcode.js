@@ -3,6 +3,7 @@ import { select } from "d3-selection";
 import {haveMaxesChanged, drawAxes} from "../utils/commonFunctions";
 import {barcodeColours, chartTitleCSS} from "../utils/commonStyles";
 import {scaleLinear, scaleOrdinal} from "d3-scale";
+import { max } from "d3-array";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -15,25 +16,10 @@ const calcChartGeom = (DOMRect) => ({
 });
 
 const calculateBarWidth = (chartGeom, numBarcodes) =>
-  (chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numBarcodes - 1;
+  ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numBarcodes) - 1;
 
-
-const processreadsPerBarcode = (readsPerBarcode) => {
-  let maxNumReads = 0;
-  const numBarcodes = readsPerBarcode.length - 1; // the final array in crossfilter is empty
-  const points = readsPerBarcode
-    .slice(0, numBarcodes)
-    .map((cf, idx) => {
-      const n = cf.size();  // the number of reads
-      if (n > maxNumReads) maxNumReads = n;
-      return [idx+1, n];     // map the data to the 1-based barcode number & the number of reads
-    });
-  return {
-    points, // array of data points, each one [barcode_number, n(reads)]
-    numBarcodes,
-    maxReads: (parseInt(maxNumReads/10000, 10) +1) * 10000 // to nearest 10k
-  }
-}
+const getYMax = (data, resolution) =>
+  (parseInt(max(data)/resolution, 10)+1)*resolution;
 
 const calcScales = (chartGeom, barWidth, numBarcodes, maxReads) => {
     const xValues = Array.from(new Array(numBarcodes), (_, i) => i+1);
@@ -47,20 +33,19 @@ const calcScales = (chartGeom, barWidth, numBarcodes, maxReads) => {
     }
 }
 
-const drawColumns = (svg, chartGeom, scales, dataPoints, barWidth) => {
+const drawColumns = (svg, chartGeom, scales, counts, barWidth) => {
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")
-    .data(dataPoints)
+    .data(counts.slice(1))
     .enter()
       .append("rect")
         .attr("class", "bar")
-        .attr("x", d => scales.x(d[0]) - 0.5*barWidth)
+        .attr("x", (d, i) => scales.x(i+1) - 0.5*barWidth)
         .attr("width", barWidth)
-        .attr("y", d => scales.y(d[1]))
+        .attr("y", d => scales.y(d))
         .attr("fill", (d, i) => barcodeColours[i])
-        .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d[1]))
+        .attr("height", d => chartGeom.height - chartGeom.spaceBottom - scales.y(d))
 }
-
 
 class ReadsPerBarcode extends React.Component {
   constructor(props) {
@@ -70,28 +55,27 @@ class ReadsPerBarcode extends React.Component {
   componentDidMount() {
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const svg = select(this.DOMref);
-    const data = processreadsPerBarcode(this.props.readsPerBarcode);
-    const barWidth = calculateBarWidth(chartGeom, data.points.length)
-    const scales = calcScales(chartGeom, barWidth, data.numBarcodes, data.maxReads);
+    const numBarcodes = this.props.readCountPerBarcode.length - 1;
+    const yMaxResolution = 10000;
+    const yMax = getYMax(this.props.readCountPerBarcode, yMaxResolution);
+    const barWidth = calculateBarWidth(chartGeom, numBarcodes)
+    const scales = calcScales(chartGeom, barWidth, numBarcodes, yMax);
     drawAxes(svg, chartGeom, scales)
-    drawColumns(svg, chartGeom, scales, data.points, barWidth)
-    this.setState({chartGeom, svg, scales, barWidth});
+    drawColumns(svg, chartGeom, scales, this.props.readCountPerBarcode, barWidth)
+    this.setState({chartGeom, svg, scales, barWidth, yMaxResolution, numBarcodes});
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.version === this.props.version) return;
-    const data = processreadsPerBarcode(this.props.readsPerBarcode);
-    /* if the numBarcodes / maxRead # has changed, the scales & barWidth must recalculate (and redraw) */
-    if (haveMaxesChanged(this.state.scales, data.numBarcodes, data.maxReads)) {
-      const barWidth = calculateBarWidth(this.state.chartGeom, data.points.length);
-      const scales = calcScales(this.state.chartGeom, barWidth, data.numBarcodes, data.maxReads);
+    /* if the yMax has changed, the scales must recalculate (and redraw) */
+    const yMax = getYMax(this.props.readCountPerBarcode, this.state.yMaxResolution);
+    let newScales;
+    if (haveMaxesChanged(this.state.scales, this.state.numBarcodes, yMax)) {
+      const scales = calcScales(this.state.chartGeom, this.state.barWidth, this.state.numBarcodes, yMax);
       drawAxes(this.state.svg, this.state.chartGeom, scales)
-      drawColumns(this.state.svg, this.state.chartGeom, scales, data.points, barWidth)
-      this.setState({scales, barWidth});
-    } else {
-      /* the scales (& barWidth) in state is valid - simply redraw using these */
-      drawColumns(this.state.svg, this.state.chartGeom, this.state.scales, data.points, this.state.barWidth)
     }
+    drawColumns(this.state.svg, this.state.chartGeom, newScales || this.state.scales, this.props.readCountPerBarcode, this.state.barWidth)
+    if (newScales) this.setState({scales: newScales});
   }
   render() {
     return (

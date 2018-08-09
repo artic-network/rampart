@@ -54,15 +54,15 @@ class OverallSummary extends React.Component {
           <ReadsPerBarcode
             style={{width: '18%', margin: 'auto', height: "100%"}}
             title={"Total Reads per Barcode"}
-            readsPerBarcode={this.props.readsPerBarcode}
-            version={this.props.version}
+            readCountPerBarcode={this.props.readCountPerBarcode}
+            version={this.props.dataVersion}
           />
           <ReferenceHeatmap
             style={{width: '25%', margin: 'auto', height: "100%"}}
             title={"Read Mapping Percentages to Reference"}
             references={this.props.references}
             refMatchPerBarcode={this.props.refMatchPerBarcode}
-            version={this.props.refMatchPerBarcodeVersion}
+            version={this.props.dataVersion}
           />
         </div>
       </div>

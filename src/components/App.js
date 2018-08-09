@@ -43,9 +43,9 @@ class App extends Component {
               annotation={this.state.annotation}
               coveragePerChannel={this.state.coveragePerChannel}
               references={this.state.references}
-              readsPerBarcode={this.state.readsPerBarcode}
+              readCountPerBarcode={this.state.readCountPerBarcode}
               refMatchPerBarcode={this.state.refMatchPerBarcode}
-              refMatchPerBarcodeVersion={this.state.refMatchPerBarcodeVersion}
+              dataVersion={this.state.dataVersion}
             />
             {this.state.readsPerBarcode.map((reads, idx) => (
               <Panel

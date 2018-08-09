@@ -47,6 +47,7 @@ const addJSONToState = (state, setState, json) => {
 
       //                        REF IDX    BARCODE
       state.refMatchPerBarcode[line[2]-1][line[1]]++
+      state.readCountPerBarcode[line[1]]++;
 
     });
     /* add the reads per barcode to the state as a crossfilter object */
@@ -81,7 +82,7 @@ const addJSONToState = (state, setState, json) => {
   }
 
   // bump versions
-  newState.refMatchPerBarcodeVersion++
+  newState.dataVersion++
 
 
   newState.status = "Reads added...";
@@ -117,7 +118,8 @@ const createInitialState = (infoJson) => {
   state.refMatchPerBarcode = state.references.map((refName, refIdx) =>
     state.barcodes.map((barcodeName, barcodeIdx) => 0)
   )
-  state.refMatchPerBarcodeVersion = 0;
+  state.readCountPerBarcode = state.barcodes.map(() => 0);
+  state.dataVersion = 0;
   return state;
 }
 
