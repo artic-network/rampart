@@ -34,7 +34,7 @@ class App extends Component {
     return (
       <div {...container}>
         <Header status={this.state.status} name={this.state.name} />
-        {this.state.readsPerChannel ? (
+        {this.state.readsPerBarcode ? (
           <div>
             <OverallSummary
               nTotalReads={this.state.nTotalReads}
@@ -46,7 +46,7 @@ class App extends Component {
               readsPerBarcode={this.state.readsPerBarcode}
               refMatchPerBarcode={this.state.refMatchPerBarcode}
             />
-            {this.state.readsPerChannel.map((reads, idx) => (
+            {this.state.readsPerBarcode.map((reads, idx) => (
               <Panel
                 key={idx}
                 reads={reads}

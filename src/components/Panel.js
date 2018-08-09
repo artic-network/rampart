@@ -3,7 +3,7 @@ import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
 import ReferenceMatches from "./ReferenceMatches";
-import {channelColours} from "../utils/commonStyles";
+import {barcodeColours} from "../utils/commonStyles";
 
 const panelContainerCollapsed = {
   position: "relative",
@@ -52,7 +52,7 @@ class Panel extends React.Component {
     super(props);
     this.state = {
       expanded: false,
-      colour: channelColours[props.channelNumber - 1]
+      colour: barcodeColours[props.channelNumber - 1]
     }
   }
   renderNoDataHeader() {

@@ -45,13 +45,13 @@ const addJSONToState = (state, setState, json) => {
       readsPerBarcode[d.channel-1].push(d);
     });
     /* add the reads per barcode to the state as a crossfilter object */
-    if (!newState.readsPerChannel) { /* set up crossfilter */
-      newState.readsPerChannel = readsPerBarcode.map((d) => crossfilter(d));
+    if (!newState.readsPerBarcode) { /* set up crossfilter */
+      newState.readsPerBarcode = readsPerBarcode.map((d) => crossfilter(d));
     } else {
       /* add to crossfilter & +1 the versions as needed */
       newState.versions = readsPerBarcode.map((reads, idx) => {
         if (reads.length) {
-          newState.readsPerChannel[idx].add(reads);
+          newState.readsPerBarcode[idx].add(reads);
           return newState.versions[idx] + 1;
         } else {
           return newState.versions[idx]
@@ -63,12 +63,12 @@ const addJSONToState = (state, setState, json) => {
   if (firstTime) {
     /* we need to create dimensions / groups for each of the graphs.
     This only needs to be done once - it automagically updates! */
-    newState.coveragePerChannel = newState.readsPerChannel.map((r) =>
+    newState.coveragePerChannel = newState.readsPerBarcode.map((r) =>
       r.dimension((d) => d.location)
         .group((d) => Math.ceil(d/1000)*1000) /* this makes a histogram with x values (bases) rounded to closest 1000 */
         .all()
     )
-    newState.readLengthPerChannel = newState.readsPerChannel.map((r) =>
+    newState.readLengthPerChannel = newState.readsPerBarcode.map((r) =>
       r.dimension((d) => d.length)
         .group((d) => Math.ceil(d/10)*10) /* this makes a histogram with x values (bases) rounded to closest 10 */
         .all()

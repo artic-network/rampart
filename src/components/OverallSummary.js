@@ -2,9 +2,9 @@ import React from 'react';
 import { css } from 'glamor';
 import CoveragePlot from "./Coverage";
 import ReadsOverTime from "./ReadsOverTime";
-import ReadsPerChannel from "./ReadsPerChannel";
+import ReadsPerBarcode from "./ReadsPerBarcode";
 import ReferenceHeatmap from "./ReferenceHeatmap";
-import {channelColours} from "../utils/commonStyles";
+import {barcodeColours} from "../utils/commonStyles";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
@@ -43,18 +43,18 @@ class OverallSummary extends React.Component {
             coveragePerChannel={this.props.coveragePerChannel}
             version={this.props.version}
             annotation={this.props.annotation}
-            colours={channelColours}
+            colours={barcodeColours}
           />
           <ReadsOverTime
-            style={{width: '25%', margin: 'auto', height: "100%"}}
+            style={{width: '22%', margin: 'auto', height: "100%"}}
             title={"Total reads over time"}
             readsOverTime={this.props.readsOverTime}
             version={this.props.version}
           />
-          <ReadsPerChannel
-            style={{width: '15%', margin: 'auto', height: "100%"}}
-            title={"Total Reads per Channel"}
-            readsPerChannel={this.props.readsPerChannel}
+          <ReadsPerBarcode
+            style={{width: '18%', margin: 'auto', height: "100%"}}
+            title={"Total Reads per Barcode"}
+            readsPerBarcode={this.props.readsPerBarcode}
             version={this.props.version}
           />
           <ReferenceHeatmap
