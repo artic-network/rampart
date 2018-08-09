@@ -37,29 +37,30 @@ class App extends Component {
         {this.state.readsPerBarcode ? (
           <div>
             <OverallSummary
-              nTotalReads={this.state.nTotalReads}
               readsOverTime={this.state.readsOverTime}
-              version={this.state.versions.reduce((tot, cv) => tot + cv)}
               annotation={this.state.annotation}
-              coveragePerChannel={this.state.coveragePerChannel}
               references={this.state.references}
+              coveragePerBarcode={this.state.coveragePerBarcode}
               readCountPerBarcode={this.state.readCountPerBarcode}
               refMatchPerBarcode={this.state.refMatchPerBarcode}
-              dataVersion={this.state.dataVersion}
+              version={this.state.dataVersion}
             />
-            {this.state.readsPerBarcode.map((reads, idx) => (
-              <Panel
-                key={idx}
-                reads={reads}
-                version={this.state.versions[idx]}
-                annotation={this.state.annotation}
-                coverage={this.state.coveragePerChannel[idx]}
-                readLength={this.state.readLengthPerChannel[idx]}
-                refMatch={this.state.refMatchPerBarcode[idx]}
-                name={this.state.barcodes[idx+1]}
-                channelNumber={idx+1}
-              />
-            ))}
+            {this.state.barcodes.map((name, barcodeIdx) => {
+              if (barcodeIdx === 0) return null;
+              return (
+                <Panel
+                  key={name}
+                  readCount={this.state.readCountPerBarcode[barcodeIdx]}
+                  version={this.state.dataVersion}
+                  annotation={this.state.annotation}
+                  coverage={this.state.coveragePerBarcode[barcodeIdx]}
+                  readLength={this.state.readLengthPerBarcode[barcodeIdx]}
+                  refMatch={this.state.refMatchPerBarcode[barcodeIdx]}
+                  name={name}
+                  barcodeIdx={barcodeIdx}
+                />
+              )
+            })}
           </div>
         ) : (
           <LoadingStatus status={this.state.status}/>

@@ -2,7 +2,10 @@ import React from 'react';
 import { select } from "d3-selection";
 import {calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
-import {drawCurve} from "./Coverage";
+import {drawSteps} from "./Coverage";
+import { max } from "d3-array";
+
+const readLengthResolution = 10; // TODO: centralise
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -14,33 +17,31 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-export const getMaxes = (data) => {
-  const y = data.map( el => el.value )
-    .reduce((max, cur) => Math.max( max, cur ), -Infinity )
-  const x = data[data.length - 1].key
-  return {x, y}
-}
+export const getMaxes = (data) => ({
+  y: max(data),
+  x: data.length * readLengthResolution
+});
 
 class ReadLengthDistribution extends React.Component {
   constructor(props) {
     super(props);
     this.state = {chartGeom: {}};
   }
-  redraw(SVG, chartGeom, data, colour) {
-    const readLengthMaxes = getMaxes(data)
+  redraw(SVG, chartGeom) {
+    const readLengthMaxes = getMaxes(this.props.readLength)
     const scales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y);
     drawAxes(SVG, chartGeom, scales)
-    drawCurve(SVG, chartGeom, scales, [data], [colour])
+    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution)
   }
   componentDidMount() {
     const SVG = select(this.DOMref);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-    this.redraw(SVG, chartGeom, this.props.readLength, this.props.colour);
+    this.redraw(SVG, chartGeom);
     this.setState({SVG, chartGeom});
   }
   componentDidUpdate(prevProps) {
     if (prevProps.version !== this.props.version) {
-      this.redraw(this.state.SVG, this.state.chartGeom, this.props.readLength, this.props.colour);
+      this.redraw(this.state.SVG, this.state.chartGeom);
     }
   }
   render() {

@@ -45,20 +45,20 @@ export const panelTitle = css({
 
 /* TODO: make this more meaningful - lower 95th percent? */
 const averageCoverage = (data) =>
-  parseInt(data.reduce((tot, cv) => tot + cv.value, 0) / data.length, 10);
+  parseInt(data.reduce((tot, cv) => tot + cv, 0) / data.length, 10);
 
 class Panel extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       expanded: false,
-      colour: barcodeColours[props.channelNumber - 1]
+      colour: barcodeColours[props.barcodeIdx - 1]
     }
   }
   renderNoDataHeader() {
     return (
       <div {...panelTitle}>
-        {`#${this.props.channelNumber} (${this.props.name}).
+        {`#${this.props.barcodeIdx} (${this.props.name}).
         has no reads (yet)`}
       </div>
     )
@@ -66,8 +66,8 @@ class Panel extends React.Component {
   renderHeader() {
     return (
       <div {...panelTitle}>
-        {`#${this.props.channelNumber} (${this.props.name}).
-        ${this.props.reads.size()} reads.
+        {`#${this.props.barcodeIdx} (${this.props.name}).
+        ${this.props.readCount} reads.
         ${averageCoverage(this.props.coverage)}x coverage.
         `}
       </div>
@@ -79,7 +79,7 @@ class Panel extends React.Component {
         <CoveragePlot
           style={{width: '35%', margin: 'auto', height: "100%"}}
           title={"Coverage"}
-          coveragePerChannel={[this.props.coverage]}
+          coverage={[this.props.coverage]}
           annotation={this.props.annotation}
           version={this.props.version}
           colours={[this.state.colour]}
@@ -91,16 +91,18 @@ class Panel extends React.Component {
           version={this.props.version}
           colour={this.state.colour}
         />
-        <ReferenceMatches
-          style={{width: '25%', margin: 'auto', height: "100%"}}
-          title={"Reference Matches"}
-          refMatch={this.props.refMatch}
-          version={this.props.version}
-          colour={this.state.colour}
-        />
+
       </div>
     )
   }
+  // <ReferenceMatches
+  //   style={{width: '25%', margin: 'auto', height: "100%"}}
+  //   title={"Reference Matches"}
+  //   refMatch={this.props.refMatch}
+  //   version={this.props.version}
+  //   colour={this.state.colour}
+  // />
+
   render() {
     let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };
     const anyData = !!this.props.readLength.length;

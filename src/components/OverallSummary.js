@@ -4,7 +4,8 @@ import CoveragePlot from "./Coverage";
 import ReadsOverTime from "./ReadsOverTime";
 import ReadsPerBarcode from "./ReadsPerBarcode";
 import ReferenceHeatmap from "./ReferenceHeatmap";
-import {barcodeColours} from "../utils/commonStyles";
+import { sum } from "d3-array";
+import {chartTitleCSS, barcodeColours} from "../utils/commonStyles";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
@@ -32,7 +33,7 @@ class OverallSummary extends React.Component {
       <div {...panelContainer}>
         <div {...panelTitle}>
           {`Overall Summary.
-          Total reads: ${this.props.nTotalReads}.
+          Total reads: ${sum(this.props.readCountPerBarcode)}.
           Time elapsed: ${this.props.readsOverTime.slice(-1)[0][0]}s.
           `}
         </div>
@@ -40,10 +41,10 @@ class OverallSummary extends React.Component {
           <CoveragePlot
             style={{width: '35%', margin: 'auto', height: "100%"}}
             title={"Coverage"}
-            coveragePerChannel={this.props.coveragePerChannel}
+            coverage={this.props.coveragePerBarcode}
+            colours={barcodeColours}
             version={this.props.version}
             annotation={this.props.annotation}
-            colours={barcodeColours}
           />
           <ReadsOverTime
             style={{width: '22%', margin: 'auto', height: "100%"}}
@@ -55,14 +56,14 @@ class OverallSummary extends React.Component {
             style={{width: '18%', margin: 'auto', height: "100%"}}
             title={"Total Reads per Barcode"}
             readCountPerBarcode={this.props.readCountPerBarcode}
-            version={this.props.dataVersion}
+            version={this.props.version}
           />
           <ReferenceHeatmap
             style={{width: '25%', margin: 'auto', height: "100%"}}
             title={"Read Mapping Percentages to Reference"}
             references={this.props.references}
             refMatchPerBarcode={this.props.refMatchPerBarcode}
-            version={this.props.dataVersion}
+            version={this.props.version}
           />
         </div>
       </div>

@@ -1,32 +1,28 @@
 import React from 'react';
 import { select } from "d3-selection";
-import { line, curveCatmullRom, curveStep } from "d3-shape";
+import { line, curveStep } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
+import { max } from "d3-array";
 
-export const drawCurve = (svg, chartGeom, scales, data, colours) => {
-  /* data is array of channelData */
+const genomeResolution = 100; // TODO: centralise
+
+export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier) => {
   /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
   const makeLinePath = line()
-    .x((d) =>scales.x(d.key))
-    .y((d) =>scales.y(d.value))
+    .x((d, i) => scales.x(i*multiplier))
+    .y((d) => scales.y(d))
       .curve(curveStep);
-    // .curve(curveCatmullRom.alpha(0.3));
 
-  svg.selectAll(".line").remove();
-  try {
-    svg.selectAll(".line")
-      .data(data)
-      .enter().append("path")
-      .attr("class", "line")
-      .attr("fill", "none")
-      .attr("stroke", (d, i) => colours[i])
-      .attr('d', makeLinePath);
-  } catch (err) {
-    console.log("d3 spark lines error", err)
-  }
+  svg.selectAll(".coverageLine").remove();
+  svg.selectAll(".coverageLine")
+    .data(data)
+    .enter().append("path")
+    .attr("class", "coverageLine")
+    .attr("fill", "none")
+    .attr("stroke", (d, i) => colours[i])
+    .attr('d', makeLinePath);
 }
-
 
 /* draw the genes (annotations) */
 const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
@@ -96,13 +92,8 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-const getMaxCoverage = (coveragePerChannel) => {
-  const trueMax = coveragePerChannel.reduce((outerAcc, channelData) => {
-    const channelMax = channelData.reduce((innerAcc, point) => {
-      return point.value > innerAcc ? point.value : innerAcc;
-    }, 0);
-    return channelMax > outerAcc ? channelMax : outerAcc;
-  }, 0);
+const getMaxCoverage = (coverage) => {
+  const trueMax = max(coverage.map((d) => max(d)));
   return (parseInt(trueMax / 50, 10) + 1) * 50;
 }
 
@@ -113,30 +104,25 @@ class CoveragePlot extends React.Component {
     this.state = {chartGeom: {}};
   }
   componentDidMount() {
-    const newState = {
-      SVG: select(this.DOMref),
-      chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
-    }
-    newState.scales = calcScales(newState.chartGeom, this.props.annotation.genome.length, getMaxCoverage(this.props.coveragePerChannel));
-    drawAxes(newState.SVG, newState.chartGeom, newState.scales)
-    drawCurve(newState.SVG, newState.chartGeom, newState.scales, this.props.coveragePerChannel, this.props.colours)
-    drawGenomeAnnotation(newState.SVG, newState.chartGeom, newState.scales, this.props.annotation);
-    this.setState(newState);
+    const svg = select(this.DOMref);
+    const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
+    const scales = calcScales(chartGeom, this.props.annotation.genome.length, getMaxCoverage(this.props.coverage));
+    drawAxes(svg, chartGeom, scales)
+    drawSteps(svg, chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution)
+    drawGenomeAnnotation(svg, chartGeom, scales, this.props.annotation);
+    this.setState({svg, chartGeom, scales});
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.version !== this.props.version) {
-      const newState = {
-        scales: this.state.scales
-      };
-      const coverageMax = getMaxCoverage(this.props.coveragePerChannel);
-      if (haveMaxesChanged(this.state.scales, this.props.annotation.genome.length, coverageMax)) {
-        newState.scales = calcScales(this.state.chartGeom, this.props.annotation.genome.length, coverageMax);
-        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
-      }
-      drawCurve(this.state.SVG, this.state.chartGeom, newState.scales, this.props.coveragePerChannel, this.props.colours)
-      this.setState(newState)
+    if (prevProps.version === this.props.version) return;
+    let newScales;
+    const coverageMax = getMaxCoverage(this.props.coverage);
+    if (haveMaxesChanged(this.state.scales, this.props.annotation.genome.length, coverageMax)) {
+      newScales = calcScales(this.state.chartGeom, this.props.annotation.genome.length, coverageMax);
+      drawAxes(this.state.svg, this.state.chartGeom, newScales)
     }
+    drawSteps(this.state.svg, this.state.chartGeom, newScales || this.state.scales, this.props.coverage, this.props.colours, genomeResolution)
+    if (newScales) this.setState({scales: newScales});
   }
   render() {
     return (
