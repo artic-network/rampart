@@ -1,6 +1,6 @@
+import { genomeResolution, readLengthResolution } from "../magics";
+
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
-const genomeResolution = 100; // TODO: centralise
-const readLengthResolution = 10; // TODO: centralise
 
 const processTimeStamp = (timeStamp) => {
   const d = new Date(timeStamp);

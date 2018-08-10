@@ -4,8 +4,7 @@ import {calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 import {drawSteps} from "./Coverage";
 import { max } from "d3-array";
-
-const readLengthResolution = 10; // TODO: centralise
+import { readLengthResolution } from "../magics";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({

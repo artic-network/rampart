@@ -4,8 +4,7 @@ import { line, curveStep } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 import { max } from "d3-array";
-
-const genomeResolution = 100; // TODO: centralise
+import { genomeResolution } from "../magics";
 
 export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier) => {
   /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
