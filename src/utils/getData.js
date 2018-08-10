@@ -1,4 +1,5 @@
 import { genomeResolution, readLengthResolution } from "../magics";
+import { processAmplicons } from "./jsonHelpers";
 
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
 
@@ -93,6 +94,7 @@ const createInitialState = (infoJson) => {
     barcodes: infoJson.barcodes,
     references: infoJson.references
   }
+  processAmplicons(state.annotation);
 
   const genomeLength = state.annotation.genome.length;
   const genomeParts = Math.ceil(genomeLength / genomeResolution);

@@ -27,28 +27,27 @@ export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier) => 
 const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
   // svg.selectAll(".gene").remove(); /* only added once, don't need to remove what's not there */
 
-  const primers = annotation.primers
-  const primerNames = Object.keys(primers);
-  const primerHeight = 8;
-  const primerRoof = chartGeom.height - chartGeom.spaceBottom + 20; /* all primers & genes below this */
-
-  const primersSel = svg.selectAll(".primer")
-    .data(primerNames)
-    .enter()
-    .append("g");
-
-  primersSel.append("rect")
-    .attr("class", "primer")
-    .attr("x", (name) => scales.x(primers[name].forward[0]))
-    .attr("y", (d, i) => i%2 ? primerRoof : primerRoof + primerHeight)
-    .attr("width", (name) => scales.x(primers[name]["reverse"][1]) - scales.x(primers[name].forward[0]))
-    .attr("height", primerHeight)
-    .style("fill", "lightgray")
-    .style("stroke", "none");
-
+  const amplicons = annotation.amplicons;
+  const ampliconRoof = chartGeom.height - chartGeom.spaceBottom + 20; /* all primers & genes below this */
+  const ampliconHeight = 8;
+  if (amplicons) {
+    svg.append("g")
+      .attr("id", "amplicons")
+      .selectAll(".amplicon")
+      .data(amplicons)
+      .enter()
+        .append("rect")
+          .attr("class", "primer")
+          .attr("x", (d) => scales.x(d[0]))
+          .attr("y", (d, i) => i%2 ? ampliconRoof : ampliconRoof+ampliconHeight)
+          .attr("width", (d) => scales.x(d[1])-scales.x(d[0]))
+          .attr("height", ampliconHeight)
+          .style("fill", "lightgray")
+          .style("stroke", "none");
+  }
 
   const geneHeight = 15;
-  const geneRoof = primerRoof + 2*primerHeight + 5;
+  const geneRoof = ampliconRoof + 2*ampliconHeight + 5;
   const calcYOfGene = (name) => genes[name].strand === 1 ? geneRoof : geneRoof+geneHeight;
 
   const genes = annotation.genes
