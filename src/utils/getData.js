@@ -80,7 +80,7 @@ export const requestReads = (state, setState) => {
     })
     .catch((err) => {
       console.log("requestReads:", err)
-      setState({status: err});
+      // setState({status: err});
     })
 }
 

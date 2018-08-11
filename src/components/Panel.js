@@ -4,6 +4,7 @@ import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
 import ReferenceMatches from "./ReferenceMatches";
 import {barcodeColours} from "../utils/commonStyles";
+import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
 
 const panelContainerCollapsed = {
   position: "relative",
@@ -24,12 +25,6 @@ const panelContainerExpanded = {
   minHeight: "350px",
 }
 
-const ExpandToggle = ({open, callback}) => (
-  <div style={{position: "absolute", top: "10px", right: "10px", cursor: "pointer"}} onClick={callback}>
-    {open ? "contract" : "expand"}
-  </div>
-)
-
 const flexRowContainer = css({
   display: "flex",
   'flexDirection': 'row',
@@ -41,6 +36,13 @@ export const panelTitle = css({
   "fontWeight": "bold",
   "fontSize": "1.3em",
   "paddingLeft": "20px",
+  flexBasis: "40%"
+})
+
+const headerCSS = css({
+  display: "flex",
+  flexDirection: "row",
+  cursor: "pointer"
 })
 
 /* TODO: make this more meaningful - lower 95th percent? */
@@ -65,11 +67,27 @@ class Panel extends React.Component {
   }
   renderHeader() {
     return (
-      <div {...panelTitle}>
-        {`#${this.props.barcodeIdx} (${this.props.name}).
-        ${this.props.readCount} reads.
-        ${averageCoverage(this.props.coverage)}x coverage.
-        `}
+      <div
+        {...headerCSS}
+        onClick={() => this.setState({expanded: !this.state.expanded})}
+      >
+        <span {...panelTitle}>
+          {`#${this.props.barcodeIdx} (${this.props.name}).
+          ${this.props.readCount} reads.
+          ${averageCoverage(this.props.coverage)}x coverage.
+          `}
+        </span>
+
+        {this.state.expanded ? null : (
+          <span style={{flexBasis: "30%"}}>
+            <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
+            </svg>
+          </span>
+        )}
+
+        <span style={{position: "absolute", top: "10px", right: "10px"}}>
+          {this.state.expanded ? "click to contract" : "click to expand"}
+        </span>
       </div>
     )
   }
@@ -102,14 +120,26 @@ class Panel extends React.Component {
   //   version={this.props.version}
   //   colour={this.state.colour}
   // />
-
+  componentDidMount() {
+    if (!this.state.expanded) {
+      renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
+    }
+  }
+  componentDidUpdate() {
+    if (!this.state.expanded) {
+      renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
+    }
+  }
   render() {
+    if (this.props.barcodeIdx === 1) {
+      console.log("this.props", this.props)
+
+    }
     let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };
     const anyData = !!this.props.readLength.length;
     if (anyData) {
       return (
         <div style={panelStyles}>
-          <ExpandToggle open={this.state.expanded} callback={() => this.setState({expanded: !this.state.expanded})}/>
           {this.renderHeader()}
           {this.state.expanded ? this.renderPanels() : null}
         </div>
