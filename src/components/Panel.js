@@ -109,17 +109,18 @@ class Panel extends React.Component {
           version={this.props.version}
           colour={this.state.colour}
         />
-
+        <ReferenceMatches
+          style={{width: '25%', margin: 'auto', height: "100%"}}
+          title={"Reference Matches"}
+          references={this.props.references}
+          refMatchCounts={this.props.refMatchCounts}
+          version={this.props.version}
+          colour={this.state.colour}
+        />
       </div>
     )
   }
-  // <ReferenceMatches
-  //   style={{width: '25%', margin: 'auto', height: "100%"}}
-  //   title={"Reference Matches"}
-  //   refMatch={this.props.refMatch}
-  //   version={this.props.version}
-  //   colour={this.state.colour}
-  // />
+
   componentDidMount() {
     if (!this.state.expanded) {
       renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);

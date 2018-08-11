@@ -40,8 +40,8 @@ const addJSONToState = (state, setState, json) => {
     ]);
     readsAdded += data.readData.length;
     data.readData.forEach((line) => {
-      //                        REF IDX    BARCODE
-      state.refMatchPerBarcode[line[2]-1][line[1]]++
+      //                       BARCODE    REF IDX
+      state.refMatchPerBarcode[line[1]][line[2]-1]++
       state.readCountPerBarcode[line[1]]++;
 
       // start & end index, relative to genomeResolution
@@ -101,8 +101,8 @@ const createInitialState = (infoJson) => {
   state.coveragePerBarcode = state.barcodes.map(() =>
     Array.from(new Array(genomeParts), () => 0)
   );
-  state.refMatchPerBarcode = state.references.map((refName, refIdx) =>
-    state.barcodes.map((barcodeName, barcodeIdx) => 0)
+  state.refMatchPerBarcode = state.barcodes.map((barcodeName, barcodeIdx) =>
+    state.references.map((refName, refIdx) => 0)
   )
   state.readCountPerBarcode = state.barcodes.map(() => 0);
   state.readLengthPerBarcode = state.barcodes.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))

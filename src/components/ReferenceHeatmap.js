@@ -30,19 +30,19 @@ const calcCellDims = (chartGeom, numBarcodes, numReferences) => {
 }
 
 const drawHeatMap = (state, props) => {
+
   /* convert the refMatchPerBarcode data from raw counts to percentages & change to a d3-friendly.
+  Input format:
+    props.refMatchPerBarcode[barcode_idx][reference_idx] = INT
   Output data format:
-  [barcode_number (1-based),   ref_idx (this.props.references),    ref_match (percentage)]
+    data[barcode_number (1-based),   ref_idx (this.props.references),    ref_match (percentage)]
   */
-  const references = props.references;
-  const data = Array.from(new Array(state.numBarcodes*references.length));
+  const data = Array.from(new Array(state.numBarcodes*props.references.length));
   let dataIdx = 0;
   for (let barcodeIdx=1; barcodeIdx<state.numBarcodes+1; barcodeIdx++) {
-    const totalReads = props.refMatchPerBarcode.reduce((n, barcodedCounts) =>
-      n+barcodedCounts[barcodeIdx], 0
-    );
-    for (let refIdx=0; refIdx<references.length; refIdx++) {
-      const perc = totalReads === 0 ? 0 : props.refMatchPerBarcode[refIdx][barcodeIdx] / totalReads * 100;
+    const totalReads = props.refMatchPerBarcode[barcodeIdx].reduce((n, val) => n+val, 0);
+    for (let refIdx=0; refIdx<props.references.length; refIdx++) {
+      const perc = totalReads === 0 ? 0 : props.refMatchPerBarcode[barcodeIdx][refIdx] / totalReads * 100;
       data[dataIdx] = [
         barcodeIdx, // barcode_number (1-based)
         refIdx,     // index for this.props.references
@@ -57,7 +57,7 @@ const drawHeatMap = (state, props) => {
 
   /* render the reference names (on the far left) */
   state.svg.selectAll(".refLabel")
-      .data(references) /* get the labels */
+      .data(props.references) /* get the labels */
       .enter()
       .append("text")
       .attr("class", "refLabel")
@@ -123,7 +123,7 @@ class ReferenceHeatmap extends React.Component {
   }
   componentDidMount() {
     const svg = select(this.DOMref);
-    const numBarcodes = this.props.refMatchPerBarcode[0].length-1;
+    const numBarcodes = this.props.refMatchPerBarcode.length-1;
     const references = this.props.references;
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const cellDims = calcCellDims(chartGeom, numBarcodes, references.length);

@@ -55,7 +55,8 @@ class App extends Component {
                   annotation={this.state.annotation}
                   coverage={this.state.coveragePerBarcode[barcodeIdx]}
                   readLength={this.state.readLengthPerBarcode[barcodeIdx]}
-                  refMatch={this.state.refMatchPerBarcode[barcodeIdx]}
+                  references={this.state.references}
+                  refMatchCounts={this.state.refMatchPerBarcode[barcodeIdx]}
                   name={name}
                   barcodeIdx={barcodeIdx}
                 />
