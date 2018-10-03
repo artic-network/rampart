@@ -16,7 +16,7 @@ class Header extends React.Component {
     return (
       <div {...child}>
         <div style={{float: "left", margin: "10px"}}>
-          <a href="http://artic.network" target="_blank">
+          <a href="http://artic.network" target="_blank" rel="noopener noreferrer">
             <img src={logo} alt={"logo"} width="132"/>
           </a>
         </div>

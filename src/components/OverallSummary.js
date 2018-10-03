@@ -5,7 +5,7 @@ import ReadsOverTime from "./ReadsOverTime";
 import ReadsPerBarcode from "./ReadsPerBarcode";
 import ReferenceHeatmap from "./ReferenceHeatmap";
 import { sum } from "d3-array";
-import {chartTitleCSS, barcodeColours} from "../utils/commonStyles";
+import {barcodeColours} from "../utils/commonStyles";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
