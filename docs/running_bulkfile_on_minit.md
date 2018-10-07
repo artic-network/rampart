@@ -1,4 +1,4 @@
-# Running a bulk file playback on the MinIT with Guppy basecalling.
+# Running a bulk file playback on the MinIT with Guppy base-calling.
 
 Set up the MinIT with a MinION attached (the configuration flowcell is fine).
 
@@ -40,5 +40,5 @@ Under `Fastq Reads` select `Enable`.
 
 Click the `Update` button and the run should start.
 
-Basecalled fastq files will be put into `/data/reads/<date>_<time>_<EBOV_3sample_bulk>/fastq/pass`
+Base-called fastq files will be put into `/data/reads/<date>_<time>_EBOV_3sample_bulk/fastq/pass`
 
