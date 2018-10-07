@@ -46,7 +46,7 @@ cd ..
 4. **Install Andrew's fork of porechop**
 * (make sure you're in the artic-rampart conda environment)
 ```
-git clone git@github.com:rambaut/Porechop.git
+git clone https://github.com/rambaut/Porechop.git
 cd Porechop/
 python setup.py install
 ```
@@ -76,6 +76,12 @@ The run-specific config file currently looks like:
 }
 ```
 All paths are relative to the `rampart` directory.
+
+## Run yarn to install dependencies
+
+```bash
+yarn
+```
 
 ## How to run RAMPART (currently only in development mode)
 
