@@ -9,7 +9,7 @@ const parser = new argparse.ArgumentParser({
   RAMPART is curently under development!
   `
 });
-parser.addArgument('--config', {required: true, help: "JSON config files"});
+parser.addArgument('--config', {required: true, help: "path to JSON configuration file"});
 
 module.exports = {
   parser
