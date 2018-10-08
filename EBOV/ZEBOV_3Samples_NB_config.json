@@ -1,0 +1,29 @@
+{
+  "name": "EBOV Validation Run (MinIT)",
+  "referenceConfigPath": "./EBOV/EBOV_v1.0.json",
+  "referencePanelPath": "./EBOV/reference-genomes.fasta",
+  "samples": [
+      {
+          "name": "Mayinga",
+          "description": "",
+          "barcodes": [ "BC01" ]
+      },
+      {
+          "name": "Negative Control",
+          "description": "",
+          "barcodes": [ "BC01" ]
+      },
+      {
+          "name": "Kikwit",
+          "description": "",
+          "barcodes": [ "BC03" ]
+      },
+      {
+          "name": "Makona",
+           "description": "",
+         "barcodes": [ "BC04" ]
+      }
+  ],
+  "basecalledPath": "./ZEBOV_3Samples_NB/MN21030",
+  "demuxedPath": "./ZEBOV_3Samples_NB/demuxed"
+}
