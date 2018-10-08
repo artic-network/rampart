@@ -7,33 +7,22 @@ const processTimeStamp = (timeStamp) => {
   return d.getTime();
 }
 
-// const processReadDataLine = (line, referenceLabels) => ({
-//   channel: line[1],
-//   reference: referenceLabels[line[2]-1],
-//   start: line[3],
-//   end: line[4],
-//   identity: line[5],
-//   length: line[4] - line[3] + 1,
-//   location: (line[3] + line[4]) / 2
-// })
-
-/* could be moved to the server */
 const makeNewState = (oldState, json) => {
+  /* Potentially move some of this to the server... */
   const newState = {...oldState};
 
-  /* if we haven't yet had any reads, we have to initialise timestamps via the first JSON */
-  // debugger
+  /* if we haven't yet had any reads, we have to initialise the "run start time" via the first JSON */
   if (!newState.startTime) {
     newState.startTime = processTimeStamp(json[0].timeStamp);
     newState.readsOverTime = [];
-    newState.versions = [...Array(oldState.barcodes.length)].map(() => 1);
+    newState.versions = [...Array(oldState.samples.length)].map(() => 1);
   }
 
   /* the JSON is an array of mapping results, each one consisting of
   the reads from a single guppy-basecalled FASTQ file  */
   let readsAdded = 0;
   json.forEach((data) => {
-    // console.log("DATA:", data)
+    // console.log("DATA FROM SERVER:", data)
     let prevReadCount = 0;
     if (newState.readsOverTime.length) {
       prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
@@ -42,26 +31,35 @@ const makeNewState = (oldState, json) => {
       parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
       prevReadCount + data.readData.length
     ]);
-    readsAdded += data.readData.length;
     data.readData.forEach((line) => {
-      //                       BARCODE    REF IDX
-      oldState.refMatchPerBarcode[line[0]][line[1]]++
-      oldState.readCountPerBarcode[line[0]]++;
+      /* line[0] = barcode (STR)
+         line[1] = ref-panel-index (INT)
+         line[2] = ref-mapped-start-pos (INT)
+         line[3] = ref-mapped-end-pos (INT)
+         line[4] = ref-match-frac (FLOAT) */
 
+      const sampleIdxOfRead = oldState.barcodeToSampleIdxMap[line[0]];
+      if (sampleIdxOfRead === undefined) {
+        /* barcode isn't mapped to a sample via the config */
+        return;
+      }
+      readsAdded++
+      oldState.refMatchPerSample[sampleIdxOfRead][line[1]]++;
+      oldState.readCountPerSample[sampleIdxOfRead]++;
 
       // start & end index, relative to genomeResolution
       const startIdx = Math.floor(line[2] / genomeResolution);
       const endIdx   = Math.ceil(line[3] / genomeResolution);
       for (let i=startIdx; i<=endIdx; i++) {
-        oldState.coveragePerBarcode[line[0]][i]++
+        oldState.coveragePerSample[sampleIdxOfRead][i]++
       }
 
       // read length distribution
       const readLengthBin = Math.floor((line[3] - line[2] + 1) / readLengthResolution);
-      if (readLengthBin >= oldState.readLengthPerBarcode[line[0]].length) {
-        console.error("must extend readLengthPerBarcode array")
+      if (readLengthBin >= oldState.readLengthPerSample[sampleIdxOfRead].length) {
+        // console.error("must extend readLengthPerSample array")
       } else {
-        oldState.readLengthPerBarcode[line[0]][readLengthBin]++
+        oldState.readLengthPerSample[sampleIdxOfRead][readLengthBin]++
       }
     });
   })
@@ -98,9 +96,15 @@ const createInitialState = (infoJson) => {
   const state = {
     name: infoJson.name,
     annotation: {genes: infoJson.reference.genes},
-    barcodes: infoJson.barcodes,
     references: infoJson.referencePanel
   }
+  state.samples = infoJson.samples.map((s) => s.name);
+  state.barcodeToSampleIdxMap = {};
+  infoJson.samples.forEach((sample, sampleIdx) => {
+    sample.barcodes.forEach((barcode) => {
+      state.barcodeToSampleIdxMap[barcode] = sampleIdx;
+    })
+  });
 
   /* process the amplicons (primer pairs) */
   if (infoJson.reference.amplicons) {
@@ -109,14 +113,14 @@ const createInitialState = (infoJson) => {
   }
   state.annotation.genome = {length: infoJson.reference.sequence.length};
   const genomeParts = Math.ceil(state.annotation.genome.length / genomeResolution);
-  state.coveragePerBarcode = state.barcodes.map(() =>
+  state.coveragePerSample = state.samples.map(() =>
     Array.from(new Array(genomeParts), () => 0)
   );
-  state.refMatchPerBarcode = state.barcodes.map((barcodeName, barcodeIdx) =>
+  state.refMatchPerSample = state.samples.map((sampleName, sampleIdx) =>
     state.references.map((refName, refIdx) => 0)
   )
-  state.readCountPerBarcode = state.barcodes.map(() => 0);
-  state.readLengthPerBarcode = state.barcodes.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
+  state.readCountPerSample = state.samples.map(() => 0);
+  state.readLengthPerSample = state.samples.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
   state.dataVersion = 0;
   console.log("initial state:", state)
   return state;
