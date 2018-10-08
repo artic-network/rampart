@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # copy the info.json from the first directory
     try:
         shutil.copyfile(os.path.join(source_folders[0], "info.json"), os.path.join(args.outdir, "info.json"))
-    except err:
+    except (IOError, os.error) as err:
         print("No info.json found!", err)
         sys.exit(2)
 
