@@ -133,7 +133,7 @@ class Panel extends React.Component {
   }
   render() {
     if (this.props.barcodeIdx === 1) {
-      console.log("this.props", this.props)
+      // console.log("this.props", this.props)
 
     }
     let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };

@@ -1,0 +1,39 @@
+const server = require("./server/server");
+const { parser } = require("./server/args");
+const { parseConfig } = require("./server/config");
+const Deque = require("collections/deque");
+const { mapper } = require("./server/mapper");
+const { demuxer } = require("./server/demuxer");
+const { startUp } = require("./server/startUp");
+
+/* command line arguments */
+const args = parser.parseArgs();
+/* make some globals available everywhere */
+global.config = parseConfig(args);
+global.guppyFastqs = new Deque();
+global.porechopFastqs = new Deque();
+global.mappingResults = new Deque();
+global.dev = true; /* speeds things up by not considering all files */
+
+const startWatchers = () => {
+  /* as things get pushed onto the deques, we want to spawn the
+  appropriate processes (e.g. guppy, porechop).
+  As things are processed, they are shifted off one deque and pushed
+  onto another! */
+  global.guppyFastqs.addRangeChangeListener(() => demuxer());
+  global.porechopFastqs.addRangeChangeListener(() => mapper());
+
+  // start watchers
+  demuxer();
+  mapper();
+}
+
+
+const main = async () => {
+  await startUp(); /* block until we've read the appropriate files */
+  startWatchers();
+  /* Listen on localhost and process requests from the client */
+  const app = server.run({}); // eslint-disable-line
+}
+
+main();

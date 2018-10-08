@@ -1,5 +1,4 @@
 import { genomeResolution, readLengthResolution } from "../magics";
-import { processAmplicons } from "./jsonHelpers";
 
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
 
@@ -19,21 +18,26 @@ const processTimeStamp = (timeStamp) => {
 // })
 
 /* could be moved to the server */
-const addJSONToState = (state, setState, json) => {
-  const newState = {...state};
+const makeNewState = (oldState, json) => {
+  const newState = {...oldState};
 
   /* if we haven't yet had any reads, we have to initialise timestamps via the first JSON */
+  // debugger
   if (!newState.startTime) {
     newState.startTime = processTimeStamp(json[0].timeStamp);
     newState.readsOverTime = [];
-    newState.versions = [...Array(state.barcodes.length)].map(() => 1);
+    newState.versions = [...Array(oldState.barcodes.length)].map(() => 1);
   }
 
-  /* the JSON is an array of mapping datafiles */
+  /* the JSON is an array of mapping results, each one consisting of
+  the reads from a single guppy-basecalled FASTQ file  */
   let readsAdded = 0;
   json.forEach((data) => {
+    // console.log("DATA:", data)
     let prevReadCount = 0;
-    if (newState.readsOverTime.length) prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
+    if (newState.readsOverTime.length) {
+      prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
+    }
     newState.readsOverTime.push([
       parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
       prevReadCount + data.readData.length
@@ -41,28 +45,30 @@ const addJSONToState = (state, setState, json) => {
     readsAdded += data.readData.length;
     data.readData.forEach((line) => {
       //                       BARCODE    REF IDX
-      state.refMatchPerBarcode[line[1]][line[2]-1]++
-      state.readCountPerBarcode[line[1]]++;
+      oldState.refMatchPerBarcode[line[0]][line[1]]++
+      oldState.readCountPerBarcode[line[0]]++;
+
 
       // start & end index, relative to genomeResolution
-      const startIdx = Math.floor(line[3] / genomeResolution);
-      const endIdx   = Math.ceil(line[4] / genomeResolution);
+      const startIdx = Math.floor(line[2] / genomeResolution);
+      const endIdx   = Math.ceil(line[3] / genomeResolution);
       for (let i=startIdx; i<=endIdx; i++) {
-        state.coveragePerBarcode[line[1]][i]++
+        oldState.coveragePerBarcode[line[0]][i]++
       }
 
       // read length distribution
-      const readLengthBin = Math.floor((line[4] - line[3] + 1) / readLengthResolution);
-      if (readLengthBin >= state.readLengthPerBarcode[line[1]].length) {
+      const readLengthBin = Math.floor((line[3] - line[2] + 1) / readLengthResolution);
+      if (readLengthBin >= oldState.readLengthPerBarcode[line[0]].length) {
         console.error("must extend readLengthPerBarcode array")
       } else {
-        state.readLengthPerBarcode[line[1]][readLengthBin]++
+        oldState.readLengthPerBarcode[line[0]][readLengthBin]++
       }
     });
   })
   newState.dataVersion++
   newState.status = `Added ${readsAdded} reads`;
-  setState(newState);
+  console.log("New state (after reads in)", newState)
+  return newState;
 }
 
 export const requestReads = (state, setState) => {
@@ -76,7 +82,7 @@ export const requestReads = (state, setState) => {
     })
     .then((res) => res.json())
     .then((json) => {
-      addJSONToState(state, setState, json)
+      setState(makeNewState(state, json))
     })
     .catch((err) => {
       console.log("requestReads:", err)
@@ -88,16 +94,21 @@ const initialiseArray = (n) =>
   Array.from(new Array(n), () => 0)
 
 const createInitialState = (infoJson) => {
+  console.log("JSON from server:", infoJson)
   const state = {
     name: infoJson.name,
-    annotation: infoJson.annotation,
+    annotation: {genes: infoJson.reference.genes},
     barcodes: infoJson.barcodes,
-    references: infoJson.references
+    references: infoJson.referencePanel
   }
-  processAmplicons(state.annotation);
 
-  const genomeLength = state.annotation.genome.length;
-  const genomeParts = Math.ceil(genomeLength / genomeResolution);
+  /* process the amplicons (primer pairs) */
+  if (infoJson.reference.amplicons) {
+    state.annotation.amplicons = infoJson.reference.amplicons
+      .sort((a, b) => {return a[0]<b[0] ? -1 : 1});
+  }
+  state.annotation.genome = {length: infoJson.reference.sequence.length};
+  const genomeParts = Math.ceil(state.annotation.genome.length / genomeResolution);
   state.coveragePerBarcode = state.barcodes.map(() =>
     Array.from(new Array(genomeParts), () => 0)
   );
@@ -107,6 +118,7 @@ const createInitialState = (infoJson) => {
   state.readCountPerBarcode = state.barcodes.map(() => 0);
   state.readLengthPerBarcode = state.barcodes.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
   state.dataVersion = 0;
+  console.log("initial state:", state)
   return state;
 }
 
@@ -121,8 +133,6 @@ export const requestRunInfo = (state, setState) => {
     .then((res) => res.json())
     .then((jsonData) => {
       const state = createInitialState(jsonData);
-      console.log("Run info JSON:", jsonData)
-      console.log("initial state:", state)
       setState({status: "Connected to server. Awaiting initial read data.", ...state})
     })
     .catch((err) => {
