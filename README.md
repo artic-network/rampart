@@ -43,7 +43,14 @@ source activate artic-rampart
 cd ..
 ```
 
-4. **Install Andrew's fork of porechop**
+4. Install Node / JavaScript dependencies
+```
+cd rampart
+yarn
+cd ..
+```
+
+5. **Install Andrew's fork of porechop**
 * (make sure you're in the artic-rampart conda environment)
 ```
 git clone https://github.com/rambaut/Porechop.git
@@ -52,12 +59,12 @@ python setup.py install
 ```
 * Check `porechop` is available on the command line by running `porechop -h` inside the artic-rampart conda environment.
 
-5. **Download the guppy-basecalled EBOV dataset**
+6. **Download the guppy-basecalled EBOV dataset**
 Download [https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz](https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz)
  and unzip into the `rampart` directory.
  (I.e. the directory `rampart/ZEBOV_3Samples_NB` now exists, and is is gitignored.)
 
-6. **Miscellaneous steps**
+7. **Miscellaneous steps**
 * `mkdir rampart/ZEBOV_3Samples_NB/porechop`
 
 ## Config file(s)
@@ -70,21 +77,23 @@ The run-specific config file currently looks like:
   "name": Run name
   "referenceConfigPath": path to the second (ARTIC-provided) config file
   "referencePanelPath": path to a FASTA of reference genomes
-  "barcodes": array of barcode (sample) names
+  "samples": [
+      {
+          "name": sample name
+          "description": sample description
+          "barcodes": array of barcodes associated with sample, e.g. [ "BC01" ]
+      },
+      ...
+    ],
   "basecalledPath": path to the directory with guppy-produced FASTQs
   "demuxedPath": path to the directory to save demuxed FASTQs
 }
 ```
 All paths are relative to the `rampart` directory.
 
-## Run yarn to install dependencies
-
-```bash
-yarn
-```
 
 ## How to run RAMPART (currently only in development mode)
 
 1. Start the file watcher / server process:
-`node rampart.js --config ./EBOV/ZEBOV_3Samples_NB_config.json`
+`node rampart.js --config EBOV/ZEBOV_3Samples_NB_config.json --subsetFastqs --mockFailures`
 2. (in a seperate terminal window) start the web-app: `npm run start`. This should automatically open a web browser pointed to [localhost:3000](http://localhost:3000).
