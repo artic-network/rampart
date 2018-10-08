@@ -16,11 +16,11 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-const calcCellDims = (chartGeom, numBarcodes, numReferences) => {
+const calcCellDims = (chartGeom, numSamples, numReferences) => {
   const cellPadding = 1;
   const availableWidth = chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight;
   const availableHeight = chartGeom.height - chartGeom.spaceBottom - chartGeom.spaceTop;
-  const cellWidth = availableWidth/numBarcodes - cellPadding;
+  const cellWidth = availableWidth/numSamples - cellPadding;
   const cellHeight = availableHeight/numReferences - cellPadding;
   return {
     height: cellHeight,
@@ -30,27 +30,29 @@ const calcCellDims = (chartGeom, numBarcodes, numReferences) => {
 }
 
 const drawHeatMap = (state, props) => {
-
-  /* convert the refMatchPerBarcode data from raw counts to percentages & change to a d3-friendly.
+  /* convert the refMatchPerSample data from raw counts to percentages & change to a d3-friendly struct.
   Input format:
-    props.refMatchPerBarcode[barcode_idx][reference_idx] = INT
+    props.refMatchPerSample[sampleIdx][reference_idx] = INT
   Output data format:
-    data[barcode_number (1-based),   ref_idx (this.props.references),    ref_match (percentage)]
+    flat list, with each value itself a list:
+      [sampleIdx, refPanelMatchIdx, fracIdentity]
   */
-  const data = Array.from(new Array(state.numBarcodes*props.references.length));
+  const data = Array.from(new Array(state.samples.length*props.references.length));
   let dataIdx = 0;
-  for (let barcodeIdx=1; barcodeIdx<state.numBarcodes+1; barcodeIdx++) {
-    const totalReads = props.refMatchPerBarcode[barcodeIdx].reduce((n, val) => n+val, 0);
+  for (let sampleIdx=0; sampleIdx<state.samples.length; sampleIdx++) {
+    const totalReads = props.refMatchPerSample[sampleIdx].reduce((n, val) => n+val, 0);
     for (let refIdx=0; refIdx<props.references.length; refIdx++) {
-      const perc = totalReads === 0 ? 0 : props.refMatchPerBarcode[barcodeIdx][refIdx] / totalReads * 100;
+      const perc = totalReads === 0 ? 0 : props.refMatchPerSample[sampleIdx][refIdx] / totalReads * 100;
       data[dataIdx] = [
-        barcodeIdx, // barcode_number (1-based)
-        refIdx,     // index for this.props.references
+        sampleIdx, // 0-based sample index
+        refIdx,    // 0-based reference panel index
         perc
       ];
       dataIdx++;
     }
   }
+
+  /* NOTE scales.x(0) returns the far left pixel value of the cells, not the labels */
 
   /* remove the previous renderings... */
   state.svg.selectAll("*").remove();
@@ -61,21 +63,21 @@ const drawHeatMap = (state, props) => {
       .enter()
       .append("text")
       .attr("class", "refLabel")
-      .text((d) => d.slice(0,8) + "...")
-      .attr('y', (d, i) => state.scales.y(i+1) + 0.5*state.cellDims.height) /* +1 as that's what we do in the data reduction above */
+      .text((d) => d.slice(0,8) + "...") /* trim labels to 8 chars */
+      .attr('y', (refName, refIdx) => state.scales.y(refIdx) + 0.5*state.cellDims.height)
       .attr('x', state.chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
       .attr("font-size", "12px")
       .attr("alignment-baseline", "middle") /* i.e. y value specifies top of text */
 
   /* render the column labels (barcodes) on the bottom */
-  state.svg.selectAll(".barcodeText")
-      .data(Array.from(Array(state.numBarcodes).keys()))
+  state.svg.selectAll(".sampleNames")
+      .data(state.samples)
       .enter()
       .append("text")
-      .attr("class", "barcodeText")
-      .text((d) => d+1)
-      .attr('x', (d) => state.scales.x(d+1) - 0.5*state.cellDims.width)
+      .attr("class", "sampleNames")
+      .text((name, idx) => idx)
+      .attr('x', (name, idx) => state.scales.x(idx) + 0.5*state.cellDims.width)
       .attr('y', state.chartGeom.height - state.chartGeom.spaceBottom + 5)
       .attr("text-anchor", "middle")
       .attr("font-size", "16px")
@@ -88,8 +90,8 @@ const drawHeatMap = (state, props) => {
     .attr("class", "heatCell")
     .attr('width', state.cellDims.width)
     .attr('height', state.cellDims.height)
-    .attr("x", d => state.scales.x(d[0]-1) + state.cellDims.padding)
-    .attr("y", d => state.scales.y(d[1]+1) + state.cellDims.padding)
+    .attr("x", d => state.scales.x(d[0]) + state.cellDims.padding)
+    .attr("y", d => state.scales.y(d[1]) + state.cellDims.padding)
     .attr("fill", d => state.heatColourScale(d[2]));
 
   /* render the legend (bottom) -- includes coloured cells & text */
@@ -123,14 +125,14 @@ class ReferenceHeatmap extends React.Component {
   }
   componentDidMount() {
     const svg = select(this.DOMref);
-    const numBarcodes = this.props.refMatchPerBarcode.length-1;
+    const samples = this.props.samples;
     const references = this.props.references;
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-    const cellDims = calcCellDims(chartGeom, numBarcodes, references.length);
+    const cellDims = calcCellDims(chartGeom, samples.length, references.length);
     const scales = calcScales(
       chartGeom,
-      numBarcodes,      // maxX -- i.e. the number of barcodes
-      references.length // maxY -- i.e. the number of references
+      samples.length,     // number of columns
+      references.length-1 // number of rows TODO: why -1?
     );
 
     const heatColourScale = scaleLinear()
@@ -139,7 +141,7 @@ class ReferenceHeatmap extends React.Component {
         .range([rgb('#F6EECA'), rgb('#005C68')]
       );
 
-    const newState = {svg, chartGeom, cellDims, scales, heatColourScale, numBarcodes}
+    const newState = {svg, chartGeom, cellDims, scales, heatColourScale, samples}
     drawHeatMap(newState, this.props);
     this.setState(newState); // may be async...
   }

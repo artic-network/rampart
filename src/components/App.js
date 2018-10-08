@@ -37,28 +37,28 @@ class App extends Component {
         {this.state.startTime ? (
           <div>
             <OverallSummary
+              samples={this.state.samples}
               readsOverTime={this.state.readsOverTime}
               annotation={this.state.annotation}
               references={this.state.references}
-              coveragePerBarcode={this.state.coveragePerBarcode}
-              readCountPerBarcode={this.state.readCountPerBarcode}
-              refMatchPerBarcode={this.state.refMatchPerBarcode}
+              coveragePerSample={this.state.coveragePerSample}
+              readCountPerSample={this.state.readCountPerSample}
+              refMatchPerSample={this.state.refMatchPerSample}
               version={this.state.dataVersion}
             />
-            {this.state.barcodes.map((name, barcodeIdx) => {
-              if (barcodeIdx === 0) return null;
+            {this.state.samples.map((sampleName, sampleIdx) => {
               return (
                 <Panel
-                  key={name}
-                  readCount={this.state.readCountPerBarcode[barcodeIdx]}
+                  key={sampleName}
+                  readCount={this.state.readCountPerSample[sampleIdx]}
                   version={this.state.dataVersion}
                   annotation={this.state.annotation}
-                  coverage={this.state.coveragePerBarcode[barcodeIdx]}
-                  readLength={this.state.readLengthPerBarcode[barcodeIdx]}
+                  coverage={this.state.coveragePerSample[sampleIdx]}
+                  readLength={this.state.readLengthPerSample[sampleIdx]}
                   references={this.state.references}
-                  refMatchCounts={this.state.refMatchPerBarcode[barcodeIdx]}
-                  name={name}
-                  barcodeIdx={barcodeIdx}
+                  refMatchCounts={this.state.refMatchPerSample[sampleIdx]}
+                  name={sampleName}
+                  sampleIdx={sampleIdx}
                 />
               )
             })}

@@ -10,7 +10,7 @@ const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
     '-i', fastqIn,
     '-o', fastqOut,
     '--discard_middle', '--require_two_barcodes', '--barcode_threshold', '80',
-    '--threads', '2', '--check_reads', '10000',
+    '--threads', '3', '--check_reads', '10000',
     '--barcode_diff', '5', '--barcode_labels'
   ]);
   // stochastically mock failure
