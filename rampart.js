@@ -6,14 +6,13 @@ const { mapper } = require("./server/mapper");
 const { demuxer } = require("./server/demuxer");
 const { startUp } = require("./server/startUp");
 
-/* command line arguments */
-const args = parser.parseArgs();
 /* make some globals available everywhere */
-global.config = parseConfig(args);
+global.args = parser.parseArgs();
+global.config = parseConfig(global.args);
 global.guppyFastqs = new Deque();
 global.porechopFastqs = new Deque();
 global.mappingResults = new Deque();
-global.dev = true; /* speeds things up by not considering all files */
+global.scriptStartTime = Date.now();
 
 const startWatchers = () => {
   /* as things get pushed onto the deques, we want to spawn the

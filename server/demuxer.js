@@ -14,7 +14,7 @@ const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
     '--barcode_diff', '5', '--barcode_labels'
   ]);
   // stochastically mock failure
-  if (global.dev && Math.random() < 0.05) {
+  if (global.args.mockFailures && Math.random() < 0.05) {
     reject("Mock porechop failure")
   }
 
@@ -37,9 +37,9 @@ const demuxer = async () => {
     const fastqToWrite = path.join(global.config.demuxedPath, path.basename(basecalledFastq));
     try {
       // await sleep(1000); // slow things down for development
-      console.log("Demuxing ", path.basename(basecalledFastq))
+      console.log("Demuxing ", path.basename(basecalledFastq), "...")
       await call_porechop(basecalledFastq, fastqToWrite);
-      console.log("\t", path.basename(basecalledFastq), "demuxed")
+      console.log(path.basename(basecalledFastq), "demuxed.")
       global.porechopFastqs.push(fastqToWrite)
     } catch (err) {
       console.log(`*** ERROR *** Demuxing ${path.basename(basecalledFastq)}: ${err}`);

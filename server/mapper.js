@@ -24,7 +24,7 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
   pyprog.stderr.on('data', (data) => {stderr+=data});
 
   // stochastically mock failure
-  if (global.dev && Math.random() < 0.05) {
+  if (global.args.mockFailures && Math.random() < 0.05) {
     reject("Mock mapping failure")
   }
 
@@ -46,7 +46,7 @@ const mapper = async () => {
     let results;
     const fastq = global.porechopFastqs.shift();
     try {
-      await sleep(1000); // slow things down for development
+      // await sleep(1000); // slow things down for development
       results = await call_python_mapper(fastq);
       global.mappingResults.push(results)
       console.log(`Mapped ${fastq.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`);
