@@ -48,11 +48,12 @@ def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
     for name, seq, qual, comment in mp.fastx_read(fastq_path, read_comment=True): # read one sequence
         # parse the header
         header = re.search(r'start_time=([^\s]+).+barcode=([^\s]+)', comment)
-        barcode = header.group(2)
-        if barcode == "none": # unknown barcodes get idx of zero
-            barcode = 0
-        else:
-            barcode = int(re.search(r'(\d+)', barcode).group(1))
+        try:
+            barcode = header.group(2)
+        except IndexError:
+            print("ERROR: Can't find barcode. Has this FASTQ been demuxed?")
+            sys.exit(1);
+
 
         if not time_stamp:
             time_stamp = datetime.strptime(header.group(1), "%Y-%m-%dT%H:%M:%SZ")
@@ -65,8 +66,8 @@ def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
             continue;
 
         mapping_results.append(
-            # barcode (idx), reference panel match (idx),   start pos,  end pos,    identity
-            [barcode, panel_names.index(panel.ctg),         coord.r_st, coord.r_en, panel.mlen / panel.blen]
+            # barcode, reference panel match (idx),   start pos,  end pos,    identity
+            [barcode, panel_names.index(panel.ctg),   coord.r_st, coord.r_en, panel.mlen / panel.blen]
         )
 
     return (time_stamp, unmatched, mapping_results)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     coordinate_aligner, coordinate_reference_length, panel_aligner, panel_names = create_index(args.coordinate_reference, args.reference_panel)
     time_stamp, unmatched, mapping_results = mapper(coordinate_aligner, panel_aligner, panel_names, args.fastq)
     summary = {
-        "unmappedReadsPerBarcode": [unmatched[idx] for idx in range(0, max(unmatched.keys())+1)],
+        "unmappedReadsPerBarcode": unmatched,
         "timeStamp": str(time_stamp),
         "readData": mapping_results
     }
