@@ -10,16 +10,16 @@ const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
     '-i', fastqIn,
     '-o', fastqOut,
     '--discard_middle', '--require_two_barcodes', '--barcode_threshold', '80',
-    '--threads', '2', '--check_reads', '10000',
-    '--barcode_diff', '5', '--barcode_labels'
+    '--threads', '2', // '--check_reads', '10000',
+    '--barcode_diff', '5', '--barcode_labels', '--native_barcodes'
   ]);
   // stochastically mock failure
-  if (global.dev && Math.random() < 0.05) {
-    reject("Mock porechop failure")
-  }
+  // if (global.dev && Math.random() < 0.05) {
+  //   reject("Mock porechop failure")
+  // }
 
   porechop.on('close', (code) => {
-    // console.log(`Porechop finished. Exit code ${code}`);
+    console.log(`Porechop finished. Exit code ${code}`);
     if (code === 0) {
       resolve();
     } else {
