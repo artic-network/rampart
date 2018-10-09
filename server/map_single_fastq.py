@@ -47,14 +47,18 @@ def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
 
     for name, seq, qual, comment in mp.fastx_read(fastq_path, read_comment=True): # read one sequence
         # parse the header
-        header = re.search(r'start_time=([^\s]+).+barcode=([^\s]+)', comment)
-        barcode = header.group(2)
-        if barcode == "none": # unknown barcodes get idx of zero
-            barcode = 0
+        header = re.search(r'barcode=([^\s]+)', comment)
+        if header:
+            barcode = header.group(1)
+            if barcode == "none": # unknown barcodes get idx of zero
+                barcode = 0
+            else:
+                barcode = int(re.search(r'(\d+)', barcode).group(1))
         else:
-            barcode = int(re.search(r'(\d+)', barcode).group(1))
+            barcode = 0
 
-        if not time_stamp:
+        header = re.search(r'start_time=([^\s]+)', comment)
+        if header:
             time_stamp = datetime.strptime(header.group(1), "%Y-%m-%dT%H:%M:%SZ")
 
         try:
