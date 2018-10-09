@@ -3,6 +3,8 @@ const cors = require('cors')
 const fs = require('fs')
 const path = require('path')
 
+let firstNanoporeTimestamp;
+
 const error = (res, msg) => {
   res.statusMessage = msg;
   console.warn("WARNING", res.statusMessage);
@@ -28,28 +30,45 @@ const run = ({args, config, mappingResults}) => {
   /* REQUEST AVAILABLE READS */
   app.get('/requestReads', (req, res) => {
     let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
-    const ret = [];
     // console.log("SERVER: Request reads.", nAvailable, "are available")
 
     if (nAvailable === 0) {
-      res.statusMessage = 'No (valid) reads to process.'
+      res.statusMessage = 'No reads available.'
       return res.status(500).end();
-    } else if (nAvailable > 5) {
-      /* this stops a huge dump right at the start. Dev only. TODO */
-      nAvailable = 5;
     }
 
-    /* currently we just shift mapped data off the deque and send to the client
-    But this means that if a client reconnects (refreshes) then it never sees the
-    previously mapped stuff!.
-    We should save these mapped files as JSONs, and process in the startUp() function.
-    */
+    /* the first read mapped is taken as the run start timestamp */
+    if (!firstNanoporeTimestamp) {
+      firstNanoporeTimestamp = (new Date(global.mappingResults[0].timeStamp)).getTime();
+      console.log("firstNanoporeTimestamp", firstNanoporeTimestamp)
+    }
+
+    /* how many reads should we send to the client? we want to do this in "real time",
+    so only send reads that have been generated in the time this script has been run
+    That is, don't send reads from 5min into the capture if the script's been running
+    for 20seconds! */
+
+    /* TODO if a client reconnects (refreshes) then it never sees the previously sent JSONs */
+
+    const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
+    const ret = [];
     for (let i = 0; i < nAvailable; i++) {
+      const readTime = (new Date(global.mappingResults.peek().timeStamp)).getTime() - firstNanoporeTimestamp;
+      if (readTime > durationThisScriptHasBeenRunning) {
+        break;
+      }
       ret.push(global.mappingResults.shift());
     }
-    console.log("Sending ", ret.length, "mapped FASTQs for visualisation.");
 
-    res.json(ret);
+    if (ret.length) {
+      console.log("Sending ", ret.length, "mapped FASTQs for visualisation.");
+      res.json(ret);
+    } else {
+      const nextReadTime = parseInt(((new Date(global.mappingResults.peek().timeStamp)).getTime() - firstNanoporeTimestamp)/1000, 10);
+      console.log(`*** Not sending data because the next read was after ${nextReadTime}s of capture, and this script has only been running for ${parseInt(durationThisScriptHasBeenRunning/1000, 10)}s. ***`)
+      res.statusMessage = 'No reads available.'
+      return res.status(500).end();
+    }
   })
 
   /* serve the html & javascript */

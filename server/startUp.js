@@ -13,55 +13,77 @@ const getFastqTimestamp = (filepath) => new Promise((resolve, reject) => {
   });
 });
 
+const sortFastqsChronologically = async (fastqsUnsorted) => {
+  const timeMap = new Map();
+  for (let i=0; i<fastqsUnsorted.length; i++) {
+    try {
+      const timestamp = await getFastqTimestamp(fastqsUnsorted[i]);
+      timeMap.set(fastqsUnsorted[i], timestamp);
+    } catch (err) {
+      // no-op. There won't be a timestamp in timeMap and the fastq will be ignored
+    }
+  }
+  return fastqsUnsorted.filter((f) => timeMap.has(f))
+    .sort((a, b) => timeMap.get(a)>timeMap.get(b) ? 1 : -1);
+}
+
+const getFastqsFromDirectory = async (dir, {sortByTime=true} = {}) => {
+  let fastqs = (await readdir(dir))
+    .filter((j) => j.endsWith(".fastq"))
+    .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
+    .map((j) => path.join(dir, j));
+
+  /* examining the time stamps can be slow */
+  if (global.args.subsetFastqs ) {
+    console.log("\t\tOnly considering 100 FASTQs for speed reasons.")
+    fastqs = fastqs.slice(0, 100);
+  }
+
+  console.log(`\t\tFound ${fastqs.length} FASTQ files.`);
+
+  if (sortByTime) {
+    process.stdout.write(`\t\tSorting by timestamp... `); /* no newline */
+    fastqs = await sortFastqsChronologically(fastqs);
+    console.log(`SORTED.`)
+  }
+
+  return fastqs;
+}
+
 const startUp = async () => {
   console.log("\nRAMPART start up - Scanning input folders...");
   /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
   save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
-  /* Scan the FAST5 folder and put them onto a deque */
+  /* Scan the basecalled FASTQ folder */
+  console.log(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`);
+  const basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
 
 
-  /* Scan the basecalled folder and put them onto a deque */
-  let basecalledFastqs = (await readdir(global.config.basecalledPath))
-    .filter((j) => j.endsWith(".fastq"))
-    .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
-    .map((j) => path.join(global.config.basecalledPath, j));
+  /* Scan the demuxed FASTQ folder -- assumes filenames are the same as basecalled FASTQs! */
+  console.log(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`);
+  const demuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
 
-  /* examining the time stamps can be slow */
-  if (global.dev) {
-    console.log("\tdev mode: TRUE. Only considering 100 FASTQs for speed reasons")
-    basecalledFastqs = basecalledFastqs.slice(0, 100);
-  }
-  console.log(`\tFound ${basecalledFastqs.length} mapped FASTQ files. Sorting by timestamp...`)
 
-  /* sort the basecalled FASTQs based upon timestamps
-  (necessary as the guppy filenames are not chronological) */
-  // console.log(basecalledFastqs.length)
-  const timeMap = new Map();
-  for (let i=0; i<basecalledFastqs.length; i++) {
-    try {
-      const timestamp = await getFastqTimestamp(basecalledFastqs[i]);
-      timeMap.set(basecalledFastqs[i], timestamp);
-    } catch (err) {
-      // no-op. There won't be a timestamp in timeMap and the fastq will be ignored
+  // push basecalled fastqs which _haven't_ been demuxed onto a deque
+  const demuxedFastqBasenames = demuxedFastqs.map((p) => path.basename(p));
+  basecalledFastqs.forEach((fastqPath) => {
+    if (!demuxedFastqBasenames.includes(path.basename(fastqPath))) {
+      global.guppyFastqs.push(fastqPath)
     }
-  }
-  basecalledFastqs = basecalledFastqs.filter((f) => timeMap.has(f))
-    .sort((a, b) => timeMap.get(a)>timeMap.get(b) ? 1 : -1);
-  // push them onto the deque
-  basecalledFastqs.forEach((fastqPath) => {global.guppyFastqs.push(fastqPath)});
-  console.log(`\tSorted!`)
+  });
 
-  /* clear the folder contents of the demuxed directory
-  NOTE: this clearly shouldn't be done, but we need to ensure that files
-  arrive at the client in chronological order. Perhaps store the demuxed
-  file listing in a cache, and when shifting off the mapped deque, check
-  the cache before running porechop? */
-  console.log(`\tClearing the demuxed folder contents (will be improved)`)
-  const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
-  for (const file of demuxedFilesToDelete) {
-    fs.unlinkSync(path.join(global.config.demuxedPath, file));
-  }
+  // push all demuxed fastqs onto a deque
+  demuxedFastqs.forEach((fastqPath) => {
+    global.porechopFastqs.push(fastqPath)
+  });
+
+
+  // console.log(`\tClearing the demuxed folder contents`)
+  // const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
+  // for (const file of demuxedFilesToDelete) {
+  //   fs.unlinkSync(path.join(global.config.demuxedPath, file));
+  // }
 
   console.log("RAMPART start up FINISHED\n");
 }

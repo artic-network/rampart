@@ -1,0 +1,24 @@
+{
+  "name": "EBOV Validation Run (MinIT)",
+  "referenceConfigPath": "./EBOV/EBOV_v1.0.json",
+  "referencePanelPath": "./EBOV/reference-genomes.fasta",
+  "samples": [
+    {
+      "name": "Sample 1",
+      "description": "Patient 00001, Sample 00001",
+      "barcodes": [ "BC01" ]
+    },
+    {
+      "name": "Sample 2",
+      "description": "Patient 00002, Sample 00001",
+      "barcodes": [ "BC03" ]
+    },
+    {
+      "name": "Sample 3",
+      "description": "Patient 00002, Sample 00001",
+      "barcodes": [ "BC04" ]
+    }
+  ],
+  "basecalledPath": "./EBOV/data/guppy/",
+  "demuxedPath": "./EBOV/data/demuxed/"
+}

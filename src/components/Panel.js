@@ -3,7 +3,7 @@ import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
 import ReferenceMatches from "./ReferenceMatches";
-import {barcodeColours} from "../utils/commonStyles";
+import {sampleColours} from "../utils/commonStyles";
 import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
 
 const panelContainerCollapsed = {
@@ -54,13 +54,13 @@ class Panel extends React.Component {
     super(props);
     this.state = {
       expanded: false,
-      colour: barcodeColours[props.barcodeIdx - 1]
+      colour: sampleColours[props.sampleIdx]
     }
   }
   renderNoDataHeader() {
     return (
       <div {...panelTitle}>
-        {`#${this.props.barcodeIdx} (${this.props.name}).
+        {`#${this.props.sampleIdx} (${this.props.name}).
         has no reads (yet)`}
       </div>
     )
@@ -72,7 +72,7 @@ class Panel extends React.Component {
         onClick={() => this.setState({expanded: !this.state.expanded})}
       >
         <span {...panelTitle}>
-          {`#${this.props.barcodeIdx} (${this.props.name}).
+          {`${this.props.name}.
           ${this.props.readCount} reads.
           ${averageCoverage(this.props.coverage)}x coverage.
           `}
@@ -132,7 +132,7 @@ class Panel extends React.Component {
     }
   }
   render() {
-    if (this.props.barcodeIdx === 1) {
+    if (this.props.sampleIdx === 1) {
       // console.log("this.props", this.props)
 
     }

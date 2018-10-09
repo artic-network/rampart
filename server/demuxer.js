@@ -19,7 +19,7 @@ const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
   // }
 
   porechop.on('close', (code) => {
-    console.log(`Porechop finished. Exit code ${code}`);
+    // console.log(`Porechop finished. Exit code ${code}`);
     if (code === 0) {
       resolve();
     } else {
@@ -37,9 +37,9 @@ const demuxer = async () => {
     const fastqToWrite = path.join(global.config.demuxedPath, path.basename(basecalledFastq));
     try {
       // await sleep(1000); // slow things down for development
-      console.log("Demuxing ", path.basename(basecalledFastq))
+      console.log("Demuxing ", path.basename(basecalledFastq), "...")
       await call_porechop(basecalledFastq, fastqToWrite);
-      console.log("\t", path.basename(basecalledFastq), "demuxed")
+      console.log(path.basename(basecalledFastq), "demuxed.")
       global.porechopFastqs.push(fastqToWrite)
     } catch (err) {
       console.log(`*** ERROR *** Demuxing ${path.basename(basecalledFastq)}: ${err}`);
