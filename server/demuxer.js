@@ -6,7 +6,7 @@ let isRunning = false; // only want one porechop thread at a time!
 
 const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
   const porechop = spawn('porechop', [
-    '--verbosity', '1',
+    '--verbosity', '0',
     '-i', fastqIn,
     '-o', fastqOut,
     '--discard_middle', '--require_two_barcodes', '--barcode_threshold', '80',
@@ -17,6 +17,12 @@ const call_porechop = (fastqIn, fastqOut) => new Promise((resolve, reject) => {
   // if (global.dev && Math.random() < 0.05) {
   //   reject("Mock porechop failure")
   // }
+
+    // print stdout from process (for debugging)
+    // process.stdin.pipe(porechop.stdin)
+    // porechop.stdout.on('data', (data) => {
+    //     console.log(`${data}`);
+    // });
 
   porechop.on('close', (code) => {
     // console.log(`Porechop finished. Exit code ${code}`);
