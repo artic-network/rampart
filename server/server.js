@@ -50,13 +50,13 @@ const run = ({args, config, mappingResults}) => {
 
         /* TODO if a client reconnects (refreshes) then it never sees the previously sent JSONs */
 
-        const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
+        // const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
         const ret = [];
         for (let i = 0; i < nAvailable; i++) {
-            const readTime = global.mappingResults.peek().time - firstTimestamp;
-            if (readTime > durationThisScriptHasBeenRunning) {
-                break;
-            }
+            // const readTime = global.mappingResults.peek().time - firstTimestamp;
+            // if (readTime > durationThisScriptHasBeenRunning) {
+            //     break;
+            // }
             ret.push(global.mappingResults.shift());
         }
 
@@ -64,8 +64,8 @@ const run = ({args, config, mappingResults}) => {
             console.log("Sending ", ret.length, "mapped FASTQs for visualisation.");
             res.json(ret);
         } else {
-            const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);
-            console.log(`*** Not sending data because the next read was after ${nextReadTime}s of capture, and this script has only been running for ${parseInt(durationThisScriptHasBeenRunning/1000, 10)}s. ***`)
+            // const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);
+            // console.log(`*** Not sending data because the next read was after ${nextReadTime}s of capture, and this script has only been running for ${parseInt(durationThisScriptHasBeenRunning/1000, 10)}s. ***`)
             res.statusMessage = 'No reads available.'
             return res.status(500).end();
         }
