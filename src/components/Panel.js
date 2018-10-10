@@ -2,7 +2,6 @@ import React from 'react';
 import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
-import ReferenceMatches from "./ReferenceMatches";
 import {sampleColours} from "../utils/commonStyles";
 import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
 
@@ -96,27 +95,22 @@ class Panel extends React.Component {
       <div {...flexRowContainer}>
         <CoveragePlot
           style={{width: '35%', margin: 'auto', height: "100%"}}
-          title={"Coverage"}
+          showReferenceMatches={true}
           coverage={[this.props.coverage]}
+          references={this.props.references}
+          referenceMatchAcrossGenome={this.props.referenceMatchAcrossGenome}
           annotation={this.props.annotation}
           version={this.props.version}
           colours={[this.state.colour]}
         />
         <ReadLengthDistribution
-          style={{width: '30%', margin: 'auto', height: "100%"}}
+          style={{width: '20%', margin: 'auto', height: "100%"}}
           title={"Read Lengths"}
           readLength={this.props.readLength}
           version={this.props.version}
           colour={this.state.colour}
         />
-        <ReferenceMatches
-          style={{width: '25%', margin: 'auto', height: "100%"}}
-          title={"Reference Matches"}
-          references={this.props.references}
-          refMatchCounts={this.props.refMatchCounts}
-          version={this.props.version}
-          colour={this.state.colour}
-        />
+
       </div>
     )
   }

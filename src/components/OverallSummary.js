@@ -40,7 +40,7 @@ class OverallSummary extends React.Component {
         <div {...flexRow}>
           <CoveragePlot
             style={{width: '35%', margin: 'auto', height: "100%"}}
-            title={"Coverage"}
+            showReferenceMatches={false}
             coverage={this.props.coveragePerSample}
             colours={sampleColours}
             version={this.props.version}

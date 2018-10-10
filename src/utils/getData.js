@@ -39,12 +39,13 @@ const makeNewState = (oldState, json) => {
          line[4] = ref-match-frac (FLOAT) */
 
       const sampleIdxOfRead = oldState.barcodeToSampleIdxMap[line[0]];
+      const bestRefIdx = line[1];
       if (sampleIdxOfRead === undefined) {
         /* barcode isn't mapped to a sample via the config */
         return;
       }
       readsAdded++
-      oldState.refMatchPerSample[sampleIdxOfRead][line[1]]++;
+      oldState.refMatchPerSample[sampleIdxOfRead][bestRefIdx]++;
       oldState.readCountPerSample[sampleIdxOfRead]++;
 
       // start & end index, relative to genomeResolution
@@ -61,11 +62,17 @@ const makeNewState = (oldState, json) => {
       } else {
         oldState.readLengthPerSample[sampleIdxOfRead][readLengthBin]++
       }
+
+      /* TODO this resolution could be made a lot coreser */
+      for (let i=startIdx; i<=endIdx; i++) {
+        oldState.referenceMatchAcrossGenome[sampleIdxOfRead][bestRefIdx][i]++
+      }
+
     });
   })
   newState.dataVersion++
   newState.status = `Added ${readsAdded} reads`;
-  console.log("New state (after reads in)", newState)
+  // console.log("New state (after reads in)", newState)
   return newState;
 }
 
@@ -83,7 +90,7 @@ export const requestReads = (state, setState) => {
       setState(makeNewState(state, json))
     })
     .catch((err) => {
-      console.log("requestReads:", err)
+      // console.log("requestReads:", err)
       // setState({status: err});
     })
 }
@@ -92,7 +99,7 @@ const initialiseArray = (n) =>
   Array.from(new Array(n), () => 0)
 
 const createInitialState = (infoJson) => {
-  console.log("JSON from server:", infoJson)
+  // console.log("JSON from server:", infoJson)
   const state = {
     name: infoJson.name,
     annotation: {genes: infoJson.reference.genes},
@@ -119,10 +126,13 @@ const createInitialState = (infoJson) => {
   state.refMatchPerSample = state.samples.map((sampleName, sampleIdx) =>
     state.references.map((refName, refIdx) => 0)
   )
+  state.referenceMatchAcrossGenome = state.samples.map((sampleName, sampleIdx) =>
+    state.references.map(() => Array.from(new Array(genomeParts), () => 0))
+  );
   state.readCountPerSample = state.samples.map(() => 0);
   state.readLengthPerSample = state.samples.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
   state.dataVersion = 0;
-  console.log("initial state:", state)
+  // console.log("initial state:", state)
   return state;
 }
 
