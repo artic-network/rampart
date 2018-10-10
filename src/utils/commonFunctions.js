@@ -40,13 +40,18 @@ export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {
   drawYAxis(svg, chartGeom, scales, numTicks.y)
 };
 
+export const calcXScale = (chartGeom, maxX) => {
+  return scaleLinear()
+    .domain([0, maxX])
+    .range([chartGeom.spaceLeft, chartGeom.width - chartGeom.spaceRight]);
+}
+
+export const calcYScale = (chartGeom, maxY) => {
+  return scaleLinear()
+    .domain([0, maxY])
+    .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop]);
+}
+
 export const calcScales = (chartGeom, maxX, maxY) => {
-  return {
-    x: scaleLinear()
-      .domain([0, maxX])
-      .range([chartGeom.spaceLeft, chartGeom.width - chartGeom.spaceRight]),
-    y: scaleLinear()
-      .domain([0, maxY])
-      .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
-  }
+  return {x: calcXScale(chartGeom, maxX), y: calcYScale(chartGeom, maxY)};
 }

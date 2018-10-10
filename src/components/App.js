@@ -5,6 +5,7 @@ import Panel from "./Panel"
 import LoadingStatus from "./LoadingStatus"
 import '../styles/global'; // sets global CSS
 import '../styles/fonts.css'; // sets global fonts
+import '../styles/temporary.css'; // TODO
 import { css } from 'glamor'
 import { requestRunInfo, requestReads } from "../utils/getData"
 import OverallSummary from "./OverallSummary";
@@ -57,6 +58,7 @@ class App extends Component {
                   readLength={this.state.readLengthPerSample[sampleIdx]}
                   references={this.state.references}
                   refMatchCounts={this.state.refMatchPerSample[sampleIdx]}
+                  referenceMatchAcrossGenome={this.state.referenceMatchAcrossGenome[sampleIdx]}
                   name={sampleName}
                   sampleIdx={sampleIdx}
                 />
