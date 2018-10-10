@@ -33,9 +33,9 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
         if (code === 0) {
             mappingResult = JSON.parse(stdout);
             if (global.args.ignoreTimeStamps) {
-                mappingResult.timeStamp = Date.now();
+                mappingResult.time = Date.now();
             } else {
-                mappingResult.timeStamp = (new Date(mappingResult.timeStamp)).getTime()
+                mappingResult.time = (new Date(mappingResult.timeStamp)).getTime()
             }
             resolve(mappingResult)
         } else {
