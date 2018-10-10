@@ -2,10 +2,10 @@ import { genomeResolution, readLengthResolution } from "../magics";
 
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
 
-const processTimeStamp = (timeStamp) => {
-  const d = new Date(timeStamp);
-  return d.getTime();
-}
+// const processTimeStamp = (timeStamp) => {
+//   const d = new Date(timeStamp);
+//   return d.getTime();
+// }
 
 const makeNewState = (oldState, json) => {
   /* Potentially move some of this to the server... */
@@ -13,7 +13,8 @@ const makeNewState = (oldState, json) => {
 
   /* if we haven't yet had any reads, we have to initialise the "run start time" via the first JSON */
   if (!newState.startTime) {
-    newState.startTime = processTimeStamp(json[0].timeStamp);
+//  newState.startTime = processTimeStamp(json[0].timeStamp);
+    newState.startTime = json[0].time;
     newState.readsOverTime = [];
     newState.versions = [...Array(oldState.samples.length)].map(() => 1);
   }
@@ -28,7 +29,8 @@ const makeNewState = (oldState, json) => {
       prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
     }
     newState.readsOverTime.push([
-      parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
+//        parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
+      parseInt((data.time - newState.startTime)/1000, 10),
       prevReadCount + data.readData.length
     ]);
     data.readData.forEach((line) => {
