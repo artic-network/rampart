@@ -57,12 +57,12 @@ const startUp = async () => {
 
   /* Scan the basecalled FASTQ folder */
   console.log(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`);
-  const basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
+  const basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: false});
 
 
   /* Scan the demuxed FASTQ folder -- assumes filenames are the same as basecalled FASTQs! */
   console.log(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`);
-  const demuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
+  const demuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: false});
 
 
   // push basecalled fastqs which _haven't_ been demuxed onto a deque
