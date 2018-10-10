@@ -12,6 +12,7 @@ const parser = new argparse.ArgumentParser({
 parser.addArgument('--config', {required: true, help: "path to JSON configuration file"});
 parser.addArgument('--subsetFastqs', {action: "storeTrue", help: "Development flag -- only considers subset of FASTQs for speed reasons"});
 parser.addArgument('--mockFailures', {action: "storeTrue", help: "Development flag -- stochastically fail to run guppy / porechop / mapping"});
+parser.addArgument('--ignoreTimeStamps', {action: "storeTrue", help: "Development flag -- ignore the timestamps on the reads"});
 
 
 module.exports = {
