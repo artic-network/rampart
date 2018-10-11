@@ -4,6 +4,7 @@ const { promisify } = require('util');
 const { save_coordinate_reference_as_fasta } = require("./mapper");
 const readdir = promisify(fs.readdir);
 const { spawn } = require('child_process');
+const chalk = require('chalk');
 
 
 const getFastqTimestamp = (filepath) => new Promise((resolve, reject) => {
@@ -35,33 +36,33 @@ const getFastqsFromDirectory = async (dir, {sortByTime=true} = {}) => {
 
   /* examining the time stamps can be slow */
   if (global.args.subsetFastqs ) {
-    console.log("\t\tOnly considering 100 FASTQs for speed reasons.")
+    console.log(chalk.yellowBright.bold("\t\tOnly considering 100 FASTQs for speed reasons."))
     fastqs = fastqs.slice(0, 100);
   }
 
-  console.log(`\t\tFound ${fastqs.length} FASTQ files.`);
+  console.log(chalk.yellowBright.bold(`\t\tFound ${fastqs.length} FASTQ files.`));
 
   if (sortByTime) {
-    process.stdout.write(`\t\tSorting by timestamp... `); /* no newline */
+    process.stdout.write(chalk.yellowBright.bold(`\t\tSorting by timestamp... `)); /* no newline */
     fastqs = await sortFastqsChronologically(fastqs);
-    console.log(`SORTED.`)
+    console.log(chalk.yellowBright.bold(`SORTED.`))
   }
 
   return fastqs;
 }
 
 const startUp = async () => {
-  console.log("\nRAMPART start up - Scanning input folders...");
+  console.log(chalk.yellowBright.bold("\nRAMPART start up - Scanning input folders..."));
   /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
   save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
   /* Scan the basecalled FASTQ folder */
-  console.log(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`);
+  console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`));
   const basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
 
 
   /* Scan the demuxed FASTQ folder -- assumes filenames are the same as basecalled FASTQs! */
-  console.log(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`);
+  console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`));
   const demuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
 
 
@@ -79,13 +80,13 @@ const startUp = async () => {
   });
 
 
-  // console.log(`\tClearing the demuxed folder contents`)
+  // console.log(chalk.yellowBright.bold(`\tClearing the demuxed folder contents`))
   // const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
   // for (const file of demuxedFilesToDelete) {
   //   fs.unlinkSync(path.join(global.config.demuxedPath, file));
   // }
 
-  console.log("RAMPART start up FINISHED\n");
+  console.log(chalk.yellowBright.bold("RAMPART start up FINISHED\n"));
 }
 
 

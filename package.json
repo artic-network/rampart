@@ -4,6 +4,7 @@
   "main": "src/electron.js",
   "private": true,
   "dependencies": {
+    "chalk": "^2.4.1",
     "collections": "^5.1.5",
     "cors": "^2.8.4",
     "csvtojson": "^1.1.9",

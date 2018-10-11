@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 // const fs = require('fs')
 const path = require('path')
+const chalk = require('chalk');
 
 let firstTimestamp;
 let mappingFilesPointer = 0; /* idx of global.mappingResults to send next */
@@ -25,14 +26,14 @@ const run = ({args, config, mappingResults}) => {
 
     /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
     app.get('/requestRunInfo', (req, res) => {
-        console.log("\n\n\t\t*********************");
-        console.log("SERVER: Client initialising. Sending info & annotation data.")
+        console.log(chalk.blueBright.bold("\n\n\t\t*********************"));
+        console.log(chalk.blueBright.bold("SERVER: Client initialising. Sending info & annotation data."));
         res.json(global.config);
         if (mappingFilesPointer !== 0) {
-          console.log("Restoring previously sent reads.")
+          console.log(chalk.blueBright.bold("Restoring previously sent reads."));
           mappingFilesPointer = 0;
         }
-        console.log("\t\t*********************\n\n");
+        console.log(chalk.blueBright.bold("\t\t*********************\n\n"));
     });
 
     /* REQUEST AVAILABLE READS */
@@ -48,7 +49,7 @@ const run = ({args, config, mappingResults}) => {
         /* the first read mapped is taken as the run start timestamp */
         if (!firstTimestamp) {
             firstTimestamp = global.mappingResults[0].time;
-            console.log("firstTimestamp", firstTimestamp)
+            console.log(chalk.blueBright.bold("SERVER: firstTimestamp", firstTimestamp));
         }
 
         /* how many reads should we send to the client? we want to do this in "real time",
@@ -72,7 +73,7 @@ const run = ({args, config, mappingResults}) => {
         }
 
         if (ret.length) {
-            console.log("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation.");
+            console.log(chalk.blueBright.bold("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation."));
             res.json(ret);
         } else {
             // const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);
@@ -93,10 +94,10 @@ const run = ({args, config, mappingResults}) => {
     const port = process.env.PORT || 3001;
     app.set('port', port);
     app.listen(app.get('port'), () => {
-        console.log(`\n\n---------------------------------------------------------------------------`);
-        console.log(`RAMPART daemon & server running (listening on port ${port})`);
-        console.log(`Now run run "npm run start" to start the web app`);
-        console.log(`---------------------------------------------------------------------------\n\n`);
+        console.log(chalk.blueBright.bold(`\n\n---------------------------------------------------------------------------`));
+        console.log(chalk.blueBright.bold(`RAMPART daemon & server running (listening on port ${port})`));
+        console.log(chalk.blueBright.bold(`Now run run "npm run start" to start the web app`));
+        console.log(chalk.blueBright.bold(`---------------------------------------------------------------------------\n\n`));
     });
     return app;
 }
