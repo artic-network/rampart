@@ -2,7 +2,7 @@ import React from 'react';
 import { select } from "d3-selection";
 import {haveMaxesChanged, drawAxes} from "../utils/commonFunctions";
 import {sampleColours, chartTitleCSS} from "../utils/commonStyles";
-import {scaleLinear, scaleOrdinal} from "d3-scale";
+import {scaleLog, scaleOrdinal} from "d3-scale";
 import { max } from "d3-array";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
@@ -28,8 +28,9 @@ const calcScales = (chartGeom, barWidth, numSamples, maxReads) => {
     x: scaleOrdinal()
       .domain(xValues)
       .range(xValues.map(x => (x+0.5)*barWidth + chartGeom.spaceLeft)),
-    y: scaleLinear()
-      .domain([0, maxReads])
+    y: scaleLog()
+      .base(10)
+      .domain([10, maxReads])
       .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
   }
 }
