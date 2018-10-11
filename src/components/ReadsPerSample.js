@@ -73,8 +73,8 @@ class ReadsPerSample extends React.Component {
     const yMax = getYMax(this.props.readCountPerSample, this.state.yMaxResolution);
     let newScales;
     if (haveMaxesChanged(this.state.scales, this.state.numSamples, yMax)) {
-      const scales = calcScales(this.state.chartGeom, this.state.barWidth, this.state.numSamples, yMax);
-      drawAxes(this.state.svg, this.state.chartGeom, scales)
+      newScales = calcScales(this.state.chartGeom, this.state.barWidth, this.state.numSamples, yMax);
+      drawAxes(this.state.svg, this.state.chartGeom, newScales)
     }
     drawColumns(this.state.svg, this.state.chartGeom, newScales || this.state.scales, this.props.readCountPerSample, this.state.barWidth)
     if (newScales) this.setState({scales: newScales});
