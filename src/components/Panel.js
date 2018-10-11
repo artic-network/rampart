@@ -68,7 +68,6 @@ class Panel extends React.Component {
       summaryText += ` ${latestCoverageData[1]}% > 1000x, ${latestCoverageData[2]}% > 100x, ${latestCoverageData[3]}% > 10x coverage.`;
     }
 
-
     return (
       <div
         {...headerCSS}
@@ -78,16 +77,18 @@ class Panel extends React.Component {
           {summaryText}
         </span>
 
-        {this.state.expanded ? null : (
+        {this.state.expanded || this.props.readCount===0 ? null : (
           <span style={{flexBasis: "30%"}}>
             <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
             </svg>
           </span>
         )}
 
-        <span style={{position: "absolute", top: "10px", right: "10px"}}>
-          {this.state.expanded ? "click to contract" : "click to expand"}
-        </span>
+        {this.props.readCount > 0 ? (
+          <span style={{position: "absolute", top: "10px", right: "10px"}}>
+            {this.state.expanded ? "click to contract" : "click to expand"}
+          </span>
+        ) : null}
       </div>
     )
   }
@@ -117,12 +118,12 @@ class Panel extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.state.expanded) {
+    if (!this.state.expanded && this.props.readCount > 0) {
       renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
     }
   }
   componentDidUpdate() {
-    if (!this.state.expanded) {
+    if (!this.state.expanded && this.props.readCount > 0) {
       renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
     }
   }
