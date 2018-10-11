@@ -2,9 +2,12 @@ import React from 'react';
 import { select } from "d3-selection";
 import { line, curveStep, area } from "d3-shape";
 import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS, sampleColours} from "../utils/commonStyles";
+import {chartTitleCSS} from "../utils/commonStyles";
 import { max } from "d3-array";
 import { genomeResolution } from "../magics";
+import { interpolateLab } from "d3-interpolate";
+import { scaleSequential } from "d3-scale";
+import {color as d3color} from "d3-color";
 
 const calculateSeries = (referenceMatchAcrossGenome, references) => {
   /* WHAT IS A SERIES?
@@ -41,20 +44,25 @@ const calculateSeries = (referenceMatchAcrossGenome, references) => {
   return series;
 }
 
-const drawStream = (svg, scales, series) => {
+const drawStream = (svg, scales, series, panelColour) => {
   const areaObj = area()
     .x((d, i) => scales.x(i*genomeResolution))
     .y0((d) => scales.y(d[0]))
     .y1((d) => scales.y(d[1]));
-  /* the streams */
+
+  /* make a palette of colours centered around the panelColour */
+  const rampA = d3color(panelColour).brighter(3);
+  const rampB = d3color(panelColour).darker(3);
+  const colourFn = scaleSequential(interpolateLab(rampA, rampB))
+    .domain([0, series.length-1]);
+
   svg.append("g").selectAll(".stream")
     .data(series)
       .enter()
       .append("path")
       .attr("d", areaObj)
-      // .attr("fill", this.props.colour)
-      .attr("fill", (d, i) => sampleColours[i])
-      // .attr("opacity", (d, i) => (i+1)*0.1);
+      .attr("fill", (d, i) => colourFn(i))
+      .attr("opacity", 1);
     // .on("mouseover", handleMouseOver)
     // .on("mouseout", handleMouseOut)
     // .on("mousemove", handleMouseMove);
@@ -177,7 +185,7 @@ class CoveragePlot extends React.Component {
     /* fill in the graph! */
     if (this.state.showReferenceMatches) {
       const series = calculateSeries(this.props.referenceMatchAcrossGenome, this.props.references)
-      drawStream(this.state.svg, scales, series);
+      drawStream(this.state.svg, scales, series, this.props.colours[0]);
     } else {
       drawSteps(this.state.svg, this.state.chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution);
     }
@@ -189,12 +197,12 @@ class CoveragePlot extends React.Component {
     }
     return (
       <div style={{margin: "0 auto", width: "50%"}}>
-        <span style={{paddingRight: "10px"}}>Read Depth</span>
+        <span style={{paddingRight: "10px"}}>Depth</span>
         <label className="switch">
           <input type="checkbox" onClick={this.toggleReadDepthVsReferenceMatches}/>
           <span className="slider round"/>
         </label>
-        <span style={{paddingLeft: "10px"}}>Reference Matches</span>
+        <span style={{paddingLeft: "10px"}}>References</span>
       </div>
     )
   }
