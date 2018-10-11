@@ -15,10 +15,10 @@ export const renderCoverageHeatmap = (domRef, coverage) => {
 
   const colourCoverage = (d) => {
     const depth = coverage[d];
-    return depth > consensusCoverage ? "rgb(100, 152, 131)" : // dark green
-      depth > okCoverage ? "rgb(100, 152, 131)" : // med green
-      depth > 5 ? "rgb(172, 195, 159)" : // light green
-      "rgb(246, 238, 202)"; // light beige
+    return depth > consensusCoverage ? "#252525" :
+      depth > okCoverage ? "#636363" :
+      depth > 10 ? "#969696" :
+      "#cccccc";
   }
 
   selection
