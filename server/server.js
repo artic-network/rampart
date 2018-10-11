@@ -1,9 +1,11 @@
 const express = require('express')
 const cors = require('cors')
-const fs = require('fs')
+// const fs = require('fs')
 const path = require('path')
 
 let firstTimestamp;
+let mappingFilesPointer = 0; /* idx of global.mappingResults to send next */
+const maxMappingFilesPerRequest = 5;
 
 const error = (res, msg) => {
     res.statusMessage = msg;
@@ -23,16 +25,22 @@ const run = ({args, config, mappingResults}) => {
 
     /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
     app.get('/requestRunInfo', (req, res) => {
+        console.log("\n\n\t\t*********************");
         console.log("SERVER: Client initialising. Sending info & annotation data.")
         res.json(global.config);
+        if (mappingFilesPointer !== 0) {
+          console.log("Restoring previously sent reads.")
+          mappingFilesPointer = 0;
+        }
+        console.log("\t\t*********************\n\n");
     });
 
     /* REQUEST AVAILABLE READS */
     app.get('/requestReads', (req, res) => {
         let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
-        // console.log("SERVER: Request reads.", nAvailable, "are available")
+        // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingFilesPointer);
 
-        if (nAvailable === 0) {
+        if (nAvailable === 0 || nAvailable <= mappingFilesPointer) {
             res.statusMessage = 'No reads available.'
             return res.status(500).end();
         }
@@ -52,16 +60,19 @@ const run = ({args, config, mappingResults}) => {
 
         // const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
         const ret = [];
-        for (let i = 0; i < nAvailable; i++) {
-            // const readTime = global.mappingResults.peek().time - firstTimestamp;
-            // if (readTime > durationThisScriptHasBeenRunning) {
-            //     break;
-            // }
-            ret.push(global.mappingResults.shift());
+        while (mappingFilesPointer < nAvailable) {
+          // const readTime = global.mappingResults[mappingFilesPointer].time - firstTimestamp;
+          // if (readTime > durationThisScriptHasBeenRunning) {
+          //     break;
+          // }
+          ret.push(global.mappingResults[mappingFilesPointer++]);
+          if (ret.length >= maxMappingFilesPerRequest) {
+            break;
+          }
         }
 
         if (ret.length) {
-            console.log("Sending ", ret.length, "mapped FASTQs for visualisation.");
+            console.log("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation.");
             res.json(ret);
         } else {
             // const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);

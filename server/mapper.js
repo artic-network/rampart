@@ -31,7 +31,7 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
     pyprog.on('close', (code) => {
         // console.log(`Python script finished. Exit code ${code}`);
         if (code === 0) {
-            mappingResult = JSON.parse(stdout);
+            let mappingResult = JSON.parse(stdout);
             if (global.args.ignoreTimeStamps) {
                 mappingResult.time = Date.now();
             } else {
