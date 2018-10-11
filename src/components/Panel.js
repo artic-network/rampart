@@ -35,7 +35,7 @@ export const panelTitle = css({
   "fontWeight": "bold",
   "fontSize": "1.3em",
   "paddingLeft": "20px",
-  flexBasis: "40%"
+  flexBasis: "50%"
 })
 
 const headerCSS = css({
@@ -44,9 +44,6 @@ const headerCSS = css({
   cursor: "pointer"
 })
 
-/* TODO: make this more meaningful - lower 95th percent? */
-const averageCoverage = (data) =>
-  parseInt(data.reduce((tot, cv) => tot + cv, 0) / data.length, 10);
 
 class Panel extends React.Component {
   constructor(props) {
@@ -65,16 +62,20 @@ class Panel extends React.Component {
     )
   }
   renderHeader() {
+    const latestCoverageData = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
+    let summaryText = `${this.props.name}. ${this.props.readCount} reads.`;
+    if (this.props.readCount) {
+      summaryText += ` ${latestCoverageData[1]}% > 1000x, ${latestCoverageData[2]}% > 100x, ${latestCoverageData[3]}% > 10x coverage.`;
+    }
+
+
     return (
       <div
         {...headerCSS}
         onClick={() => this.setState({expanded: !this.state.expanded})}
       >
         <span {...panelTitle}>
-          {`${this.props.name}.
-          ${this.props.readCount} reads.
-          ${averageCoverage(this.props.coverage)}x coverage.
-          `}
+          {summaryText}
         </span>
 
         {this.state.expanded ? null : (

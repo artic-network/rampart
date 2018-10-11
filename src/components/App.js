@@ -61,6 +61,7 @@ class App extends Component {
                   referenceMatchAcrossGenome={this.state.referenceMatchAcrossGenome[sampleIdx]}
                   name={sampleName}
                   sampleIdx={sampleIdx}
+                  coverageOverTime={this.state.coverageOverTime[sampleIdx]}
                 />
               )
             })}

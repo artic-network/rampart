@@ -72,6 +72,20 @@ const makeNewState = (oldState, json) => {
 
     });
   })
+
+  /* For each genome, what perc is >100x coverage (e.g.) */
+  const latestTime = newState.readsOverTime[newState.readsOverTime.length-1][0];
+  oldState.coverageOverTime.forEach((sampleCoverageArray, sampleIdx) => {
+    const cov = oldState.coveragePerSample[sampleIdx];
+    sampleCoverageArray.push([ /* struct: [time, % genome over 1000x, over 100x, over 10x] */
+      latestTime,
+      parseInt((cov.reduce((acc, cv) => cv > 1000 ? ++acc : acc, 0)/oldState.nGenomeSlices)*100, 10),
+      parseInt((cov.reduce((acc, cv) => cv > 100  ? ++acc : acc, 0)/oldState.nGenomeSlices)*100, 10),
+      parseInt((cov.reduce((acc, cv) => cv > 10   ? ++acc : acc, 0)/oldState.nGenomeSlices)*100, 10)
+    ]);
+  })
+
+
   newState.dataVersion++
   newState.status = `Added ${readsAdded} reads`;
   // console.log("New state (after reads in)", newState)
@@ -121,19 +135,21 @@ const createInitialState = (infoJson) => {
       .sort((a, b) => {return a[0]<b[0] ? -1 : 1});
   }
   state.annotation.genome = {length: infoJson.reference.sequence.length};
-  const genomeParts = Math.ceil(state.annotation.genome.length / genomeResolution);
+  state.nGenomeSlices = Math.ceil(state.annotation.genome.length / genomeResolution);
   state.coveragePerSample = state.samples.map(() =>
-    Array.from(new Array(genomeParts), () => 0)
+    Array.from(new Array(state.nGenomeSlices), () => 0)
   );
   state.refMatchPerSample = state.samples.map((sampleName, sampleIdx) =>
     state.references.map((refName, refIdx) => 0)
   )
   state.referenceMatchAcrossGenome = state.samples.map((sampleName, sampleIdx) =>
-    state.references.map(() => Array.from(new Array(genomeParts), () => 0))
+    state.references.map(() => Array.from(new Array(state.nGenomeSlices), () => 0))
   );
   state.readCountPerSample = state.samples.map(() => 0);
   state.readLengthPerSample = state.samples.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
   state.dataVersion = 0;
+
+  state.coverageOverTime = state.samples.map(() => []);
   // console.log("initial state:", state)
   return state;
 }
