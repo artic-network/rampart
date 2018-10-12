@@ -76,7 +76,7 @@ class CoverageOverTime extends React.Component {
     const finalDataPt = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
     const timeMax = (parseInt(finalDataPt[0]/30, 10) +1) * 30;
     const scales = {x: calcXScale(this.state.chartGeom, timeMax), y: this.state.yScale};
-    drawAxes(this.state.svg, this.state.chartGeom, scales, {x: 3, y: 5});
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {xTicks: 4, yTicks:5, isTime: true, ySuffix: "%"});
     drawLines(this.state.svg, scales, this.props.coverageOverTime, this.state.colours);
   }
   render() {

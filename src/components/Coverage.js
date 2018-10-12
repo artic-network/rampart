@@ -171,7 +171,7 @@ class CoveragePlot extends React.Component {
       calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage));
     const scales = {x: this.state.xScale, y: yScale};
     /* draw the axes & genome annotation*/
-    drawAxes(this.state.svg, this.state.chartGeom, scales);
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", ySuffix: 'x'});
     drawGenomeAnnotation(this.state.svg, this.state.chartGeom, scales, this.props.annotation);
     /* fill in the graph! */
     if (this.state.showReferenceMatches) {

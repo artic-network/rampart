@@ -46,7 +46,7 @@ class ReadsOverTime extends React.Component {
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
     }
     newState.scales = calcScales(newState.chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
-    drawAxes(newState.SVG, newState.chartGeom, newState.scales)
+    drawAxes(newState.SVG, newState.chartGeom, newState.scales, {isTime: true})
     drawLine(newState.SVG, newState.scales, this.props.readsOverTime)
     this.setState(newState);
   }
@@ -59,7 +59,7 @@ class ReadsOverTime extends React.Component {
       const timeMaxReadsMax = getMaxsOfReadsOverTime(this.props.readsOverTime);
       if (haveMaxesChanged(this.state.scales, ...timeMaxReadsMax)) {
         newState.scales = calcScales(this.state.chartGeom, ...timeMaxReadsMax);
-        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
+        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales, {xTicks: 4, isTime: true})
       }
       drawLine(this.state.SVG, newState.scales, this.props.readsOverTime);
       this.setState(newState)
