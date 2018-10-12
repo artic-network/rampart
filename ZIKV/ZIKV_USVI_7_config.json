@@ -1,0 +1,69 @@
+{
+  "name": "ZIKV USVI 7 (A. Black)",
+  "referenceConfigPath": "./ZIKV/ZIKV_v1.0.json",
+  "referencePanelPath": "./ZIKV/zika_reference_genomes.fasta",
+  "samples": [
+      {
+          "name": "VI34",
+          "description": "",
+          "barcodes": [ "barcode01" ]
+      },
+      {
+          "name": "VI35",
+          "description": "",
+          "barcodes": [ "barcode02" ]
+      },
+      {
+          "name": "VI36",
+          "description": "",
+          "barcodes": [ "barcode03" ]
+      },
+      {
+          "name": "VI37",
+          "description": "",
+          "barcodes": [ "barcode04" ]
+      },
+      {
+          "name": "VI38",
+          "description": "",
+          "barcodes": [ "barcode05" ]
+      },
+      {
+          "name": "Negative control",
+          "description": "",
+          "barcodes": [ "barcode06" ]
+      },
+      {
+          "name": "VI34",
+          "description": "",
+          "barcodes": [ "barcode07" ]
+      },
+      {
+          "name": "VI35",
+          "description": "",
+          "barcodes": [ "barcode08" ]
+      },
+      {
+          "name": "VI36",
+          "description": "",
+          "barcodes": [ "barcode09" ]
+      },
+      {
+          "name": "Unknown",
+          "description": "",
+          "barcodes": [ "barcode10" ]
+      },
+      {
+          "name": "VI37",
+          "description": "",
+          "barcodes": [ "barcode11" ]
+      },
+      {
+          "name": "VI38",
+          "description": "",
+          "barcodes": [ "barcode12" ]
+      }
+  ],
+  "basecalledPath": "/Users/james/reads/ZIKV_USVI_7/doesnt_exist",
+  "demuxedPath": "/Users/james/reads/ZIKV_USVI_7/demuxed_flat"
+}
