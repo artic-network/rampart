@@ -30,7 +30,7 @@ class ReadLengthDistribution extends React.Component {
     const readLengthMaxes = getMaxes(this.props.readLength)
     const scales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y);
     drawAxes(SVG, chartGeom, scales)
-    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution)
+    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution, true)
   }
   componentDidMount() {
     const SVG = select(this.DOMref);

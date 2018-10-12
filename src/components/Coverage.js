@@ -59,7 +59,7 @@ const drawStream = (svg, scales, series, referenceColours) => {
     // .on("mousemove", handleMouseMove);
 }
 
-export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier) => {
+export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier, fillIn) => {
   /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
   const makeLinePath = line()
     .x((d, i) => scales.x(i*multiplier))
@@ -71,7 +71,7 @@ export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier) => 
     .data(data)
     .enter().append("path")
     .attr("class", "coverageLine")
-    .attr("fill", "none")
+    .attr("fill", (d, i) => fillIn ? colours[i] : "none")
     .attr("stroke", (d, i) => colours[i])
     .attr('d', makeLinePath);
 }
@@ -178,7 +178,7 @@ class CoveragePlot extends React.Component {
       const series = calculateSeries(this.props.referenceMatchAcrossGenome, this.props.references)
       drawStream(this.state.svg, scales, series, this.props.referenceColours);
     } else {
-      drawSteps(this.state.svg, this.state.chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution);
+      drawSteps(this.state.svg, this.state.chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution, this.props.showReferenceMatches);
     }
   }
 
