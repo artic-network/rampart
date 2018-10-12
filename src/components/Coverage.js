@@ -44,8 +44,8 @@ const calculateSeries = (referenceMatchAcrossGenome, references) => {
 const drawStream = (svg, scales, series, referenceColours) => {
   const areaObj = area()
     .x((d, i) => scales.x(i*genomeResolution))
-    .y0((d) => scales.y(d[0]))
-    .y1((d) => scales.y(d[1]));
+    .y0((d) => scales.y(d[0]*100))
+    .y1((d) => scales.y(d[1]*100));
 
   svg.append("g").selectAll(".stream")
     .data(series)
@@ -137,7 +137,7 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 40,
+  spaceLeft: 50,
   spaceRight: 10,
   spaceBottom: 60,
   spaceTop: 10
@@ -167,11 +167,12 @@ class CoveragePlot extends React.Component {
     this.state.svg.selectAll("*").remove();
     /* compute the y-scale */
     const yScale = this.state.showReferenceMatches ?
-      calcYScale(this.state.chartGeom, 1) :
+      calcYScale(this.state.chartGeom, 100) :
       calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage));
     const scales = {x: this.state.xScale, y: yScale};
     /* draw the axes & genome annotation*/
-    drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", ySuffix: 'x'});
+    const ySuffix = this.state.showReferenceMatches ? "%" : "x";
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", ySuffix});
     drawGenomeAnnotation(this.state.svg, this.state.chartGeom, scales, this.props.annotation);
     /* fill in the graph! */
     if (this.state.showReferenceMatches) {
