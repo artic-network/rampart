@@ -66,7 +66,9 @@ class CoverageOverTime extends React.Component {
     const svg = select(this.DOMref);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const yScale = calcYScale(chartGeom, 100);
-    const colours = [d3color(this.props.colour).brighter(2), d3color(this.props.colour), d3color(this.props.colour).darker(2)]
+    const colours = (this.props.sampleIdx/this.props.numSamples < 0.5) ?
+      [d3color(this.props.colour).darker(4), d3color(this.props.colour).darker(2), d3color(this.props.colour)] :
+      [d3color(this.props.colour), d3color(this.props.colour).brighter(2), d3color(this.props.colour).brighter(4)];
     drawLegend(svg, chartGeom, colours)
     this.setState({svg, chartGeom, yScale, colours});
   }

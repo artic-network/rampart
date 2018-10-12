@@ -1,7 +1,7 @@
 import React from 'react';
 import { select } from "d3-selection";
 import {haveMaxesChanged, drawAxes} from "../utils/commonFunctions";
-import {sampleColours, chartTitleCSS} from "../utils/commonStyles";
+import {chartTitleCSS} from "../utils/commonStyles";
 import {scaleLog, scaleOrdinal} from "d3-scale";
 import { max } from "d3-array";
 
@@ -36,7 +36,7 @@ const calcScales = (chartGeom, barWidth, numSamples, maxReads) => {
   }
 }
 
-const drawColumns = (svg, chartGeom, scales, counts, barWidth) => {
+const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours) => {
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")
     .data(counts)
@@ -46,7 +46,7 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth) => {
         .attr("x", (count, sampleIdx) => scales.x(sampleIdx) - 0.5*barWidth)
         .attr("width", barWidth)
         .attr("y", (count) => scales.y(count))
-        .attr("fill", (count, sampleIdx) => sampleColours[sampleIdx])
+        .attr("fill", (count, sampleIdx) => colours[sampleIdx])
         .attr("height", (count) => chartGeom.height - chartGeom.spaceBottom - scales.y(count))
 }
 
@@ -65,7 +65,7 @@ class ReadsPerSample extends React.Component {
     const barWidth = calculateBarWidth(chartGeom, numSamples)
     const scales = calcScales(chartGeom, barWidth, numSamples, yMax);
     drawAxes(svg, chartGeom, scales)
-    drawColumns(svg, chartGeom, scales, this.props.readCountPerSample, barWidth)
+    drawColumns(svg, chartGeom, scales, this.props.readCountPerSample, barWidth, this.props.colours)
     this.setState({chartGeom, svg, scales, barWidth, yMaxResolution, numSamples});
   }
 
@@ -78,7 +78,7 @@ class ReadsPerSample extends React.Component {
       newScales = calcScales(this.state.chartGeom, this.state.barWidth, this.state.numSamples, yMax);
       drawAxes(this.state.svg, this.state.chartGeom, newScales)
     }
-    drawColumns(this.state.svg, this.state.chartGeom, newScales || this.state.scales, this.props.readCountPerSample, this.state.barWidth)
+    drawColumns(this.state.svg, this.state.chartGeom, newScales || this.state.scales, this.props.readCountPerSample, this.state.barWidth, this.props.colours)
     if (newScales) this.setState({scales: newScales});
   }
   render() {

@@ -2,7 +2,6 @@ import React from 'react';
 import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
-import {sampleColours} from "../utils/commonStyles";
 import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
 import CoverageOverTime from "./CoverageOverTime";
 
@@ -50,8 +49,7 @@ class Panel extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      expanded: false,
-      colour: sampleColours[props.sampleIdx]
+      expanded: false
     }
   }
   renderNoDataHeader() {
@@ -104,21 +102,24 @@ class Panel extends React.Component {
           referenceMatchAcrossGenome={this.props.referenceMatchAcrossGenome}
           annotation={this.props.annotation}
           version={this.props.version}
-          colours={[this.state.colour]}
+          colours={[this.props.colour]}
+          referenceColours={this.props.referenceColours}
         />
         <ReadLengthDistribution
           style={{width: '20%', margin: 'auto', height: "100%"}}
           title={"Read Lengths"}
           readLength={this.props.readLength}
           version={this.props.version}
-          colour={this.state.colour}
+          colour={this.props.colour}
         />
         <CoverageOverTime
           style={{width: '30%', margin: 'auto', height: "100%"}}
           title={"Coverage Progress"}
           coverageOverTime={this.props.coverageOverTime}
           version={this.props.version}
-          colour={this.state.colour}
+          colour={this.props.colour}
+          sampleIdx={this.props.sampleIdx}
+          numSamples={this.props.numSamples}
         />
 
       </div>
@@ -140,7 +141,7 @@ class Panel extends React.Component {
       // console.log("this.props", this.props)
 
     }
-    let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.state.colour} };
+    let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.props.colour} };
     const anyData = !!this.props.readLength.length;
     if (anyData) {
       return (

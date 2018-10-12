@@ -5,9 +5,6 @@ import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 import { max } from "d3-array";
 import { genomeResolution } from "../magics";
-import { interpolateLab } from "d3-interpolate";
-import { scaleSequential } from "d3-scale";
-import {color as d3color} from "d3-color";
 
 const calculateSeries = (referenceMatchAcrossGenome, references) => {
   /* WHAT IS A SERIES?
@@ -44,24 +41,18 @@ const calculateSeries = (referenceMatchAcrossGenome, references) => {
   return series;
 }
 
-const drawStream = (svg, scales, series, panelColour) => {
+const drawStream = (svg, scales, series, referenceColours) => {
   const areaObj = area()
     .x((d, i) => scales.x(i*genomeResolution))
     .y0((d) => scales.y(d[0]))
     .y1((d) => scales.y(d[1]));
-
-  /* make a palette of colours centered around the panelColour */
-  const rampA = d3color(panelColour).brighter(3);
-  const rampB = d3color(panelColour).darker(3);
-  const colourFn = scaleSequential(interpolateLab(rampA, rampB))
-    .domain([0, series.length-1]);
 
   svg.append("g").selectAll(".stream")
     .data(series)
       .enter()
       .append("path")
       .attr("d", areaObj)
-      .attr("fill", (d, i) => colourFn(i))
+      .attr("fill", (d, i) => referenceColours[i])
       .attr("opacity", 1);
     // .on("mouseover", handleMouseOver)
     // .on("mouseout", handleMouseOut)
@@ -185,7 +176,7 @@ class CoveragePlot extends React.Component {
     /* fill in the graph! */
     if (this.state.showReferenceMatches) {
       const series = calculateSeries(this.props.referenceMatchAcrossGenome, this.props.references)
-      drawStream(this.state.svg, scales, series, this.props.colours[0]);
+      drawStream(this.state.svg, scales, series, this.props.referenceColours);
     } else {
       drawSteps(this.state.svg, this.state.chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution);
     }

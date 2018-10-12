@@ -1,10 +1,8 @@
 import React from 'react';
 import { select } from "d3-selection";
-import { rgb } from "d3-color";
-import { interpolateHcl } from "d3-interpolate";
-import { scaleLinear } from "d3-scale";
 import {calcScales} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
+import {heatColourScale} from "../utils/colours";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -92,7 +90,7 @@ const drawHeatMap = (state, props) => {
     .attr('height', state.cellDims.height)
     .attr("x", d => state.scales.x(d[0]) + state.cellDims.padding)
     .attr("y", d => state.scales.y(d[1]) + state.cellDims.padding)
-    .attr("fill", d => state.heatColourScale(d[2]));
+    .attr("fill", d => heatColourScale(d[2]));
 
   /* render the legend (bottom) -- includes coloured cells & text */
   const legendDataValues = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -108,7 +106,7 @@ const drawHeatMap = (state, props) => {
     .attr("x", (d, i) => legendBoxWidth * i)
     .attr("width", legendBoxWidth)
     .attr("height", legendBoxHeight)
-    .style("fill", (d) => state.heatColourScale(d));
+    .style("fill", (d) => heatColourScale(d));
   legend.append("text")
     .text((d, i) => i ? d+"%" : "")
     .attr('x', (d, i) => legendBoxWidth * i)
@@ -135,13 +133,7 @@ class ReferenceHeatmap extends React.Component {
       references.length-1 // number of rows TODO: why -1?
     );
 
-    const heatColourScale = scaleLinear()
-      .domain([0, 100])
-      .interpolate(interpolateHcl)
-        .range([rgb('#F6EECA'), rgb('#005C68')]
-      );
-
-    const newState = {svg, chartGeom, cellDims, scales, heatColourScale, samples}
+    const newState = {svg, chartGeom, cellDims, scales, samples}
     drawHeatMap(newState, this.props);
     this.setState(newState); // may be async...
   }

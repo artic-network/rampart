@@ -30,7 +30,6 @@ class App extends Component {
       timeBetweenUpdates
     )
   }
-  component
   render() {
     return (
       <div {...container}>
@@ -46,6 +45,7 @@ class App extends Component {
               readCountPerSample={this.state.readCountPerSample}
               refMatchPerSample={this.state.refMatchPerSample}
               version={this.state.dataVersion}
+              sampleColours={this.state.sampleColours}
             />
             {this.state.samples.map((sampleName, sampleIdx) => {
               return (
@@ -61,7 +61,10 @@ class App extends Component {
                   referenceMatchAcrossGenome={this.state.referenceMatchAcrossGenome[sampleIdx]}
                   name={sampleName}
                   sampleIdx={sampleIdx}
+                  numSamples={this.state.samples.length}
                   coverageOverTime={this.state.coverageOverTime[sampleIdx]}
+                  colour={this.state.sampleColours[sampleIdx]}
+                  referenceColours={this.state.referenceColours}
                 />
               )
             })}

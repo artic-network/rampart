@@ -1,4 +1,5 @@
 import { genomeResolution, readLengthResolution } from "../magics";
+import { createSampleColours, createReferenceColours } from "./colours";
 
 const prefix = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "";
 
@@ -151,6 +152,10 @@ const createInitialState = (infoJson) => {
 
   state.coverageOverTime = state.samples.map(() => [[0, 0, 0, 0]]);
   // console.log("initial state:", state)
+
+  state.sampleColours = createSampleColours(state.samples.length);
+  state.referenceColours = createReferenceColours(state.references.length);
+
   return state;
 }
 
