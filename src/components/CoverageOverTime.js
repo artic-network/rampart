@@ -15,27 +15,48 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-export const drawLines = (svg, scales, data, colour) => {
-  /* this is all a bit hacky */
-
-  const lineFactory = (idx) => line()
-    .x((d) => scales.x(d[0]))
-    .y((d) => scales.y(d[idx+1]))
-    .curve(curveBasis);
-
-  const colours = [d3color(colour).brighter(2), d3color(colour), d3color(colour).darker(2)];
-
+const drawLines = (svg, scales, data, colours) => {
   svg.selectAll(".coverageLine").remove();
   svg.selectAll(".coverageLine")
-    .data([data, data, data]) /* instead of flatenning the data */
+    .data([1, 2, 3]) /* indexes of coverage value we want for each line */
     .enter().append("path")
       .attr("class", "coverageLine")
       .attr("fill", "none")
       .attr("stroke", (d, i) => colours[i])
       .attr("stroke-width", 5)
-      .attr('d', (d, i) => lineFactory(i)(d));
+      .attr('d', (covIdx) => {
+        const generator = line()
+          .x((d) => scales.x(d[0]))
+          .y((d) => scales.y(d[covIdx]))
+          .curve(curveBasis);
+        return generator(data)
+      });
 }
 
+const drawLegend = (svg, chartGeom, colours) => {
+  const legend = svg.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${chartGeom.spaceLeft + 10}, ${chartGeom.spaceTop + 20})`)
+
+  const labels = ["1000x", "100x", "10x"];
+
+  legend.selectAll("line")
+    .data(colours)
+    .enter()
+    .append("path")
+      .attr("d", (d, i) => `M10,${20*i} H50`)
+      .attr("stroke-width", 5)
+      .attr("stroke", (d) => d)
+
+  legend.selectAll("line")
+    .data(colours)
+    .enter()
+    .append("text")
+      .attr("x", 60)
+      .attr("y", (d, i) => 20*i + 4)
+      .text((d, i) => labels[i]);
+
+}
 class CoverageOverTime extends React.Component {
   constructor(props) {
     super(props);
@@ -45,15 +66,16 @@ class CoverageOverTime extends React.Component {
     const svg = select(this.DOMref);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const yScale = calcYScale(chartGeom, 100);
-    this.setState({svg, chartGeom, yScale});
+    const colours = [d3color(this.props.colour).brighter(2), d3color(this.props.colour), d3color(this.props.colour).darker(2)]
+    drawLegend(svg, chartGeom, colours)
+    this.setState({svg, chartGeom, yScale, colours});
   }
   componentDidUpdate(prevProps) {
-    this.state.svg.selectAll("*").remove();
     const finalDataPt = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
     const timeMax = (parseInt(finalDataPt[0]/30, 10) +1) * 30;
     const scales = {x: calcXScale(this.state.chartGeom, timeMax), y: this.state.yScale};
     drawAxes(this.state.svg, this.state.chartGeom, scales, {x: 3, y: 5});
-    drawLines(this.state.svg, scales, this.props.coverageOverTime, this.props.colour);
+    drawLines(this.state.svg, scales, this.props.coverageOverTime, this.state.colours);
   }
   render() {
     return (

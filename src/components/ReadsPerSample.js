@@ -32,6 +32,7 @@ const calcScales = (chartGeom, barWidth, numSamples, maxReads) => {
       .base(10)
       .domain([10, maxReads])
       .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
+      .clamp(true)
   }
 }
 
