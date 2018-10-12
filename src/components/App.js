@@ -6,7 +6,7 @@ import '../styles/global'; // sets global CSS
 import '../styles/fonts.css'; // sets global fonts
 import '../styles/temporary.css'; // TODO
 import { css } from 'glamor'
-import { requestRunInfo, requestReads } from "../utils/getData"
+import { queryServerForRunConfig, requestReads } from "../utils/getData"
 import OverallSummary from "./OverallSummary";
 import { sum } from "d3-array";
 
@@ -19,16 +19,22 @@ const timeBetweenUpdates = 2000;
 class App extends Component {
   constructor(props) {
     super(props);
+    this.intervalRefInitialData = undefined;
     this.state = {
       status: "App Loading",
     };
   }
   componentDidMount() {
-    requestRunInfo(this.state, this.setState.bind(this));
-    setInterval(
-      () => requestReads(this.state, this.setState.bind(this)),
-      timeBetweenUpdates
-    )
+    queryServerForRunConfig(this.state, this.setState.bind(this));
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.name && !prevState.name) {
+      /* config has arrived! */
+      setInterval(
+        () => requestReads(this.state, this.setState.bind(this)),
+        timeBetweenUpdates
+      )
+    }
   }
   render() {
     return (
