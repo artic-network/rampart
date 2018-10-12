@@ -4,6 +4,7 @@ import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
 import {sampleColours} from "../utils/commonStyles";
 import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
+import CoverageOverTime from "./CoverageOverTime";
 
 const panelContainerCollapsed = {
   position: "relative",
@@ -96,7 +97,7 @@ class Panel extends React.Component {
     return (
       <div {...flexRowContainer}>
         <CoveragePlot
-          style={{width: '35%', margin: 'auto', height: "100%"}}
+          style={{width: '45%', margin: 'auto', height: "100%"}}
           showReferenceMatches={true}
           coverage={[this.props.coverage]}
           references={this.props.references}
@@ -109,6 +110,13 @@ class Panel extends React.Component {
           style={{width: '20%', margin: 'auto', height: "100%"}}
           title={"Read Lengths"}
           readLength={this.props.readLength}
+          version={this.props.version}
+          colour={this.state.colour}
+        />
+        <CoverageOverTime
+          style={{width: '30%', margin: 'auto', height: "100%"}}
+          title={"Coverage Progress"}
+          coverageOverTime={this.props.coverageOverTime}
           version={this.props.version}
           colour={this.state.colour}
         />

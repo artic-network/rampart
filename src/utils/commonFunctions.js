@@ -22,7 +22,7 @@ export const drawXAxis = (svg, chartGeom, scales, numTicks) => {
     .attr("transform", `translate(0,${chartGeom.height - chartGeom.spaceBottom})`)
     .style("font-family", dataFont)
     .style("font-size", "12px")
-    .call(axisBottom(scales.x).ticks(numTicks.x));
+    .call(axisBottom(scales.x).ticks(numTicks));
 }
 
 export const drawYAxis = (svg, chartGeom, scales, numTicks) => {
@@ -32,7 +32,7 @@ export const drawYAxis = (svg, chartGeom, scales, numTicks) => {
     .attr("transform", `translate(${chartGeom.spaceLeft},0)`)
     .style("font-family", dataFont)
     .style("font-size", "12px")
-    .call(axisLeft(scales.y).ticks(numTicks.y));
+    .call(axisLeft(scales.y).ticks(numTicks));
 }
 
 export const drawAxes = (svg, chartGeom, scales, numTicks = {x: 5, y: 5}) => {

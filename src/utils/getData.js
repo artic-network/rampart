@@ -149,7 +149,7 @@ const createInitialState = (infoJson) => {
   state.readLengthPerSample = state.samples.map(() => initialiseArray(parseInt(1000/readLengthResolution, 10)))
   state.dataVersion = 0;
 
-  state.coverageOverTime = state.samples.map(() => []);
+  state.coverageOverTime = state.samples.map(() => [[0, 0, 0, 0]]);
   // console.log("initial state:", state)
   return state;
 }
