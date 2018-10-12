@@ -2,6 +2,25 @@ import { scaleLinear } from "d3-scale";
 import { axisBottom, axisLeft } from "d3-axis";
 import { timeFormat } from "d3-time-format";
 
+export const makeTimeFormatter = () => {
+  /* https://stackoverflow.com/questions/39577795/d3-format-an-integer-as-time-on-24-hour-clock */
+  /* https://github.com/d3/d3-time-format */
+  /* must be a factory, else really weird bugs ensue */
+  const [formatSeconds, formatMinutes, formatHours] = [timeFormat("%Ss"), timeFormat("%Mm%Ss"), timeFormat("%Hh%Mm%Ss")];
+  const timeObj = new Date();
+  timeObj.setHours(0, 0, 0, 0);
+  return (nSeconds) => {
+    if (nSeconds === 0) return "0s";
+    timeObj.setSeconds(nSeconds);
+    if (nSeconds < 60) {
+      return formatSeconds(timeObj);
+    } else if (nSeconds <= 3600) {
+      return formatMinutes(timeObj);
+    }
+    return formatHours(timeObj);
+  };
+}
+
 
 const dataFont = "Lato"; // should be centralised
 
@@ -21,23 +40,8 @@ export const drawXAxis = (svg, chartGeom, scales, numTicks, isTime, suffix) => {
   removeXAxis(svg);
   let tickFormatter = null;
   if (isTime) {
-    /* https://stackoverflow.com/questions/39577795/d3-format-an-integer-as-time-on-24-hour-clock */
-    /* https://github.com/d3/d3-time-format */
-    const [formatSeconds, formatMinutes, formatHours] = [timeFormat("%Ss"), timeFormat("%Mm%Ss"), timeFormat("%Hh%Mm%Ss")];
-    const timeObj = new Date();
-    timeObj.setHours(0, 0, 0, 0);
-    tickFormatter = (nSeconds) => {
-      if (nSeconds === 0) return "";
-      timeObj.setSeconds(nSeconds);
-      if (nSeconds < 60) {
-        return formatSeconds(timeObj);
-      } else if (nSeconds <= 3600) {
-        return formatMinutes(timeObj);
-      }
-      return formatHours(timeObj);
-    };
+    tickFormatter = makeTimeFormatter();
   }
-
   if (suffix && !isTime) {
     tickFormatter = (val) => `${val}${suffix}`;
   }

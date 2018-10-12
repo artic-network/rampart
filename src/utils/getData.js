@@ -86,7 +86,7 @@ const makeNewState = (oldState, json) => {
     ]);
   })
 
-
+  newState.timeLastReadsReceived = new Date();
   newState.dataVersion++
   newState.status = `Added ${readsAdded} reads`;
   // console.log("New state (after reads in)", newState)
@@ -155,6 +155,7 @@ const createInitialState = (infoJson) => {
 
   state.sampleColours = createSampleColours(state.samples.length);
   state.referenceColours = createReferenceColours(state.references.length);
+  state.timeLastReadsReceived = undefined;
 
   return state;
 }

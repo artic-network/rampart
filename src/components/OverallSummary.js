@@ -4,19 +4,12 @@ import CoveragePlot from "./Coverage";
 import ReadsOverTime from "./ReadsOverTime";
 import ReadsPerSample from "./ReadsPerSample";
 import ReferenceHeatmap from "./ReferenceHeatmap";
-import { sum } from "d3-array";
 
 const panelContainer = css({
   width: 'calc(100% - 30px)',
   height: "350px", /* adjusting these will also adjust the graphs */
   minHeight: "350px",
   margin: "10px 10px 10px 10px"
-})
-
-export const panelTitle = css({
-  "fontWeight": "bold",
-  "fontSize": "1.3em",
-  "paddingLeft": "20px"
 })
 
 const flexRow = css({
@@ -30,12 +23,6 @@ class OverallSummary extends React.Component {
   render() {
     return (
       <div {...panelContainer}>
-        <div {...panelTitle}>
-          {`Overall Summary.
-          Total reads: ${sum(this.props.readCountPerSample)}.
-          Time elapsed: ${this.props.readsOverTime.slice(-1)[0][0]}s.
-          `}
-        </div>
         <div {...flexRow}>
           <CoveragePlot
             style={{width: '35%', margin: 'auto', height: "100%"}}
