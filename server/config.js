@@ -22,7 +22,9 @@ const parseConfig = (args) => {
   /* check if paths exist (perhaps we could make them if they don't) */
   ensurePathExists(config.referenceConfigPath);
   ensurePathExists(config.referencePanelPath);
-  ensurePathExists(config.basecalledPath);
+  if (!global.args.startWithDemuxedReads) {
+    ensurePathExists(config.basecalledPath);
+  }
   ensurePathExists(config.demuxedPath);
 
   /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */

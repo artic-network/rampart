@@ -43,7 +43,7 @@ def create_index(coordinate_reference, reference_panel):
 def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
     unmatched = {} # counts of unmatched reads, based on barcode (index)
     mapping_results = []
-    time_stamp = None # the first (?) read's timestamp
+    first_read_time_stamp = None
 
     for name, seq, qual, comment in mp.fastx_read(fastq_path, read_comment=True): # read one sequence
         # parse the header
@@ -54,8 +54,8 @@ def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
             barcode = "none" # no match
 
         header = re.search(r'start_time=([^\s]+)', comment)
-        if header:
-            time_stamp = datetime.strptime(header.group(1), "%Y-%m-%dT%H:%M:%SZ")
+        if header and not first_read_time_stamp:
+            first_read_time_stamp = header.group(1);
 
         try:
             coord = next(coordinate_aligner.map(seq))
@@ -73,7 +73,7 @@ def mapper(coordinate_aligner, panel_aligner, panel_names, fastq_path):
             [barcode, panel_names.index(panel.ctg),         coord.r_st, coord.r_en, panel.mlen / panel.blen]
         )
 
-    return (time_stamp, unmatched, mapping_results)
+    return (first_read_time_stamp, unmatched, mapping_results)
 
 
 if __name__ == '__main__':
@@ -88,10 +88,10 @@ if __name__ == '__main__':
     """
     args = parse_args()
     coordinate_aligner, coordinate_reference_length, panel_aligner, panel_names = create_index(args.coordinate_reference, args.reference_panel)
-    time_stamp, unmatched, mapping_results = mapper(coordinate_aligner, panel_aligner, panel_names, args.fastq)
+    first_read_time_stamp, unmatched, mapping_results = mapper(coordinate_aligner, panel_aligner, panel_names, args.fastq)
     summary = {
         "unmappedReadsPerBarcode": [unmatched[idx] for idx in unmatched.keys()],
-        "timeStamp": str(time_stamp),
+        "timeStamp": str(first_read_time_stamp),
         "readData": mapping_results
     }
     print(json.dumps(summary))
