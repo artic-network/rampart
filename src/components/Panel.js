@@ -50,7 +50,7 @@ class Panel extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      expanded: true,
+      expanded: false,
       colour: sampleColours[props.sampleIdx]
     }
   }

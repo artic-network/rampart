@@ -36,7 +36,7 @@ const drawLines = (svg, scales, data, colours) => {
 const drawLegend = (svg, chartGeom, colours) => {
   const legend = svg.append("g")
     .attr("class", "legend")
-    .attr("transform", `translate(${chartGeom.spaceLeft + 10}, ${chartGeom.spaceTop + 20})`)
+    .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.spaceTop + 5})`)
 
   const labels = ["1000x", "100x", "10x"];
 
@@ -52,7 +52,7 @@ const drawLegend = (svg, chartGeom, colours) => {
     .data(colours)
     .enter()
     .append("text")
-      .attr("x", 60)
+      .attr("x", 55)
       .attr("y", (d, i) => 20*i + 4)
       .text((d, i) => labels[i]);
 
