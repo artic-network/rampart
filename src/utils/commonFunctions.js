@@ -1,4 +1,4 @@
-import { scaleLinear } from "d3-scale";
+import { scaleLinear, scaleLog } from "d3-scale";
 import { axisBottom, axisLeft } from "d3-axis";
 import { timeFormat } from "d3-time-format";
 
@@ -89,10 +89,15 @@ export const calcXScale = (chartGeom, maxX) => {
     .range([chartGeom.spaceLeft, chartGeom.width - chartGeom.spaceRight]);
 }
 
-export const calcYScale = (chartGeom, maxY) => {
+export const calcYScale = (chartGeom, maxY, {log=false}={}) => {
+  const range = [chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop];
+  if (log) {
+    return scaleLog().base(10)
+    .domain([1, maxY]).range(range)
+    .clamp(true);
+  }
   return scaleLinear()
-    .domain([0, maxY])
-    .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop]);
+    .domain([0, maxY]).range(range);
 }
 
 export const calcScales = (chartGeom, maxX, maxY) => {
