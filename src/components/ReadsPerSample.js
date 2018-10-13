@@ -16,7 +16,7 @@ const calcChartGeom = (DOMRect) => ({
 });
 
 const calculateBarWidth = (chartGeom, numSamples) =>
-  ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numSamples) - 1;
+  ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numSamples);
 
 const getYMax = (data, resolution) =>
   (parseInt(max(data)/resolution, 10)+1)*resolution;
@@ -43,8 +43,8 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours) => {
     .enter()
       .append("rect")
         .attr("class", "bar")
-        .attr("x", (count, sampleIdx) => scales.x(sampleIdx) - 0.5*barWidth)
-        .attr("width", barWidth)
+        .attr("x", (count, sampleIdx) => scales.x(sampleIdx) - 0.5*barWidth+1)
+        .attr("width", barWidth-1)
         .attr("y", (count) => scales.y(count))
         .attr("fill", (count, sampleIdx) => colours[sampleIdx])
         .attr("height", (count) => chartGeom.height - chartGeom.spaceBottom - scales.y(count))
