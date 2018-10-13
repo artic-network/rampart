@@ -7,9 +7,10 @@ export const makeTimeFormatter = () => {
   /* https://github.com/d3/d3-time-format */
   /* must be a factory, else really weird bugs ensue */
   const [formatSeconds, formatMinutes, formatHours] = [timeFormat("%Ss"), timeFormat("%Mm%Ss"), timeFormat("%Hh%Mm%Ss")];
-  const timeObj = new Date();
-  timeObj.setHours(0, 0, 0, 0);
+
   return (nSeconds) => {
+    const timeObj = new Date();
+    timeObj.setHours(0, 0, 0, 0);
     if (nSeconds === 0) return "0s";
     timeObj.setSeconds(nSeconds);
     if (nSeconds < 60) {
