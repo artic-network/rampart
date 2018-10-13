@@ -4,27 +4,27 @@
   "referencePanelPath": "./ZIKV/zika_reference_genomes.fasta",
   "samples": [
       {
-          "name": "VI34",
+          "name": "VI34_pool1",
           "description": "",
           "barcodes": [ "barcode01" ]
       },
       {
-          "name": "VI35",
+          "name": "VI35_pool1",
           "description": "",
           "barcodes": [ "barcode02" ]
       },
       {
-          "name": "VI36",
+          "name": "VI36_pool1",
           "description": "",
           "barcodes": [ "barcode03" ]
       },
       {
-          "name": "VI37",
+          "name": "VI37_pool1",
           "description": "",
           "barcodes": [ "barcode04" ]
       },
       {
-          "name": "VI38",
+          "name": "VI38_pool1",
           "description": "",
           "barcodes": [ "barcode05" ]
       },
@@ -34,32 +34,27 @@
           "barcodes": [ "barcode06" ]
       },
       {
-          "name": "VI34",
+          "name": "VI34_pool2",
           "description": "",
           "barcodes": [ "barcode07" ]
       },
       {
-          "name": "VI35",
+          "name": "VI35_pool2",
           "description": "",
           "barcodes": [ "barcode08" ]
       },
       {
-          "name": "VI36",
+          "name": "VI36_pool2",
           "description": "",
           "barcodes": [ "barcode09" ]
       },
       {
-          "name": "Unknown",
-          "description": "",
-          "barcodes": [ "barcode10" ]
-      },
-      {
-          "name": "VI37",
+          "name": "VI37_pool2",
           "description": "",
           "barcodes": [ "barcode11" ]
       },
       {
-          "name": "VI38",
+          "name": "VI38_pool2",
           "description": "",
           "barcodes": [ "barcode12" ]
       }
