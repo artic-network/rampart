@@ -80,24 +80,24 @@ class Panel extends React.Component {
                 {...headerCSS}
                 onClick={() => this.setState({expanded: !this.state.expanded})}
             >
-            <span {...panelTitle}>
-              {summaryTitle}
-            </span>
-            <span {...panelText}>
-              {summaryText}
-            </span>
+                <span {...panelTitle}>
+                  {summaryTitle}
+                </span>
+                <span {...panelText}>
+                  {summaryText}
+                </span>
 
                 {this.state.expanded || this.props.readCount===0 ? null : (
                     <span style={{flexBasis: "30%"}}>
-            <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
-            </svg>
-          </span>
+                        <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
+                        </svg>
+                    </span>
                 )}
 
                 {this.props.readCount > 0 ? (
                     <span style={{position: "absolute", top: "10px", right: "10px"}}>
-            {this.state.expanded ? "click to contract" : "click to expand"}
-          </span>
+                        {this.state.expanded ? "click to contract" : "click to expand"}
+                    </span>
                 ) : null}
             </div>
         )
@@ -106,7 +106,7 @@ class Panel extends React.Component {
         return (
             <div {...flexRowContainer}>
                 <CoveragePlot
-                    style={{width: '45%', margin: 'auto', height: "100%"}}
+                    style={{width: '45%', margin: 'auto', height: "100%", position: "relative"}}
                     showReferenceMatches={true}
                     coverage={[this.props.coverage]}
                     references={this.props.references}

@@ -35,5 +35,5 @@
       }
   ],
   "basecalledPath": "./ZIKV/data/basecalled",
-  "demuxedPath": "./ZIKV/data/demuxed"
+  "demuxedPath": "/Users/james/reads/ZIKV_USVI_7/demuxed_flat"
 }

@@ -1,10 +1,26 @@
 import React from 'react';
-import { select } from "d3-selection";
+import { select, mouse } from "d3-selection";
 import { line, curveStep, area } from "d3-shape";
 import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
 import { max } from "d3-array";
 import { genomeResolution } from "../magics";
+import { css } from 'glamor';
+
+
+const toolTip = css({
+  zIndex: 20,
+  position: "absolute",
+  borderRadius: "5px",
+  padding: "5px",
+  margin: "auto",
+  backgroundColor: "hsla(0,0%,0%,.8)",
+  color: "white",
+  pointerEvents: "none",
+  visibility: "hidden",
+  fontSize: "14px",
+  fontWeight: "700"
+})
 
 const calculateSeries = (referenceMatchAcrossGenome, references) => {
   /* WHAT IS A SERIES?
@@ -41,7 +57,23 @@ const calculateSeries = (referenceMatchAcrossGenome, references) => {
   return series;
 }
 
-const drawStream = (svg, scales, series, referenceColours) => {
+const drawStream = (svg, scales, series, referenceNames, referenceColours, infoRef) => {
+
+  function handleMouseMove(d, i) {
+    const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
+    const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX}px`;
+    const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
+    select(infoRef)
+      .style("left", left)
+      .style("right", right)
+      .style("top", `${mouseY}px`)
+      .style("visibility", "visible")
+      .html(`${referenceNames[i]}`);
+  }
+  function handleMouseOut() {
+    select(infoRef).style("visibility", "hidden");
+  }
+
   const areaObj = area()
     .x((d, i) => scales.x(i*genomeResolution))
     .y0((d) => scales.y(d[0]*100))
@@ -53,10 +85,9 @@ const drawStream = (svg, scales, series, referenceColours) => {
       .append("path")
       .attr("d", areaObj)
       .attr("fill", (d, i) => referenceColours[i])
-      .attr("opacity", 1);
-    // .on("mouseover", handleMouseOver)
-    // .on("mouseout", handleMouseOut)
-    // .on("mousemove", handleMouseMove);
+      .attr("opacity", 1)
+      .on("mouseout", handleMouseOut)
+      .on("mousemove", handleMouseMove);
 }
 
 export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier, fillIn) => {
@@ -177,7 +208,7 @@ class CoveragePlot extends React.Component {
     /* fill in the graph! */
     if (this.state.showReferenceMatches) {
       const series = calculateSeries(this.props.referenceMatchAcrossGenome, this.props.references)
-      drawStream(this.state.svg, scales, series, this.props.referenceColours);
+      drawStream(this.state.svg, scales, series, this.props.references, this.props.referenceColours, this.infoRef);
     } else {
       drawSteps(this.state.svg, this.state.chartGeom, scales, this.props.coverage, this.props.colours, genomeResolution, this.props.showReferenceMatches);
     }
@@ -203,6 +234,7 @@ class CoveragePlot extends React.Component {
     return (
       <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
         {this.renderTitle()}
+        <div {...toolTip} ref={(r) => {this.infoRef = r}}/>
         <svg
           ref={(r) => {this.DOMref = r}}
           height={this.state.chartGeom.height || 0}
