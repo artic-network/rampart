@@ -4,61 +4,36 @@
   "referencePanelPath": "./ZIKV/zika_reference_genomes.fasta",
   "samples": [
       {
-          "name": "VI34_pool1",
+          "name": "VI34_pool1&2",
           "description": "",
-          "barcodes": [ "barcode01" ]
+          "barcodes": [ "barcode01", "barcode07" ]
       },
       {
-          "name": "VI35_pool1",
+          "name": "VI35_pool1&2",
           "description": "",
-          "barcodes": [ "barcode02" ]
+          "barcodes": [ "barcode02", "barcode08" ]
       },
       {
-          "name": "VI36_pool1",
+          "name": "VI36_pool1&2",
           "description": "",
-          "barcodes": [ "barcode03" ]
+          "barcodes": [ "barcode03", "barcode09" ]
       },
       {
-          "name": "VI37_pool1",
+          "name": "VI37_pool1&2",
           "description": "",
-          "barcodes": [ "barcode04" ]
+          "barcodes": [ "barcode04", "barcode11" ]
       },
       {
-          "name": "VI38_pool1",
+          "name": "VI38_pool1&2",
           "description": "",
-          "barcodes": [ "barcode05" ]
+          "barcodes": [ "barcode05", "barcode12" ]
       },
       {
           "name": "Negative control",
           "description": "",
           "barcodes": [ "barcode06" ]
-      },
-      {
-          "name": "VI34_pool2",
-          "description": "",
-          "barcodes": [ "barcode07" ]
-      },
-      {
-          "name": "VI35_pool2",
-          "description": "",
-          "barcodes": [ "barcode08" ]
-      },
-      {
-          "name": "VI36_pool2",
-          "description": "",
-          "barcodes": [ "barcode09" ]
-      },
-      {
-          "name": "VI37_pool2",
-          "description": "",
-          "barcodes": [ "barcode11" ]
-      },
-      {
-          "name": "VI38_pool2",
-          "description": "",
-          "barcodes": [ "barcode12" ]
       }
   ],
-  "basecalledPath": "/Users/james/reads/ZIKV_USVI_7/doesnt_exist",
-  "demuxedPath": "/Users/james/reads/ZIKV_USVI_7/demuxed_flat"
+  "basecalledPath": "./ZIKV/data/basecalled",
+  "demuxedPath": "./ZIKV/data/demuxed"
 }
