@@ -62,7 +62,7 @@ const drawHeatMap = (state, props) => {
       .append("text")
       .attr("class", "refLabel")
       .text((d) => d.slice(0,8) + "...") /* trim labels to 8 chars */
-      .attr('y', (refName, refIdx) => state.scales.y(refIdx) + 0.5*state.cellDims.height)
+      .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
       .attr('x', state.chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
       .attr("font-size", "12px")
@@ -89,7 +89,7 @@ const drawHeatMap = (state, props) => {
     .attr('width', state.cellDims.width)
     .attr('height', state.cellDims.height)
     .attr("x", d => state.scales.x(d[0]) + state.cellDims.padding)
-    .attr("y", d => state.scales.y(d[1]) + state.cellDims.padding)
+    .attr("y", d => state.scales.y(d[1]+1) + state.cellDims.padding)
     .attr("fill", d => heatColourScale(d[2]));
 
   /* render the legend (bottom) -- includes coloured cells & text */
@@ -130,7 +130,7 @@ class ReferenceHeatmap extends React.Component {
     const scales = calcScales(
       chartGeom,
       samples.length,     // number of columns
-      references.length-1 // number of rows TODO: why -1?
+      references.length   // number of rows
     );
 
     const newState = {svg, chartGeom, cellDims, scales, samples}
