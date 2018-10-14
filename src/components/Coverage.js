@@ -6,6 +6,7 @@ import {chartTitleCSS} from "../utils/commonStyles";
 import { max } from "d3-array";
 import { genomeResolution } from "../magics";
 import { css } from 'glamor';
+import {color as d3color} from "d3-color";
 
 
 const toolTip = css({
@@ -103,7 +104,7 @@ export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier, fil
     .enter().append("path")
     .attr("class", "coverageLine")
     .attr("fill", (d, i) => fillIn ? colours[i] : "none")
-    .attr("stroke", (d, i) => colours[i])
+    .attr("stroke", (d, i) => fillIn ? d3color(colours[i]).darker(2) : colours[i])
     .attr('d', makeLinePath);
 }
 
