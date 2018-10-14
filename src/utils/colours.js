@@ -1,4 +1,4 @@
-import { interpolateYlGnBu, interpolateYlGn, interpolateRdPu, interpolateYlOrBr, interpolateSpectral, interpolateRainbow, interpolateWarm, interpolateCool, schemePaired } from "d3-scale-chromatic";
+import { interpolateYlOrRd, interpolateSpectral } from "d3-scale-chromatic";
 import { range } from "d3-array";
 import { rgb } from "d3-color"; // eslint-disable-line
 import { interpolateHcl } from "d3-interpolate"; // eslint-disable-line
@@ -17,15 +17,15 @@ export const createReferenceColours = (n) => {
   // return linSpace.map((x) => interpolateRdPu(x));
 }
 
-// export const heatColourScale = scaleSequential(interpolateYlGn)
-//   .domain([0, 100])
+export const heatColourScale = scaleSequential(interpolateYlOrRd)
+  .domain([0, 100])
 
 /* OLD HEATMAP SCALE FN */
-export const heatColourScale = scaleLinear()
-  .domain([0, 100])
-  .interpolate(interpolateHcl)
-    .range([rgb('#F6EECA'), rgb('#005C68')]
-  );
+// export const heatColourScale = scaleLinear()
+//   .domain([0, 100])
+//   .interpolate(interpolateHcl)
+//     .range([rgb('#F6EECA'), rgb('#005C68')]
+//   );
 
 export const foreground = "#235a64";
 
