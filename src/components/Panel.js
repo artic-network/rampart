@@ -2,8 +2,10 @@ import React from 'react';
 import { css } from 'glamor'
 import CoveragePlot from "./Coverage";
 import ReadLengthDistribution from "./ReadLengthDistribution";
-import {renderCoverageHeatmap} from "../utils/d3_panelHeaderCoverage";
 import CoverageOverTime from "./CoverageOverTime";
+import {select} from "d3-selection";
+import {consensusCoverage, okCoverage} from "../magics";
+import {heatColourScale} from "../utils/colours";
 
 const panelContainerCollapsed = {
     position: "relative",
@@ -51,6 +53,42 @@ const headerCSS = css({
     cursor: "pointer"
 })
 
+const renderCoverageHeatmap = (domRef, coverage) => {
+
+    const selection = select(domRef);
+    const dimensions = selection.node().getBoundingClientRect()
+    console.log()
+
+    const pxPerColumn = 3;
+    const nIntervals = dimensions.width/pxPerColumn;
+    const eachInterval = Math.floor(coverage.length / nIntervals);
+    const columnIdxs = Array.from(new Array(nIntervals), (_, i) => i*eachInterval);
+
+    const colourCoverage = (d) => {
+        const depth = coverage[d];
+        return depth > consensusCoverage ? heatColourScale(100) :
+            depth > okCoverage ? heatColourScale(70) :
+                depth > 10 ? heatColourScale(20) :
+                    "#fff";
+    }
+
+    selection
+        .selectAll("*")
+        .remove();
+
+    selection
+        .selectAll(".coverageCell")
+        .data(columnIdxs)
+        .enter().append("rect")
+        .attr("class", "coverageCell")
+        .attr('width', pxPerColumn)
+        .attr('height', dimensions.height)
+        .attr("x", (d, i) => pxPerColumn*i)
+        .attr("y", 3)
+        .attr("fill", colourCoverage);
+
+}
+
 
 class Panel extends React.Component {
     constructor(props) {
@@ -69,7 +107,7 @@ class Panel extends React.Component {
     }
     renderHeader() {
         const latestCoverageData = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
-        let summaryTitle = `${this.props.name}`;
+        let summaryTitle = `${this.props.sampleIdx + 1} – ${this.props.name}`;
         let summaryText = `${this.props.readCount} reads.`;
         if (this.props.readCount) {
             summaryText += ` ${latestCoverageData[1]}% > 1000x, ${latestCoverageData[2]}% > 100x, ${latestCoverageData[3]}% > 10x coverage.`;
