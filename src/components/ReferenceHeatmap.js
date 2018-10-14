@@ -108,12 +108,12 @@ const drawHeatMap = (state, props) => {
         .attr('height', state.cellDims.height)
         .attr("x", d => state.scales.x(d[0]) + state.cellDims.padding)
         .attr("y", d => state.scales.y(d[1]+1) + state.cellDims.padding)
-        .attr("fill", d => heatColourScale(d[2]))
+        .attr("fill", d => d[2] === 0 ? "#ccc" : heatColourScale(d[2]))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
     /* render the legend (bottom) -- includes coloured cells & text */
-    const legendDataValues = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
     const legendBoxWidth = (state.chartGeom.width - state.chartGeom.spaceRight) / (legendDataValues.length -1);
     const legendBoxHeight = 12;
     const legendRoof = state.chartGeom.height - state.chartGeom.spaceBottom + 32;
@@ -126,7 +126,7 @@ const drawHeatMap = (state, props) => {
         .attr("x", (d, i) => legendBoxWidth * i)
         .attr("width", legendBoxWidth)
         .attr("height", legendBoxHeight)
-        .style("fill", (d) => heatColourScale(d));
+        .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
     legend.append("text")
         .text((d, i) => i ? d+"%" : "")
         .attr('x', (d, i) => legendBoxWidth * i)

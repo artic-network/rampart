@@ -69,7 +69,8 @@ const renderCoverageHeatmap = (domRef, coverage) => {
         return depth > consensusCoverage ? heatColourScale(100) :
             depth > okCoverage ? heatColourScale(70) :
                 depth > 10 ? heatColourScale(20) :
-                    "#fff";
+                    depth > 0 ? heatColourScale(1) :
+                    "#ccc";
     }
 
     selection
