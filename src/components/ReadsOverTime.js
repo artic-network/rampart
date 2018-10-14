@@ -1,14 +1,16 @@
 import React from 'react';
 import { select } from "d3-selection";
+import { line, curveBasis } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
+import {foreground} from "../utils/colours";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 50,
-  spaceRight: 10,
+  spaceLeft: 60,
+  spaceRight: 0,
   spaceBottom: 60,
   spaceTop: 10
 });
@@ -20,17 +22,18 @@ const getMaxsOfReadsOverTime = (readsOverTime) => {
   return [timeMax, readsMax]
 }
 
-
-const drawScatter = (svg, chartGeom, scales, data, radius) => {
-  svg.selectAll(".scatterDot").remove();
-  svg.selectAll(".scatterDot")
-    .data(data)
-    .enter().append("circle")
-    .attr("class", "scatterDot")
-    .attr("r", radius)
-    .attr("cx", d => scales.x(d[0]))
-    .attr("cy", d => scales.y(d[1]))
-    .attr("fill", "black");
+const drawLine = (svg, scales, data) => {
+  svg.selectAll(".readsLine").remove();
+  svg.append("path")
+    .attr("class", "readsLine")
+    .attr("fill", "none")
+    .attr("stroke", foreground)
+    .attr("stroke-width", 5)
+    .attr('d', () => (line()
+        .x((d) => scales.x(d[0]))
+        .y((d) => scales.y(d[1]))
+        .curve(curveBasis))(data)
+    );
 }
 
 class ReadsOverTime extends React.Component {
@@ -44,8 +47,8 @@ class ReadsOverTime extends React.Component {
       chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
     }
     newState.scales = calcScales(newState.chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
-    drawAxes(newState.SVG, newState.chartGeom, newState.scales)
-    drawScatter(newState.SVG, newState.chartGeom, newState.scales, this.props.readsOverTime, 5)
+    drawAxes(newState.SVG, newState.chartGeom, newState.scales, {isTime: true})
+    drawLine(newState.SVG, newState.scales, this.props.readsOverTime)
     this.setState(newState);
   }
 
@@ -57,10 +60,9 @@ class ReadsOverTime extends React.Component {
       const timeMaxReadsMax = getMaxsOfReadsOverTime(this.props.readsOverTime);
       if (haveMaxesChanged(this.state.scales, ...timeMaxReadsMax)) {
         newState.scales = calcScales(this.state.chartGeom, ...timeMaxReadsMax);
-        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales)
+        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales, {xTicks: 4, isTime: true})
       }
-      const radius = timeMaxReadsMax[0] > 60 ? 2 : 5;
-      drawScatter(this.state.SVG, this.state.chartGeom, newState.scales, this.props.readsOverTime, radius)
+      drawLine(this.state.SVG, newState.scales, this.props.readsOverTime);
       this.setState(newState)
     }
   }

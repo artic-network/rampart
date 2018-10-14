@@ -1,6 +1,7 @@
 import React from 'react';
 import logo from "../images/logo.png";
 import { css } from 'glamor'
+import { makeTimeFormatter } from "../utils/commonFunctions";
 
 const child = css({
   width: '100%',
@@ -11,7 +12,34 @@ const child = css({
 })
 
 class Header extends React.Component {
-
+  renderStats() {
+    const runTime = this.props.runTime
+    let runTimeMsg = `Run time: ${makeTimeFormatter()(runTime)}`;
+    const tSinceLastUpdate = (new Date()) - this.props.timeLastReadsReceived;
+    if (tSinceLastUpdate > 10) {
+      runTimeMsg += ` (last updated ${makeTimeFormatter()(tSinceLastUpdate)} ago)`;
+    }
+    if (!runTime) {
+      return (
+        <div>
+          <h2 style={{margin: "2px"}}>{this.props.name}</h2>
+          <h3 style={{margin: "2px"}}>{`Awaiting reads...`}</h3>
+        </div>
+      )
+    }
+    return (
+      <div>
+        <h2 style={{margin: "2px"}}>{this.props.name}</h2>
+        <h3 style={{margin: "2px"}}>{runTimeMsg}</h3>
+        <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.numSamples} samples`}</h3>
+      </div>
+    )
+  }
+  renderStatus() {
+    return (
+      <h2 style={{margin: "2px"}}>{`Server status: ${this.props.status}`}</h2>
+    )
+  }
   render() {
     return (
       <div {...child}>
@@ -21,12 +49,14 @@ class Header extends React.Component {
           </a>
         </div>
 
-        <h1>RAMPART</h1>
+        <div style={{paddingLeft: "160px"}}>
+          <h2 style={{marginTop: "0px", marginBottom: "8px"}}>
+            <span style={{fontSize: "1.8em"}}>RAMPART</span>
+            <span>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
+          </h2>
+          {this.props.name ? this.renderStats() : this.renderStatus()}
+        </div>
 
-        <h2 style={{marginTop: "-10px"}}>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</h2>
-
-        <h3 style={{marginTop: "-10px"}}>{`Status: ${this.props.status}`}</h3>
-        <h3 style={{marginTop: "-10px"}}>{`Run name: ${this.props.name}`}</h3>
 
       </div>
     )

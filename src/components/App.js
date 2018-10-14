@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import Header from "./Header";
 import Footer from "./Footer";
 import Panel from "./Panel"
-import LoadingStatus from "./LoadingStatus"
 import '../styles/global'; // sets global CSS
 import '../styles/fonts.css'; // sets global fonts
 import '../styles/temporary.css'; // TODO
 import { css } from 'glamor'
-import { requestRunInfo, requestReads } from "../utils/getData"
+import { queryServerForRunConfig, requestReads } from "../utils/getData"
 import OverallSummary from "./OverallSummary";
+import { sum } from "d3-array";
 
 const container = css({
   display: "flex",
@@ -19,22 +19,34 @@ const timeBetweenUpdates = 2000;
 class App extends Component {
   constructor(props) {
     super(props);
+    this.intervalRefInitialData = undefined;
     this.state = {
       status: "App Loading",
     };
   }
   componentDidMount() {
-    requestRunInfo(this.state, this.setState.bind(this));
-    setInterval(
-      () => requestReads(this.state, this.setState.bind(this)),
-      timeBetweenUpdates
-    )
+    queryServerForRunConfig(this.state, this.setState.bind(this));
   }
-  component
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.name && !prevState.name) {
+      /* config has arrived! */
+      setInterval(
+        () => requestReads(this.state, this.setState.bind(this)),
+        timeBetweenUpdates
+      )
+    }
+  }
   render() {
     return (
       <div {...container}>
-        <Header status={this.state.status} name={this.state.name} />
+        <Header
+          status={this.state.status}
+          name={this.state.name}
+          runTime={this.state.readsOverTime ? this.state.readsOverTime[this.state.readsOverTime.length-1][0] : 0}
+          numReads={this.state.readCountPerSample ? sum(this.state.readCountPerSample) : 0}
+          numSamples={this.state.samples ? this.state.samples.length : 0}
+          timeLastReadsReceived={this.state.timeLastReadsReceived}
+        />
         {this.state.startTime ? (
           <div>
             <OverallSummary
@@ -46,6 +58,7 @@ class App extends Component {
               readCountPerSample={this.state.readCountPerSample}
               refMatchPerSample={this.state.refMatchPerSample}
               version={this.state.dataVersion}
+              sampleColours={this.state.sampleColours}
             />
             {this.state.samples.map((sampleName, sampleIdx) => {
               return (
@@ -61,14 +74,16 @@ class App extends Component {
                   referenceMatchAcrossGenome={this.state.referenceMatchAcrossGenome[sampleIdx]}
                   name={sampleName}
                   sampleIdx={sampleIdx}
+                  numSamples={this.state.samples.length}
                   coverageOverTime={this.state.coverageOverTime[sampleIdx]}
+                  colour={this.state.sampleColours[sampleIdx]}
+                  referenceColours={this.state.referenceColours}
                 />
               )
             })}
           </div>
-        ) : (
-          <LoadingStatus status={this.state.status}/>
-        )}
+        ) : null
+      }
         <Footer/>
       </div>
     )

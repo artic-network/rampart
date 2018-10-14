@@ -6,7 +6,7 @@ const chalk = require('chalk');
 
 let firstTimestamp;
 let mappingFilesPointer = 0; /* idx of global.mappingResults to send next */
-const maxMappingFilesPerRequest = 5;
+const maxMappingFilesPerRequest = 10; /* can catch up faster if a client re-connects and there's a bunch of mapped data ready */
 
 const error = (res, msg) => {
     res.statusMessage = msg;

@@ -10,7 +10,7 @@ import { readLengthResolution } from "../magics";
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 40,
+  spaceLeft: 60,
   spaceRight: 10,
   spaceBottom: 60,
   spaceTop: 10
@@ -29,8 +29,8 @@ class ReadLengthDistribution extends React.Component {
   redraw(SVG, chartGeom) {
     const readLengthMaxes = getMaxes(this.props.readLength)
     const scales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y);
-    drawAxes(SVG, chartGeom, scales)
-    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution)
+    drawAxes(SVG, chartGeom, scales, {xSuffix: "bp", xTicks: 4})
+    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution, true)
   }
   componentDidMount() {
     const SVG = select(this.DOMref);

@@ -10,7 +10,8 @@ const chalk = require('chalk');
 const getFastqTimestamp = (filepath) => new Promise((resolve, reject) => {
   const head = spawn('head', ['-n', '1', filepath]);
   head.stdout.on('data', (data) => {
-    resolve((new Date((/start_time=(\S+)/g).exec(data)[1])).getTime());
+    // console.log(filepath, data.toString(), (new Date((/start_time=(\S+)/g).exec(data)[1])).getTime())
+    resolve((new Date((/start_time=(\S+)/g).exec(data.toString())[1])).getTime());
   });
 });
 
@@ -24,8 +25,9 @@ const sortFastqsChronologically = async (fastqsUnsorted) => {
       // no-op. There won't be a timestamp in timeMap and the fastq will be ignored
     }
   }
-  return fastqsUnsorted.filter((f) => timeMap.has(f))
+  const chronologicalFastqs = fastqsUnsorted.filter((f) => timeMap.has(f))
     .sort((a, b) => timeMap.get(a)>timeMap.get(b) ? 1 : -1);
+  return chronologicalFastqs;
 }
 
 const getFastqsFromDirectory = async (dir, {sortByTime=true} = {}) => {
@@ -57,9 +59,13 @@ const startUp = async () => {
   save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
   /* Scan the basecalled FASTQ folder */
-  console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`));
-  const basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
-
+  let basecalledFastqs = [];
+  if (global.args.startWithDemuxedReads) {
+    console.log(chalk.yellowBright.bold(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`));
+  } else {
+    console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`));
+    basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
+  }
 
   /* Scan the demuxed FASTQ folder -- assumes filenames are the same as basecalled FASTQs! */
   console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`));
