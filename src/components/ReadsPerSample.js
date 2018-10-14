@@ -9,8 +9,8 @@ import { max } from "d3-array";
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 50,
-  spaceRight: 10,
+  spaceLeft: 60,
+  spaceRight: 0,
   spaceBottom: 60,
   spaceTop: 10
 });

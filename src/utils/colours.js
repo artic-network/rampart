@@ -25,3 +25,5 @@ export const heatColourScale = scaleSequential(interpolateYlOrBr)
 //   .interpolate(interpolateHcl)
 //     .range([rgb('#F6EECA'), rgb('#005C68')]
 //   );
+
+export const foreground = "#235a64";

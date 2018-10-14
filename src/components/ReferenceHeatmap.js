@@ -8,8 +8,8 @@ import {heatColourScale} from "../utils/colours";
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 75, // space for the reference names
-  spaceRight: 10,
+  spaceLeft: 140, // space for the reference names
+  spaceRight: 0,
   spaceBottom: 60,
   spaceTop: 10
 });
@@ -61,7 +61,7 @@ const drawHeatMap = (state, props) => {
       .enter()
       .append("text")
       .attr("class", "refLabel")
-      .text((d) => d.slice(0,8) + "...") /* trim labels to 8 chars */
+      .text((d) => d.slice(0,20) + "...") /* trim labels to 8 chars */
       .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
       .attr('x', state.chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
@@ -74,11 +74,11 @@ const drawHeatMap = (state, props) => {
       .enter()
       .append("text")
       .attr("class", "sampleNames")
-      .text((name, idx) => idx)
+      .text((name, idx) => idx + 1)
       .attr('x', (name, idx) => state.scales.x(idx) + 0.5*state.cellDims.width)
       .attr('y', state.chartGeom.height - state.chartGeom.spaceBottom + 5)
       .attr("text-anchor", "middle")
-      .attr("font-size", "16px")
+      .attr("font-size", "12px")
       .attr("alignment-baseline", "hanging")
 
   /* render the coloured cells of the heatmap */

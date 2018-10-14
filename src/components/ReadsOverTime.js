@@ -3,13 +3,14 @@ import { select } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
 import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
 import {chartTitleCSS} from "../utils/commonStyles";
+import {foreground} from "../utils/colours";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 50,
-  spaceRight: 10,
+  spaceLeft: 60,
+  spaceRight: 0,
   spaceBottom: 60,
   spaceTop: 10
 });
@@ -26,7 +27,7 @@ const drawLine = (svg, scales, data) => {
   svg.append("path")
     .attr("class", "readsLine")
     .attr("fill", "none")
-    .attr("stroke", "black")
+    .attr("stroke", foreground)
     .attr("stroke-width", 5)
     .attr('d', () => (line()
         .x((d) => scales.x(d[0]))

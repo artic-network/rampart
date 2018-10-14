@@ -157,7 +157,7 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
     .attr("y", calcYOfGene)
     .attr("dy", "2px") /* positive values bump down text */
     .attr("text-anchor", "middle") /* centered horizontally */
-    .attr("font-size", "14px")
+    .attr("font-size", "10px")
     .attr("alignment-baseline", "hanging") /* i.e. y value specifies top of text */
     .style("fill", "black")
     .text((name) => name.length > 3 ? "" : name);
@@ -168,8 +168,8 @@ const drawGenomeAnnotation = (svg, chartGeom, scales, annotation) => {
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width,
   height: DOMRect.height - 20, // title line
-  spaceLeft: 50,
-  spaceRight: 10,
+  spaceLeft: 60,
+  spaceRight: 0,
   spaceBottom: 60,
   spaceTop: 10
 });
