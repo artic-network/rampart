@@ -12,7 +12,7 @@ const save_coordinate_reference_as_fasta = (refSeq) => {
 }
 
 const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
-    const pyprog = spawn('python', [
+    const pyprog = spawn('python3', [
         "./server/map_single_fastq.py",
         "-c", "coordinate_reference.fasta",
         "-p", global.config.referencePanelPath,
