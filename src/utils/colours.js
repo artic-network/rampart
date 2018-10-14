@@ -8,7 +8,7 @@ import { scaleLinear, scaleSequential } from "d3-scale"; // eslint-disable-line
 
 export const createSampleColours = (n) => {
   const linSpace = range(n).map((d) => d/n+1/n);
-  return linSpace.map((x) => interpolateYlGnBu(x));
+  return linSpace.map((x) => interpolateSpectral(1-x));
 }
 
 export const createReferenceColours = (n) => {
