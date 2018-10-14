@@ -61,7 +61,7 @@ const drawHeatMap = (state, props) => {
       .enter()
       .append("text")
       .attr("class", "refLabel")
-      .text((d) => d.slice(0,20) + "...") /* trim labels to 8 chars */
+      .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
       .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
       .attr('x', state.chartGeom.spaceLeft - 2)
       .attr("text-anchor", "end")
