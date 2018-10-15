@@ -22,6 +22,9 @@ yarn-debug.log*
 yarn-error.log*
 
 real_time_reads/
-ZEBOV_3Samples_NB/
+datasets/
 .vscode/
 coordinate_reference.fasta
+
+#don't commit demuxed reads...
+demuxed/
