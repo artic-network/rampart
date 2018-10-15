@@ -182,18 +182,6 @@ class CoveragePlot extends React.Component {
         this.toggleReadDepthVsReferenceMatches = () => {
             this.setState({showReferenceMatches: !this.state.showReferenceMatches})
         }
-        this.handleKeyDown = (event) => {
-            switch(event.keyCode) {
-                case 76: // key: "l"
-                    this.setState({logScale: !this.state.logScale})
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    componentWillMount() {
-        document.addEventListener("keydown", this.handleKeyDown);
     }
     componentDidMount() {
         const svg = select(this.DOMref);
@@ -206,7 +194,7 @@ class CoveragePlot extends React.Component {
         /* compute the y-scale */
         const yScale = this.state.showReferenceMatches ?
             calcYScale(this.state.chartGeom, 100) :
-            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.state.logScale});
+            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.props.viewOptions.logYAxis});
         const scales = {x: this.state.xScale, y: yScale};
         /* draw the axes & genome annotation*/
         const ySuffix = this.state.showReferenceMatches ? "%" : "x";

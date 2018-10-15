@@ -61,18 +61,6 @@ class ReadsPerSample extends React.Component {
   constructor(props) {
     super(props);
     this.state = {chartGeom: {}, logScale: false};
-    this.handleKeyDown = (event) => {
-      switch(event.keyCode) {
-        case 76: // key: "l"
-          this.setState({logScale: !this.state.logScale})
-          break;
-        default:
-          break;
-      }
-    }
-  }
-  componentWillMount() {
-    document.addEventListener("keydown", this.handleKeyDown);
   }
   componentDidMount() {
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
@@ -84,7 +72,7 @@ class ReadsPerSample extends React.Component {
   }
   componentDidUpdate(prevProps) {
     const yMax = getYMax(this.props.readCountPerSample, 10000);
-    const scales = {x: this.state.xScale, y: calcYScale(this.state.chartGeom, yMax, this.state.logScale)};
+    const scales = {x: this.state.xScale, y: calcYScale(this.state.chartGeom, yMax, this.props.viewOptions.logYAxis)};
     drawAxes(this.state.svg, this.state.chartGeom, scales)
     drawColumns(this.state.svg, this.state.chartGeom, scales, this.props.readCountPerSample, this.state.barWidth, this.props.colours)
   }

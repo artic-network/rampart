@@ -11,7 +11,11 @@ export const queryServerForRunConfig = (appState, setAppState) => {
     .then((res) => res.json())
     .then((jsonData) => {
       const state = createInitialState(jsonData);
-      setAppState({status: "Connected to server. Awaiting initial read data.", ...state})
+      setAppState({
+        status: "Connected to server. Awaiting initial read data.",
+        viewOptions: appState.viewOptions,
+        ...state
+      })
     })
     .catch((err) => {
       if (err.message === "Failed to fetch") {

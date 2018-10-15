@@ -148,6 +148,7 @@ class Panel extends React.Component {
                     version={this.props.version}
                     colours={[this.props.colour]}
                     referenceColours={this.props.referenceColours}
+                    viewOptions={this.props.viewOptions}
                 />
                 <ReadLengthDistribution
                     style={{width: '20%', margin: 'auto', height: "100%"}}
@@ -155,6 +156,7 @@ class Panel extends React.Component {
                     readLength={this.props.readLength}
                     version={this.props.version}
                     colour={this.props.colour}
+                    viewOptions={this.props.viewOptions}
                 />
                 <CoverageOverTime
                     style={{width: '30%', margin: 'auto', height: "100%"}}
@@ -164,6 +166,7 @@ class Panel extends React.Component {
                     colour={this.props.colour}
                     sampleIdx={this.props.sampleIdx}
                     numSamples={this.props.numSamples}
+                    viewOptions={this.props.viewOptions}
                 />
             </div>
         )

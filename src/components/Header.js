@@ -12,6 +12,21 @@ const child = css({
 })
 
 class Header extends React.Component {
+  constructor(props) {
+      super(props);
+      this.handleKeyDown = (event) => {
+          switch(event.keyCode) {
+              case 76: // key: "l"
+                  this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
+                  break;
+              default:
+                  break;
+          }
+      }
+  }
+  componentWillMount() {
+      document.addEventListener("keydown", this.handleKeyDown);
+  }
   renderStats() {
     const runTime = this.props.runTime
     let runTimeMsg = `Run time: ${makeTimeFormatter()(runTime)}`;

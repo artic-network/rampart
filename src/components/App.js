@@ -22,7 +22,13 @@ class App extends Component {
     this.intervalRefInitialData = undefined;
     this.state = {
       status: "App Loading",
+      viewOptions: {
+        logYAxis: false
+      }
     };
+    this.setViewOptions = (newOptions) => {
+      this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
+    }
   }
   componentDidMount() {
     queryServerForRunConfig(this.state, this.setState.bind(this));
@@ -46,6 +52,8 @@ class App extends Component {
           numReads={this.state.readCountPerSample ? sum(this.state.readCountPerSample) : 0}
           numSamples={this.state.samples ? this.state.samples.length : 0}
           timeLastReadsReceived={this.state.timeLastReadsReceived}
+          setViewOptions={this.setViewOptions}
+          viewOptions={this.state.viewOptions}
         />
         {this.state.startTime ? (
           <div>
@@ -59,6 +67,7 @@ class App extends Component {
               refMatchPerSample={this.state.refMatchPerSample}
               version={this.state.dataVersion}
               sampleColours={this.state.sampleColours}
+              viewOptions={this.state.viewOptions}
             />
             {this.state.samples.map((sampleName, sampleIdx) => {
               return (
@@ -78,6 +87,7 @@ class App extends Component {
                   coverageOverTime={this.state.coverageOverTime[sampleIdx]}
                   colour={this.state.sampleColours[sampleIdx]}
                   referenceColours={this.state.referenceColours}
+                  viewOptions={this.state.viewOptions}
                 />
               )
             })}

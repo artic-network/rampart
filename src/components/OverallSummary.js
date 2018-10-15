@@ -31,12 +31,14 @@ class OverallSummary extends React.Component {
             colours={this.props.sampleColours}
             version={this.props.version}
             annotation={this.props.annotation}
+            viewOptions={this.props.viewOptions}
           />
           <ReadsOverTime
             style={{width: '22%', margin: 'auto', height: "100%"}}
             title={"Total reads over time"}
             readsOverTime={this.props.readsOverTime}
             version={this.props.version}
+            viewOptions={this.props.viewOptions}
           />
           <ReadsPerSample
             style={{width: '18%', margin: 'auto', height: "100%"}}
@@ -44,6 +46,7 @@ class OverallSummary extends React.Component {
             readCountPerSample={this.props.readCountPerSample}
             version={this.props.version}
             colours={this.props.sampleColours}
+            viewOptions={this.props.viewOptions}
           />
           <ReferenceHeatmap
             style={{width: '25%', margin: 'auto', height: "100%"}}
@@ -52,6 +55,7 @@ class OverallSummary extends React.Component {
             samples={this.props.samples}
             refMatchPerSample={this.props.refMatchPerSample}
             version={this.props.version}
+            viewOptions={this.props.viewOptions}
           />
         </div>
       </div>
