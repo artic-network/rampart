@@ -18,17 +18,10 @@ Secondly, reads are mapped against a panel of references to find the closest mat
 * running using already-basecalled `fastq` files
 * no filesystem watchers present
 * demuxing & mapping working
-* demuxed & mapped files are lost when the script restarts
-* no support for samples comprised of more than one barcode
-
-### Current frontend progress:
-* unchanged from version 0.1.0. Needs lots of work!
+* mapped files are lost when the script restarts
 
 
-
-
-## Installation / Pre-requisites
-
+## Software Installation
 
 1. **Install conda** -- [Instructions here](https://conda.io/docs/user-guide/install/index.html)
 
@@ -59,13 +52,6 @@ python setup.py install
 ```
 * Check `porechop` is available on the command line by running `porechop -h` inside the artic-rampart conda environment.
 
-6. **Download the guppy-basecalled EBOV dataset**
-Download [https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz](https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz)
- and unzip into the `rampart` directory.
- (I.e. the directory `rampart/ZEBOV_3Samples_NB` now exists, and is is gitignored.)
-
-7. **Miscellaneous steps**
-* `mkdir rampart/ZEBOV_3Samples_NB/porechop`
 
 ## Config file(s)
 There is one config file which defines details about the current run (e.g. barcodes, names etc) and a second config file which defines the reference genome, including gene annotations, amplicon positions etc.
@@ -92,8 +78,34 @@ The run-specific config file currently looks like:
 All paths are relative to the `rampart` directory.
 
 
-## How to run RAMPART (currently only in development mode)
+## Publicly available datasets & config files
 
-1. Start the file watcher / server process:
-`node rampart.js --config EBOV/ZEBOV_3Samples_NB_config.json --subsetFastqs --mockFailures`
-2. (in a seperate terminal window) start the web-app: `npm run start`. This should automatically open a web browser pointed to [localhost:3000](http://localhost:3000).
+* There is one (very small) dataset included in this repo. The config file for this is `./examples/EBOV/configuration.json`.
+  * Note that you may need to run `mkdir ./examples/EBOV/data/demuxed` the first time!
+
+* Guppy-basecalled EBOV dataset
+  * Make the (gitignored) `./datasets` directory if it doesn't exist.
+  * Download [ZEBOV_3Samples_NB_MinIT_guppy.tgz](https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz)
+ and unzip into the `./datasets` directory.
+  * `mkdir ./datasets/ZEBOV_3Samples_NB/demuxed`
+  * Use this config file: `./examples/EBOV/ZEBOV_3Samples_NB_config.json`
+
+* The ZIKV & noro datasets are currently private.
+
+
+## How to run RAMPART
+
+
+#### Production version
+See previous section for the different available `<CONFIG>` paths.
+* `node rampart.js --config <CONFIG>`
+* Open [localhost:3001](http://localhost:3001) in a browser
+
+Note: run `node rampart.js -h` to see other options which may be applicable.
+
+
+#### Development version
+This runs a little slower, but the client will update automatically as you modify the source code.
+* Start the daemon/server as above (`node rampart.js ...`)
+* Run `npm run start` in a second terminal window
+* Open [localhost:3000](http://localhost:3000) in a browser
