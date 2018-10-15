@@ -79,11 +79,19 @@ const drawStream = (svg, scales, series, referenceLabels, referenceColours, info
 
 export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier, fillIn) => {
     /* https://stackoverflow.com/questions/8689498/drawing-multiple-lines-in-d3-js */
-    const makeLinePath = line()
-        .x((d, i) => scales.x(i*multiplier))
-        .y((d) => scales.y(d))
-        .curve(curveStep);
-
+    let pathGenerator;
+    if (fillIn) {
+        pathGenerator = area()
+          .x((d, i) => scales.x(i*multiplier))
+          .y0((d) => scales.y(d))
+          .y1(scales.y.range()[0])
+          .curve(curveStep);
+    } else {
+        pathGenerator = line()
+            .x((d, i) => scales.x(i*multiplier))
+            .y((d) => scales.y(d))
+            .curve(curveStep);
+    }
     svg.selectAll(".coverageLine").remove();
     svg.selectAll(".coverageLine")
         .data(data)
@@ -91,7 +99,7 @@ export const drawSteps = (svg, chartGeom, scales, data, colours, multiplier, fil
         .attr("class", "coverageLine")
         .attr("fill", (d, i) => fillIn ? colours[i] : "none")
         .attr("stroke", (d, i) => fillIn ? d3color(colours[i]).darker(2) : colours[i])
-        .attr('d', makeLinePath);
+        .attr('d', pathGenerator);
 }
 
 /* draw the genes (annotations) */
