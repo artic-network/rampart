@@ -1,0 +1,39 @@
+{
+  "name": "ZIKV USVI 7 (A. Black)",
+  "referenceConfigPath": "./examples/ZIKV/ZIKV_v1.0.json",
+  "referencePanelPath": "./examples/ZIKV/zika_reference_genomes.fasta",
+  "samples": [
+      {
+          "name": "VI34_pool1&2",
+          "description": "",
+          "barcodes": [ "barcode01", "barcode07" ]
+      },
+      {
+          "name": "VI35_pool1&2",
+          "description": "",
+          "barcodes": [ "barcode02", "barcode08" ]
+      },
+      {
+          "name": "VI36_pool1&2",
+          "description": "",
+          "barcodes": [ "barcode03", "barcode09" ]
+      },
+      {
+          "name": "VI37_pool1&2",
+          "description": "",
+          "barcodes": [ "barcode04", "barcode11" ]
+      },
+      {
+          "name": "VI38_pool1&2",
+          "description": "",
+          "barcodes": [ "barcode05", "barcode12" ]
+      },
+      {
+          "name": "Negative control",
+          "description": "",
+          "barcodes": [ "barcode06" ]
+      }
+  ],
+  "basecalledPath": "/doesnt/exist",
+  "demuxedPath": "./datasets/ZIKV_USVI_7/demuxed"
+}
