@@ -15,15 +15,25 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-const drawLines = (svg, scales, data, colours) => {
+const strokeDashFunction = (i) => { /* i = 0, 1 or 2 */
+  if (i === 1) {
+    return "5, 5";
+  } else if (i === 2) {
+    return "2, 8"
+  }
+  return null;
+}
+
+const drawLines = (svg, scales, data, colour) => {
   svg.selectAll(".coverageLine").remove();
   svg.selectAll(".coverageLine")
     .data([1, 2, 3]) /* indexes of coverage value we want for each line */
     .enter().append("path")
       .attr("class", "coverageLine")
       .attr("fill", "none")
-      .attr("stroke", (d, i) => colours[i])
+      .attr("stroke", colour)
       .attr("stroke-width", 5)
+      .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
       .attr('d', (covIdx) => {
         const generator = line()
           .x((d) => scales.x(d[0]))
@@ -33,7 +43,7 @@ const drawLines = (svg, scales, data, colours) => {
       });
 }
 
-const drawLegend = (svg, chartGeom, colours) => {
+const drawLegend = (svg, chartGeom, colour) => {
   const legend = svg.append("g")
     .attr("class", "legend")
     .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.spaceTop + 5})`)
@@ -41,20 +51,21 @@ const drawLegend = (svg, chartGeom, colours) => {
   const labels = ["1000x", "100x", "10x"];
 
   legend.selectAll("line")
-    .data(colours)
+    .data([1, 2, 3])
     .enter()
     .append("path")
       .attr("d", (d, i) => `M10,${20*i} H50`)
       .attr("stroke-width", 5)
-      .attr("stroke", (d) => d)
+      .attr("stroke", colour)
+      .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
 
   legend.selectAll("line")
-    .data(colours)
+    .data([1, 2, 3])
     .enter()
     .append("text")
       .attr("x", 55)
-      .attr("y", (d, i) => 20*i + 4)
-      .text((d, i) => labels[i]);
+      .attr("y", (_, i) => 20*i + 4)
+      .text((n) => labels[n-1]);
 
 }
 class CoverageOverTime extends React.Component {
@@ -66,18 +77,16 @@ class CoverageOverTime extends React.Component {
     const svg = select(this.DOMref);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const yScale = calcYScale(chartGeom, 100);
-    const colours = (this.props.sampleIdx/this.props.numSamples < 0.5) ?
-      [d3color(this.props.colour).darker(4), d3color(this.props.colour).darker(2), d3color(this.props.colour)] :
-      [d3color(this.props.colour), d3color(this.props.colour).brighter(2), d3color(this.props.colour).brighter(4)];
-    drawLegend(svg, chartGeom, colours)
-    this.setState({svg, chartGeom, yScale, colours});
+    const colour = d3color(this.props.colour);
+    drawLegend(svg, chartGeom, colour)
+    this.setState({svg, chartGeom, yScale, colour});
   }
   componentDidUpdate(prevProps) {
     const finalDataPt = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
     const timeMax = (parseInt(finalDataPt[0]/30, 10) +1) * 30;
     const scales = {x: calcXScale(this.state.chartGeom, timeMax), y: this.state.yScale};
     drawAxes(this.state.svg, this.state.chartGeom, scales, {xTicks: 4, yTicks:5, isTime: true, ySuffix: "%"});
-    drawLines(this.state.svg, scales, this.props.coverageOverTime, this.state.colours);
+    drawLines(this.state.svg, scales, this.props.coverageOverTime, this.state.colour);
   }
   render() {
     return (

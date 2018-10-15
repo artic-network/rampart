@@ -54,16 +54,12 @@ const headerCSS = css({
 })
 
 const renderCoverageHeatmap = (domRef, coverage) => {
-
     const selection = select(domRef);
     const dimensions = selection.node().getBoundingClientRect()
-    console.log()
-
     const pxPerColumn = 3;
     const nIntervals = dimensions.width/pxPerColumn;
     const eachInterval = Math.floor(coverage.length / nIntervals);
     const columnIdxs = Array.from(new Array(nIntervals), (_, i) => i*eachInterval);
-
     const colourCoverage = (d) => {
         const depth = coverage[d];
         return depth > consensusCoverage ? heatColourScale(100) :
@@ -76,7 +72,6 @@ const renderCoverageHeatmap = (domRef, coverage) => {
     selection
         .selectAll("*")
         .remove();
-
     selection
         .selectAll(".coverageCell")
         .data(columnIdxs)
@@ -87,7 +82,6 @@ const renderCoverageHeatmap = (domRef, coverage) => {
         .attr("x", (d, i) => pxPerColumn*i)
         .attr("y", 3)
         .attr("fill", colourCoverage);
-
 }
 
 
@@ -171,7 +165,6 @@ class Panel extends React.Component {
                     sampleIdx={this.props.sampleIdx}
                     numSamples={this.props.numSamples}
                 />
-
             </div>
         )
     }
@@ -187,10 +180,6 @@ class Panel extends React.Component {
         }
     }
     render() {
-        if (this.props.sampleIdx === 1) {
-            // console.log("this.props", this.props)
-
-        }
         let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.props.colour} };
         const anyData = !!this.props.readLength.length;
         if (anyData) {
