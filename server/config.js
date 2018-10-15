@@ -36,10 +36,17 @@ const parseConfig = (args) => {
         .split("\n")
         .filter((l) => l.startsWith(">"))
         .map((n) => {
-            return {
-                "name" :  n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
-                "description" : n.substring(n.indexOf(" ")) // fasta description is the rest
-            };
+            if (n.indexOf(" ") > 0) {
+                return {
+                    "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
+                    "description": n.substring(n.indexOf(" ")) // fasta description is the rest
+                };
+            } else {
+                return {
+                    "name": n.substring(1),
+                    "description": ""
+                };
+            }
         }); // remove the > character
 
     return config;
