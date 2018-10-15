@@ -33,7 +33,7 @@ Secondly, reads are mapped against a panel of references to find the closest mat
 1. **Install conda** -- [Instructions here](https://conda.io/docs/user-guide/install/index.html)
 
 
-2. **Clone the github repo** -- `git clone git@github.com:artic-network/rampart.git`
+2. **Clone the github repo** -- `git clone https://github.com/artic-network/rampart.git`
 
 3. **Create & activate the conda environment**
 ```
