@@ -20,16 +20,16 @@ def get_fasta_names(path):
         fasta_names.append(name)
     return fasta_names
 
-def create_coordinate_index(coordinate_reference):
-    """Initialise minimap2 for 2 different reference FASTAs"""
-    ## Parse the (single) reference sequence used to find co-ordinates:
-    coordinate_aligner = mp.Aligner(coordinate_reference, best_n=1)
-    name, seq, qual = next(mp.fastx_read(coordinate_reference, read_comment=False))
-    coordinate_reference_length = len(seq)
-    if not coordinate_aligner:
-        raise Exception("ERROR: failed to load/build index file '{}'".format(coordinate_reference))
-
-    return (coordinate_aligner, coordinate_reference_length)
+# def create_coordinate_index(coordinate_reference):
+#     """Initialise minimap2 for 2 different reference FASTAs"""
+#     ## Parse the (single) reference sequence used to find co-ordinates:
+#     coordinate_aligner = mp.Aligner(coordinate_reference, best_n=1)
+#     name, seq, qual = next(mp.fastx_read(coordinate_reference, read_comment=False))
+#     coordinate_reference_length = len(seq)
+#     if not coordinate_aligner:
+#         raise Exception("ERROR: failed to load/build index file '{}'".format(coordinate_reference))
+#
+#     return (coordinate_aligner, coordinate_reference_length)
 
 def create_reference_index(reference_panel):
     ## Parse the panel of reference sequences used to find the best match
@@ -42,20 +42,20 @@ def create_reference_index(reference_panel):
 
     return (panel_aligner, reference_panel_names)
 
-def map_coordinates(coordinate_aligner, fastq_path):
-    mapping_results = {}
-
-    for name, seq, qual in mp.fastx_read(fastq_path, read_comment=False): # read one sequence
-        try:
-            coord = next(coordinate_aligner.map(seq))
-            mapping_results[name] = [coord.r_st, coord.r_en]
-        except StopIteration:
-            continue;
-
-        # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.mlen / panel.blen)
-
-
-    return mapping_results
+# def map_coordinates(coordinate_aligner, fastq_path):
+#     mapping_results = {}
+#
+#     for name, seq, qual in mp.fastx_read(fastq_path, read_comment=False): # read one sequence
+#         try:
+#             coord = next(coordinate_aligner.map(seq))
+#             mapping_results[name] = [coord.r_st, coord.r_en]
+#         except StopIteration:
+#             continue;
+#
+#         # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.blen, panel.mlen / panel.blen)
+#
+#
+#     return mapping_results
 
 def mapper(panel_aligner, panel_names, fastq_path):
     unmatched = {} # counts of unmatched reads, based on barcode (index)
@@ -87,8 +87,8 @@ def mapper(panel_aligner, panel_names, fastq_path):
         # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.mlen / panel.blen)
 
         mapping_results.append(
-            # barcode, reference panel match (idx),   start pos,  end pos,    identity
-            [barcode, panel_names.index(panel.ctg), panel.r_st, panel.r_en, panel.mlen / panel.blen]
+            # barcode, reference panel match (idx),   start pos,  end pos, reference length,   identity
+            [barcode, panel_names.index(panel.ctg), panel.r_st, panel.r_en, panel.blen, panel.mlen / panel.blen]
         )
 
     return (first_read_time_stamp, unmatched, mapping_results)
