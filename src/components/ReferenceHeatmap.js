@@ -28,7 +28,7 @@ const calcCellDims = (chartGeom, numSamples, numReferences) => {
     }
 }
 
-const drawHeatMap = (state, props) => {
+const drawHeatMap = (state, props, infoRef) => {
     /* convert the refMatchPerSample data from raw counts to percentages & change to a d3-friendly struct.
     Input format:
       props.refMatchPerSample[sampleIdx][reference_idx] = INT
@@ -86,17 +86,20 @@ const drawHeatMap = (state, props) => {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * state.scales.x.range()[1] ? "" : `${mouseX}px`;
         const right = mouseX > 0.5 * state.scales.x.range()[1] ? `${state.scales.x.range()[1] - mouseX}px` : "";
-        select(this.infoRef)
+        select(infoRef)
             .style("left", left)
             .style("right", right)
             .style("top", `${mouseY}px`)
             .style("visibility", "visible")
-            .html(`reference name<br/>${d[2]}% mapped<br/>XXX reads`);
+            .html(`
+                Sample: ${props.samples[d[0]]}
+                <br/>
+                ${parseFloat(d[2]).toFixed(2)}% reads map to ${props.references[d[1]].name}
+            `);
     }
     function handleMouseOut() {
-        select(this.infoRef).style("visibility", "hidden");
+        select(infoRef).style("visibility", "hidden");
     }
-
 
     /* render the coloured cells of the heatmap */
     state.svg.selectAll(".heatCell")
@@ -154,20 +157,24 @@ class ReferenceHeatmap extends React.Component {
         );
 
         const newState = {svg, chartGeom, cellDims, scales, samples}
-        drawHeatMap(newState, this.props);
+        drawHeatMap(newState, this.props, this.infoRef);
         this.setState(newState); // may be async...
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.version !== this.props.version) {
-            drawHeatMap(this.state, this.props);
+            drawHeatMap(this.state, this.props, this.infoRef);
         }
     }
     render() {
         return (
             <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
                 <div {...chartTitleCSS}>{this.props.title}</div>
-                <div {...toolTipCSS} ref={(r) => {this.infoRef = r}}/>
+                <div
+                    {...toolTipCSS}
+                    style={{maxWidth: this.state.chartGeom.width/2}}
+                    ref={(r) => {this.infoRef = r}}
+                />
                 <svg
                     ref={(r) => {this.DOMref = r}}
                     height={this.state.chartGeom.height || 0}

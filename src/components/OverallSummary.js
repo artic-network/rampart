@@ -19,13 +19,15 @@ const flexRow = css({
   height: "calc(100% - 25px)"
 })
 
+const genericGraphContainerStyles = {margin: 'auto', height: "100%", position: "relative"};
+
 class OverallSummary extends React.Component {
   render() {
     return (
       <div {...panelContainer}>
         <div {...flexRow}>
           <CoveragePlot
-            style={{width: '35%', margin: 'auto', height: "100%"}}
+            style={{width: '35%', ...genericGraphContainerStyles}}
             showReferenceMatches={false}
             coverage={this.props.coveragePerSample}
             colours={this.props.sampleColours}
@@ -34,14 +36,14 @@ class OverallSummary extends React.Component {
             viewOptions={this.props.viewOptions}
           />
           <ReadsOverTime
-            style={{width: '22%', margin: 'auto', height: "100%"}}
+            style={{width: '22%', ...genericGraphContainerStyles}}
             title={"Total reads over time"}
             readsOverTime={this.props.readsOverTime}
             version={this.props.version}
             viewOptions={this.props.viewOptions}
           />
           <ReadsPerSample
-            style={{width: '18%', margin: 'auto', height: "100%"}}
+            style={{width: '18%', ...genericGraphContainerStyles}}
             title={"Reads per Sample"}
             readCountPerSample={this.props.readCountPerSample}
             version={this.props.version}
@@ -49,7 +51,7 @@ class OverallSummary extends React.Component {
             viewOptions={this.props.viewOptions}
           />
           <ReferenceHeatmap
-            style={{width: '25%', margin: 'auto', height: "100%"}}
+            style={{width: '25%', ...genericGraphContainerStyles}}
             title={"Reference Matches"}
             references={this.props.references}
             samples={this.props.samples}
