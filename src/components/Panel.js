@@ -57,7 +57,7 @@ const renderCoverageHeatmap = (domRef, coverage) => {
     const selection = select(domRef);
     const dimensions = selection.node().getBoundingClientRect()
     const pxPerColumn = 3;
-    const nIntervals = dimensions.width/pxPerColumn;
+    const nIntervals = Math.ceil(dimensions.width/pxPerColumn);
     const eachInterval = Math.floor(coverage.length / nIntervals);
     const columnIdxs = Array.from(new Array(nIntervals), (_, i) => i*eachInterval);
     const colourCoverage = (d) => {
