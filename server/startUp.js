@@ -56,7 +56,7 @@ const getFastqsFromDirectory = async (dir, {sortByTime=true} = {}) => {
 const startUp = async () => {
   console.log(chalk.yellowBright.bold("\nRAMPART start up - Scanning input folders..."));
   /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
-  // save_coordinate_reference_as_fasta(global.config.reference.sequence);
+  save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
   /* Scan the basecalled FASTQ folder */
   let basecalledFastqs = [];

@@ -4,12 +4,12 @@ const { sleep } = require("./utils");
 
 let isRunning = false; // only want one mapping thread at a time!
 
-// const save_coordinate_reference_as_fasta = (refSeq) => {
-//     /* python's mappy needs a FASTA file of the reference sequence,
-//     you can't give it the string from the coorinate JSON :( */
-//     const fasta = ">COORDINATE_REFERENCE\n"+refSeq;
-//     fs.writeFileSync("coordinate_reference.fasta", fasta);
-// }
+const save_coordinate_reference_as_fasta = (refSeq) => {
+    /* python's mappy needs a FASTA file of the reference sequence,
+    you can't give it the string from the coorinate JSON :( */
+    const fasta = ">COORDINATE_REFERENCE\n"+refSeq;
+    fs.writeFileSync("coordinate_reference.fasta", fasta);
+}
 
 const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
     const pyprog = spawn('python3', [
@@ -64,5 +64,4 @@ const mapper = async () => {
     }
 }
 
-module.exports = {mapper}
-//module.exports = {mapper, save_coordinate_reference_as_fasta}
+module.exports = {mapper, save_coordinate_reference_as_fasta}
