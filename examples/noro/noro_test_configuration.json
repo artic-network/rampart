@@ -64,6 +64,6 @@
   		"barcodes": [ "barcode12" ]
   	}
   ],
-  "basecalledPath": "./datasets/noro_test/basecalled/",
-  "demuxedPath": "./datasets/noro_test/demuxed/"
+  "basecalledPath": "./examples/noro/data/basecalled/",
+  "demuxedPath": "./examples/noro/data/demuxed/"
 }

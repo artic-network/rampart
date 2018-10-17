@@ -24,6 +24,6 @@
          "barcodes": [ "BC04" ]
       }
   ],
-  "basecalledPath": "./datasets/ZEBOV_3Samples_NB/MN21030",
-  "demuxedPath": "./datasets/ZEBOV_3Samples_NB/demuxed"
+  "basecalledPath": "./examples/EBOV/data/basecalled/ZEBOV_3Samples_NB/MN21030",
+  "demuxedPath": "./examples/EBOV/data/demuxed/ZEBOV_3Samples_NB/demuxed"
 }
