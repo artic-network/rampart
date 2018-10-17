@@ -85,7 +85,6 @@ const startUp = async () => {
     global.porechopFastqs.push(fastqPath)
   });
 
-
   // console.log(chalk.yellowBright.bold(`\tClearing the demuxed folder contents`))
   // const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
   // for (const file of demuxedFilesToDelete) {

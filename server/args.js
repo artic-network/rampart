@@ -14,7 +14,7 @@ parser.addArgument('--subsetFastqs', {action: "storeTrue", help: "Development fl
 parser.addArgument('--mockFailures', {action: "storeTrue", help: "Development flag -- stochastically fail to run guppy / porechop / mapping"});
 parser.addArgument('--ignoreTimeStamps', {action: "storeTrue", help: "Development flag -- ignore the timestamps on the reads"});
 parser.addArgument('--startWithDemuxedReads', {action: "storeTrue", help: "Development flag."});
-
+parser.addArgument('--relaxedDemuxing', {action: "storeTrue", help: "Development flag -- don't require matching barcodes to demux."});
 
 module.exports = {
   parser
