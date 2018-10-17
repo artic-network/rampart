@@ -58,8 +58,9 @@ const renderCoverageHeatmap = (domRef, coverage) => {
     const dimensions = selection.node().getBoundingClientRect()
     const pxPerColumn = 3;
     const nIntervals = Math.ceil(dimensions.width/pxPerColumn);
-    const eachInterval = Math.floor(coverage.length / nIntervals);
-    const columnIdxs = Array.from(new Array(nIntervals), (_, i) => i*eachInterval);
+    const eachInterval = coverage.length / nIntervals;
+    console.log(`coverage.length: ${coverage.length}, eachInterval: ${eachInterval}, nIntervals: ${nIntervals}`);
+    const columnIdxs = Array.from(new Array(nIntervals), (_, i) => Math.floor(i*eachInterval));
     const colourCoverage = (d) => {
         const depth = coverage[d];
         return depth > consensusCoverage ? heatColourScale(100) :
@@ -179,6 +180,7 @@ class Panel extends React.Component {
     }
     componentDidUpdate() {
         if (!this.state.expanded && this.props.readCount > 0) {
+            console.log(this.props.coverage)
             renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
         }
     }

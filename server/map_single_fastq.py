@@ -34,6 +34,7 @@ def create_reference_index(reference_panel):
     panel_aligner = mp.Aligner(reference_panel, best_n = 1)
     if not panel_aligner:
         raise Exception("ERROR: failed to load/build index file '{}'".format(reference_panel))
+
     reference_panel_names = []
     for name, seq, qual in mp.fastx_read(reference_panel, read_comment=False):
         reference_panel_names.append(name)
@@ -74,9 +75,11 @@ def mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel
         if coord is not None: # managed to map to the coordinate reference
             start = coord.r_st
             end = coord.r_en
-        else:
-            start = math.floor(coordinate_reference_length * (panel.r_st / panel.blen))
-            end = math.floor(coordinate_reference_length * (panel.r_en / panel.blen))
+            # print("Coord: start, end", start, end)
+        else: # if not aligned to coordinate reference then interpolate
+            start = math.floor((coordinate_reference_length * panel.r_st) / panel.ctg_len)
+            end = math.floor((coordinate_reference_length * panel.r_en) / panel.ctg_len)
+            # print("Ref: len, start, end", coordinate_reference_length, panel.r_st, panel.r_en, panel.ctg_len, start, end)
 
         # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.mlen / panel.blen)
         mapping_results.append(
