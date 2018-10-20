@@ -91,6 +91,10 @@ Find your run e.g. in ``/var/lib/MinKNOW/data/reads`` and start dogfish watching
 	cd /var/lib/MinKNOW/data/reads/20181020_1339_EBOV``
 	dogfish watch `pwd`
 
+## Running RAMPART
+
+Set up a config file pointing at ``/data/basecalled/<run_name>/<minion_id>/`` and run RAMPART in the usual way.
+
 ## Benchmarking
 
 I get about 650k kev/s on XPS15 1050Ti (stats are accessible if you run dogfishcall interactively. If it's dramatically slower, most likely the CPU is being used, in which case you either don't have a NVidia GPU or the drivers are not correctly setup.
