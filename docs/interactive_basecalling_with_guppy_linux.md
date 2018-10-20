@@ -8,9 +8,9 @@ Requirements:
    * Dogfish (wrapper to drive Guppy from batches of reads)
    * MinKNOW 
 
-All installed on the ARTIC SSD.
-
 ## Dogfish installation
+
+If running from the ARTIC SSD, this will be pre-configured, so skip to the next section.
 
 	apt install ont-dogfish
 
@@ -72,11 +72,11 @@ When the run has started (ensure you enable generation of Reads, with just raw o
 
 Check dogfish is running:
 
-	``dogfish status``
+	dogfish status
 	
 Check the dogfish config is correct:
 
-	``dogfish config``
+	dogfish config
 	
 	[Config]
 	flowcell: FLO-MIN106
