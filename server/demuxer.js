@@ -45,20 +45,20 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
 });
 
 const demuxer = async () => {
-    // console.log("demuxer watching deque with ", global.guppyFastqs.length, "files")
+    // console.log("demuxer watching deque with ", global.demuxQueue.length, "files")
     // cautiously waiting for >= 2 files here, as i'm not sure if guppy continuously writes to a file or not
-    if (global.guppyFastqs.length > 1 && !isRunning) {
+    if (global.demuxQueue.length > 1 && !isRunning) {
         isRunning = true;
-        const basecalledFastq = global.guppyFastqs.shift();
-        const fastqToWrite = path.join(global.config.demuxedPath, path.basename(basecalledFastq));
+        const fileToDemux = global.demuxQueue.shift();
+        const fastqToWrite = path.join(global.config.demuxedPath, path.basename(fileToDemux));
         try {
             // await sleep(1000); // slow things down for development
-            console.log("Demuxing ", path.basename(basecalledFastq), "...")
-            await call_porechop(basecalledFastq, fastqToWrite, global.args.relaxedDemuxing || global.config.relaxedDemuxing);
-            console.log(path.basename(basecalledFastq), "demuxed.")
-            global.porechopFastqs.push(fastqToWrite)
+            console.log("Demuxing ", path.basename(fileToDemux), "...")
+            await call_porechop(fileToDemux, fastqToWrite, global.args.relaxedDemuxing || global.config.relaxedDemuxing);
+            console.log(path.basename(fileToDemux), "demuxed.")
+            global.mappingQueue.push(fastqToWrite)
         } catch (err) {
-            console.log(`*** ERROR *** Demuxing ${path.basename(basecalledFastq)}: ${err}`);
+            console.log(`*** ERROR *** Demuxing ${path.basename(fileToDemux)}: ${err}`);
         }
         isRunning = false;
         demuxer(); // recurse

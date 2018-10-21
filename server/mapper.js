@@ -45,19 +45,19 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
 });
 
 const mapper = async () => {
-    // console.log("porechopFastqs listener", porechopFastqs.length)
+    // console.log("mappingQueue listener", mappingQueue.length)
     // console.log("isRunning", isRunning)
-    if (global.porechopFastqs.length && !isRunning) {
+    if (global.mappingQueue.length && !isRunning) {
         isRunning = true;
         let results;
-        const fastq = global.porechopFastqs.shift();
+        const fileToMap = global.mappingQueue.shift();
         try {
             // await sleep(1000); // slow things down for development
-            results = await call_python_mapper(fastq);
+            results = await call_python_mapper(fileToMap);
             global.mappingResults.push(results)
-            console.log(`Mapped ${fastq.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`);
+            console.log(`Mapped ${fileToMap.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`);
         } catch (err) {
-            console.log(`*** ERROR *** Mapping ${fastq.split("/").slice(-1)[0]}: ${err}`);
+            console.log(`*** ERROR *** Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`);
         }
         isRunning = false;
         mapper(); // recurse
