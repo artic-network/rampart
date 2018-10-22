@@ -62,3 +62,8 @@ Testing minimap2 python script:
 ```bash
 python3 server/map_single_fastq.py -p ./EBOV/reference-genomes.fasta -c ./coordinate_reference.fasta -f /data/reads/<experiment>/porechop/demuxed.fastq 
 ```
+
+Running Guppy manually (on MinIT's GPU):
+```bash
+guppy_basecaller --device cuda:0 --flowcell FLO-MIN106 --kit SQK-LSK108 --recursive -i /data/reads/<experiment>/fast5/ -s ./basecalled
+```
