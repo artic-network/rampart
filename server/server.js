@@ -57,6 +57,10 @@ const run = ({args, config, mappingResults}) => {
         That is, don't send reads from 5min into the capture if the script's been running
         for 20seconds! */
 
+        /*
+         AR - On an update by the client, we should quickly send them all again so it can get back to the same point.
+         */
+
         /* TODO if a client reconnects (refreshes) then it never sees the previously sent JSONs */
 
         // const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
