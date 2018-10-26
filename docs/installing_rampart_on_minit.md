@@ -46,10 +46,16 @@ sudo npm install yarn -g
 yarn
 ```
 
-Run RAMPART server:
+Build the rampart code:
+```bash
+npm run build
+```
+
+Run RAMPART:
 ```bash
 nodejs rampart.js --config ./EBOV/ZEBOV_3Samples_NB_config.json
 ```
+Open [localhost:3001](http://localhost:3001) in a browser
 
 
 
