@@ -9,8 +9,8 @@ const { startUp } = require("./server/startUp");
 /* make some globals available everywhere */
 global.args = parser.parseArgs();
 global.config = parseConfig(global.args);
-global.guppyFastqs = new Deque();
-global.porechopFastqs = new Deque();
+global.demuxQueue = new Deque();
+global.mappingQueue = new Deque();
 global.mappingResults = new Deque();
 global.scriptStartTime = Date.now();
 
@@ -19,8 +19,8 @@ const startWatchers = () => {
   appropriate processes (e.g. guppy, porechop).
   As things are processed, they are shifted off one deque and pushed
   onto another! */
-  global.guppyFastqs.addRangeChangeListener(() => demuxer());
-  global.porechopFastqs.addRangeChangeListener(() => mapper());
+  global.demuxQueue.addRangeChangeListener(() => demuxer());
+  global.mappingQueue.addRangeChangeListener(() => mapper());
 
   // start watchers
   demuxer();

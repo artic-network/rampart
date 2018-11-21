@@ -98,6 +98,7 @@ All paths are relative to the `rampart` directory.
 
 #### Production version
 See previous section for the different available `<CONFIG>` paths.
+* `npm run build` only needed once.
 * `node rampart.js --config <CONFIG>`
 * Open [localhost:3001](http://localhost:3001) in a browser
 

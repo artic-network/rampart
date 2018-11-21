@@ -65,7 +65,7 @@ const drawHeatMap = (state, props, infoRef) => {
         .attr("class", "refLabel")
         .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
         .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
-        .attr('x', state.chartGeom.spaceLeft - 2 - state.cellDims.height)
+        .attr('x', state.chartGeom.spaceLeft - 8 - state.cellDims.height)
         .attr("text-anchor", "end")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "middle"); /* i.e. y value specifies top of text */
@@ -77,7 +77,7 @@ const drawHeatMap = (state, props, infoRef) => {
         .attr("class", "refColour")
         .attr('width', state.cellDims.height)
         .attr('height', state.cellDims.height)
-        .attr("x", state.chartGeom.spaceLeft - 2 - state.cellDims.height)
+        .attr("x", state.chartGeom.spaceLeft - 4 - state.cellDims.height)
         .attr('y', (refName, refIdx) => state.scales.y(refIdx+1))
         .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
@@ -96,7 +96,7 @@ const drawHeatMap = (state, props, infoRef) => {
 
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
-        const left  = mouseX > 0.5 * state.scales.x.range()[1] ? "" : `${mouseX}px`;
+        const left  = mouseX > 0.5 * state.scales.x.range()[1] ? "" : `${mouseX + 16}px`;
         const right = mouseX > 0.5 * state.scales.x.range()[1] ? `${state.scales.x.range()[1] - mouseX}px` : "";
         select(infoRef)
             .style("left", left)
