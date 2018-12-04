@@ -48,7 +48,7 @@ class App extends Component {
         <Header
           status={this.state.status}
           name={this.state.name}
-          runTime={this.state.readsOverTime ? this.state.readsOverTime[this.state.readsOverTime.length-1][0] : 0}
+          runTime={this.state.readsOverTime && this.state.readsOverTime.length ? this.state.readsOverTime[this.state.readsOverTime.length-1][0] : 0}
           numReads={this.state.readCountPerSample ? sum(this.state.readCountPerSample) : 0}
           numSamples={this.state.samples ? this.state.samples.length : 0}
           timeLastReadsReceived={this.state.timeLastReadsReceived}

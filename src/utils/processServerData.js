@@ -1,8 +1,36 @@
 import { genomeResolution, readLengthResolution } from "../magics";
 import { createSampleColours, createReferenceColours } from "./colours";
+import { min } from "d3-array";
 
 const initialiseArray = (n) =>
     Array.from(new Array(n), () => 0)
+
+
+/* Add "n reads" to the "readsOverTime" array.
+ * This isn't a simple push as guppy may occassionally save fastq files out-of-order
+ * We do assume that a single guppy file is a "point-in-time", however this is an assumption
+ * If reads aren't simply pushed (i.e. they're inserted) then we change the totals for all times "after" this insertion
+ */
+const modifyReadsOverTime = (readsOverTime, dataTime, newReads) => {
+
+    if (!readsOverTime.length) {
+        readsOverTime.push([dataTime, newReads])
+        return;
+    }
+
+    let i; /* insertion point */
+    for (i = readsOverTime.length-1; i>=0; i--) {
+        if (readsOverTime[i][0] < dataTime) {
+            break;
+        }
+    }
+    i++;
+    const readSumPreInsert = i===0 ? 0 : readsOverTime[i-1][1];
+    readsOverTime.splice(i, 0, [dataTime, readSumPreInsert+newReads]);
+    for (let ii = i+1; ii<readsOverTime.length; ii++) {
+        readsOverTime[ii][1] += newReads;
+    }
+}
 
 export const createInitialState = (infoJson) => {
     // console.log("JSON from server:", infoJson)
@@ -49,35 +77,28 @@ export const createInitialState = (infoJson) => {
     state.referenceColours = createReferenceColours(state.references.length);
     state.timeLastReadsReceived = undefined;
 
+    state.readsOverTime = [];
+    state.versions = [...Array(state.samples.length)].map(() => 1);
+
     return state;
 }
 
 export const addNewReadsToState = (oldState, json) => {
-    /* Potentially move some of this to the server... */
+    /* the JSON is an array of mapping results, each one consisting of
+    the reads from a single guppy-basecalled FASTQ file  */
+
     const newState = {...oldState};
 
     /* if we haven't yet had any reads, we have to initialise the "run start time" via the first JSON */
-    if (!newState.startTime) {
-//  newState.startTime = processTimeStamp(json[0].timeStamp);
-        newState.startTime = json[0].time;
-        newState.readsOverTime = [];
-        newState.versions = [...Array(oldState.samples.length)].map(() => 1);
-    }
+    if (!newState.startTime) {newState.startTime = min(json.map((j) => j.time));}
 
-    /* the JSON is an array of mapping results, each one consisting of
-    the reads from a single guppy-basecalled FASTQ file  */
     let readsAdded = 0;
     json.forEach((data) => {
         // console.log("DATA FROM SERVER:", data)
-        let prevReadCount = 0;
-        if (newState.readsOverTime.length) {
-            prevReadCount = newState.readsOverTime[newState.readsOverTime.length-1][1]
-        }
-        newState.readsOverTime.push([
-//        parseInt((processTimeStamp(data.timeStamp) - newState.startTime)/1000, 10),
-            parseInt((data.time - newState.startTime)/1000, 10),
-            prevReadCount + data.readData.length
-        ]);
+        /* data here is set of guppy results, normally around 1000 reads */
+        const dataTime = parseInt((data.time - newState.startTime)/1000, 10);
+        modifyReadsOverTime(newState.readsOverTime, dataTime, data.readData.length);
+
         data.readData.forEach((line) => {
             /* line[0] = barcode (STR)
                line[1] = ref-panel-index (INT)
