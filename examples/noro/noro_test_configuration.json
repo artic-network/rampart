@@ -1,7 +1,7 @@
 {
   "name": "Noro virus typing ",
-  "referenceConfigPath": "./examples/noro/annotation.json",
-  "referencePanelPath": "./examples/noro/reference-genomes.fasta",
+  "referenceConfigPath": "annotation.json",
+  "referencePanelPath": "reference-genomes.fasta",
   "samples": [
   	{
   		"name": "Sample 1",
@@ -64,6 +64,6 @@
   		"barcodes": [ "barcode12" ]
   	}
   ],
-  "basecalledPath": "./examples/noro/data/basecalled/",
-  "demuxedPath": "./examples/noro/data/demuxed/"
+  "basecalledPath": "./data/basecalled/",
+  "demuxedPath": "./data/demuxed/"
 }

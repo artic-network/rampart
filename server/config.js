@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 const { getAbsolutePath } = require("./utils");
 
 const ensurePathExists = (p) => {
@@ -9,15 +10,16 @@ const ensurePathExists = (p) => {
 }
 
 const parseConfig = (args) => {
+    const configDir = path.dirname(getAbsolutePath(args.config));
     let config = JSON.parse(fs.readFileSync(getAbsolutePath(args.config)));
 
     /* check config file has the appropriate fields... */
 
     /* sort out paths */
-    config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath);
-    config.referencePanelPath = getAbsolutePath(config.referencePanelPath);
-    config.basecalledPath = getAbsolutePath(config.basecalledPath);
-    config.demuxedPath = getAbsolutePath(config.demuxedPath);
+    config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath, {relativeTo: configDir});
+    config.referencePanelPath = getAbsolutePath(config.referencePanelPath, {relativeTo: configDir});
+    config.basecalledPath = getAbsolutePath(config.basecalledPath, {relativeTo: configDir});
+    config.demuxedPath = getAbsolutePath(config.demuxedPath, {relativeTo: configDir});
 
     /* check if paths exist (perhaps we could make them if they don't) */
     ensurePathExists(config.referenceConfigPath);
