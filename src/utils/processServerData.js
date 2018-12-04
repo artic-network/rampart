@@ -126,10 +126,11 @@ export const addNewReadsToState = (oldState, json) => {
             // read length distribution
             const readLengthBin = Math.floor((line[3] - line[2] + 1) / readLengthResolution);
             if (readLengthBin >= oldState.readLengthPerSample[sampleIdxOfRead].length) {
-                // console.error("must extend readLengthPerSample array")
-            } else {
-                oldState.readLengthPerSample[sampleIdxOfRead][readLengthBin]++
+                for (let i=oldState.readLengthPerSample[sampleIdxOfRead].length; i<=readLengthBin; i++) {
+                    oldState.readLengthPerSample[sampleIdxOfRead][i] = 0;
+                }
             }
+            oldState.readLengthPerSample[sampleIdxOfRead][readLengthBin]++
 
             /* TODO this resolution could be made a lot coreser */
             for (let i=startIdx; i<=endIdx; i++) {
