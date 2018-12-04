@@ -101,16 +101,18 @@ const startUp = async () => {
     });
 
     if (!global.args.startWithDemuxedReads) {
-        console.log(`Started watching folder ${global.config.basecalledPath}`);
+        console.log(chalk.yellowBright(`\tStarted watching folder ${global.config.basecalledPath}`));
+        console.log(chalk.yellowBright(`\t(basecalled files created here will be demuxed)`));
         startWatcher(global.config.basecalledPath, ( path, event ) => {
-            console.log(`File ${path} has event ${event}`);
+            console.log(chalk.green(`DAEMON: File ${path} has event ${event}`));
             global.demuxQueue.push(path);
         });
     }
 
-    console.log(`Started watching folder ${global.config.demuxedPath}`);
+    console.log(chalk.yellowBright(`\tStarted watching folder ${global.config.demuxedPath}`));
+    console.log(chalk.yellowBright(`\t(demuxed files created here will be processed)`));
     startWatcher(global.config.demuxedPath, (path, event) => {
-        console.log(`File ${path} has event ${event}`);
+        console.log(chalk.green(`DAEMON: File ${path} has event ${event}`));
         global.mappingQueue.push(path);
     });
 

@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
-const path = require('path')
+const path = require('path');
+const chalk = require('chalk');
 // const { sleep } = require("./utils");
 
 let isRunning = false; // only want one porechop thread at a time!
@@ -53,12 +54,12 @@ const demuxer = async () => {
         const fastqToWrite = path.join(global.config.demuxedPath, path.basename(fileToDemux));
         try {
             // await sleep(1000); // slow things down for development
-            console.log("Demuxing ", path.basename(fileToDemux), "...")
+            console.log(chalk.green("DAEMON: Porechop called to demux ", path.basename(fileToDemux)));
             await call_porechop(fileToDemux, fastqToWrite, global.args.relaxedDemuxing || global.config.relaxedDemuxing);
-            console.log(path.basename(fileToDemux), "demuxed.")
+            console.log(chalk.green(`DAEMON: ${path.basename(fileToDemux)} demuxed.`));
             global.mappingQueue.push(fastqToWrite)
         } catch (err) {
-            console.log(`*** ERROR *** Demuxing ${path.basename(fileToDemux)}: ${err}`);
+            console.log(chalk.redBright(`*** ERROR *** Demuxing ${path.basename(fileToDemux)}: ${err}`));
         }
         isRunning = false;
         demuxer(); // recurse

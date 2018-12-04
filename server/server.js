@@ -49,7 +49,7 @@ const run = ({args, config, mappingResults}) => {
         /* the first read mapped is taken as the run start timestamp */
         if (!firstTimestamp) {
             firstTimestamp = global.mappingResults[0].time;
-            console.log(chalk.blueBright.bold("SERVER: firstTimestamp", firstTimestamp));
+            console.log(chalk.blueBright("SERVER: firstTimestamp", firstTimestamp));
         }
 
         /* how many reads should we send to the client? we want to do this in "real time",
@@ -77,7 +77,7 @@ const run = ({args, config, mappingResults}) => {
         }
 
         if (ret.length) {
-            console.log(chalk.blueBright.bold("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation."));
+            console.log(chalk.blueBright("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation."));
             res.json(ret);
         } else {
             // const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);

@@ -30,9 +30,9 @@ const startWatchers = () => {
 
 const main = async () => {
   await startUp(); /* block until we've read the appropriate files */
-  startWatchers();
   /* Listen on localhost and process requests from the client */
   const app = server.run({}); // eslint-disable-line
+  startWatchers();
 }
 
 main();

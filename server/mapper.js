@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
-const { sleep } = require("./utils");
+// const { sleep } = require("./utils");
+const chalk = require('chalk');
 
 let isRunning = false; // only want one mapping thread at a time!
 
@@ -55,9 +56,9 @@ const mapper = async () => {
             // await sleep(1000); // slow things down for development
             results = await call_python_mapper(fileToMap);
             global.mappingResults.push(results)
-            console.log(`Mapped ${fileToMap.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`);
+            console.log(chalk.green(`DAEMON: Mapped ${fileToMap.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`));
         } catch (err) {
-            console.log(`*** ERROR *** Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`);
+            console.log(chalk.redBright(`*** ERROR *** Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`));
         }
         isRunning = false;
         mapper(); // recurse
