@@ -15,6 +15,7 @@ parser.addArgument('--mockFailures', {action: "storeTrue", help: "Development fl
 parser.addArgument('--ignoreTimeStamps', {action: "storeTrue", help: "Development flag -- ignore the timestamps on the reads"});
 parser.addArgument('--startWithDemuxedReads', {action: "storeTrue", help: "Development flag."});
 parser.addArgument('--relaxedDemuxing', {action: "storeTrue", help: "Development flag -- don't require matching barcodes to demux."});
+parser.addArgument('--emptyDemuxed', {action: "storeTrue", help: "Development flag -- remove any demuxed files present when rampart starts up"});
 
 module.exports = {
   parser

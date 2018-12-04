@@ -33,16 +33,17 @@ export const requestReads = (state, setState) => {
   if (!state.name) return;
 
   fetch(`${serverAddress}/requestReads`)
-    .then((res) => {
-      if (res.status !== 200) throw new Error(res.statusText);
-      return res;
-    })
-    .then((res) => res.json())
-    .then((json) => {
-      setState(addNewReadsToState(state, json))
-    })
-    .catch((err) => {
-      // console.log("requestReads:", err)
-      // setState({status: err});
-    })
+  .then((res) => {
+    if (res.status !== 200) throw new Error(res.statusText);
+    return res;
+  })
+  .then((res) => res.json())
+  .then((json) => {
+    setState(addNewReadsToState(state, json))
+  })
+  .catch((err) => {
+    console.log("requestReads:", err.message)
+    // setState({status: err});
+  })
+
 }

@@ -31,14 +31,19 @@ const sortFastqsChronologically = async (fastqsUnsorted) => {
     return chronologicalFastqs;
 }
 
-const getFastqsFromDirectory = async (dir, {sortByTime=true} = {}) => {
+const getFastqsFromDirectory = async (dir, {sortByTime=true, exclude=undefined} = {}) => {
     let fastqs = (await readdir(dir))
         .filter((j) => j.endsWith(".fastq"))
         .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
         .map((j) => path.join(dir, j));
+    
+    if (exclude) {
+        const excludeList = exclude.map((p) => path.basename(p));
+        fastqs = fastqs.filter((fastqPath) => !excludeList.includes(path.basename(fastqPath)))
+    }
 
     /* examining the time stamps can be slow */
-    if (global.args.subsetFastqs ) {
+    if (global.args.subsetFastqs) {
         console.log(chalk.yellowBright.bold("\t\tOnly considering 100 FASTQs for speed reasons."))
         fastqs = fastqs.slice(0, 100);
     }
@@ -68,37 +73,35 @@ const startWatcher = (directory, addFunction) => {
         });
 }
 
+const twoDeepDir = (absPath) => absPath.split("/").slice(-2).join("/");
+
 const startUp = async () => {
     console.log(chalk.yellowBright.bold("\nRAMPART start up - Scanning input folders..."));
     /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
     save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
+
+    /* Scan the demuxed FASTQ folder */
+    if (global.args.emptyDemuxed) {
+        console.log(chalk.yellowBright.bold(`\tClearing the demuxed folder (${twoDeepDir(global.config.demuxedPath)})`))
+        const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
+        for (const file of demuxedFilesToDelete) {
+            fs.unlinkSync(path.join(global.config.demuxedPath, file));
+        }
+    } 
+    console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.demuxedPath)} for demuxed FASTQ files`));
+    let filesToMap = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
+    filesToMap.forEach((f) => global.mappingQueue.push(f));
+
+
     /* Scan the basecalled FASTQ folder */
-    let basecalledFastqs = [];
     if (global.args.startWithDemuxedReads) {
         console.log(chalk.yellowBright.bold(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`));
     } else {
-        console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.basecalledPath.split("/").slice(-2).join("/")} for basecalled FASTQ files`));
-        basecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true});
+        console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files. Ignoring ${global.mappingQueue.length} pre-demuxed files.`));
+         const basecalledFiles = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true, exclude: global.mappingQueue});
+         basecalledFiles.forEach((f) => global.demuxQueue.push(f));
     }
-
-    /* Scan the demuxed FASTQ folder -- assumes filenames are the same as basecalled FASTQs! */
-    console.log(chalk.yellowBright.bold(`\tScanning .../${global.config.demuxedPath.split("/").slice(-2).join("/")} for demuxed FASTQ files`));
-    const demuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
-
-
-    // push basecalled fastqs which _haven't_ been demuxed onto a deque
-    const demuxedFastqBasenames = demuxedFastqs.map((p) => path.basename(p));
-    basecalledFastqs.forEach((fastqPath) => {
-        if (!demuxedFastqBasenames.includes(path.basename(fastqPath))) {
-            global.demuxQueue.push(fastqPath)
-        }
-    });
-
-    // push all demuxed fastqs onto a deque
-    demuxedFastqs.forEach((fastqPath) => {
-        global.mappingQueue.push(fastqPath)
-    });
 
     if (!global.args.startWithDemuxedReads) {
         console.log(chalk.yellowBright(`\tStarted watching folder ${global.config.basecalledPath}`));
@@ -116,11 +119,7 @@ const startUp = async () => {
         global.mappingQueue.push(path);
     });
 
-    // console.log(chalk.yellowBright.bold(`\tClearing the demuxed folder contents`))
-    // const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
-    // for (const file of demuxedFilesToDelete) {
-    //   fs.unlinkSync(path.join(global.config.demuxedPath, file));
-    // }
+
 
     console.log(chalk.yellowBright.bold("RAMPART start up FINISHED\n"));
 
