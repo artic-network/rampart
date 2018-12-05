@@ -52,7 +52,7 @@ const parseConfig = (args) => {
         }); // remove the > character
 
     /* things that may be put into the config JSON in the future */
-    config.maxMappingFilesPerRequest = 10;
+    config.maxMappingFilesPerRequest = 100;
 
     return config;
 }
