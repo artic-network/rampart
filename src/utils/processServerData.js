@@ -14,7 +14,8 @@ const initialiseArray = (n) =>
 const modifyReadsOverTime = (readsOverTime, dataTime, newReads) => {
 
     if (!readsOverTime.length) {
-        readsOverTime.push([dataTime, newReads])
+        readsOverTime.push([0, 0]);
+        readsOverTime.push([dataTime, newReads]);
         return;
     }
 
@@ -89,16 +90,11 @@ export const addNewReadsToState = (oldState, json) => {
 
     const newState = {...oldState};
 
-    /* if we haven't yet had any reads, we have to initialise the "run start time" via the first JSON */
-    if (!newState.startTime) {newState.startTime = min(json.map((j) => j.time));}
-
     let readsAdded = 0;
     json.forEach((data) => {
-        // console.log("DATA FROM SERVER:", data)
-        /* data here is set of guppy results, normally around 1000 reads */
-        const dataTime = parseInt((data.time - newState.startTime)/1000, 10);
-        modifyReadsOverTime(newState.readsOverTime, dataTime, data.readData.length);
-
+        // console.log("DATA FROM SERVER:", data);
+        modifyReadsOverTime(newState.readsOverTime, data.time, data.readData.length);
+        console.log(newState.readsOverTime)
         data.readData.forEach((line) => {
             /* line[0] = barcode (STR)
                line[1] = ref-panel-index (INT)

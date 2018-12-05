@@ -3,97 +3,104 @@ const path = require('path')
 const { promisify } = require('util');
 const { save_coordinate_reference_as_fasta } = require("./mapper");
 const readdir = promisify(fs.readdir);
-const { spawn } = require('child_process');
 const chalk = require('chalk');
+const { setReadTime, getTimeViaSequencingSummary } = require('./extractReadTime');
 
-const getFastqTimestamp = (filepath) => new Promise((resolve, reject) => {
-    const head = spawn('head', ['-n', '1', filepath]);
-    head.stdout.on('data', (data) => {
-        // console.log(filepath, data.toString(), (new Date((/start_time=(\S+)/g).exec(data)[1])).getTime())
-        resolve((new Date((/start_time=(\S+)/g).exec(data.toString())[1])).getTime());
-    });
-});
-
-const sortFastqsChronologically = async (fastqsUnsorted) => {
-    const timeMap = new Map();
-    for (let i=0; i<fastqsUnsorted.length; i++) {
-        try {
-            const timestamp = await getFastqTimestamp(fastqsUnsorted[i]);
-            timeMap.set(fastqsUnsorted[i], timestamp);
-        } catch (err) {
-            // no-op. There won't be a timestamp in timeMap and the fastq will be ignored
-        }
-    }
-    const chronologicalFastqs = fastqsUnsorted.filter((f) => timeMap.has(f))
-        .sort((a, b) => timeMap.get(a)>timeMap.get(b) ? 1 : -1);
-    return chronologicalFastqs;
-}
-
-const getFastqsFromDirectory = async (dir, {sortByTime=true, exclude=undefined} = {}) => {
+const getFastqsFromDirectory = async (dir) => {
     let fastqs = (await readdir(dir))
         .filter((j) => j.endsWith(".fastq"))
         .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
         .map((j) => path.join(dir, j));
-    
-    if (exclude) {
-        const excludeList = exclude.map((p) => path.basename(p));
-        fastqs = fastqs.filter((fastqPath) => !excludeList.includes(path.basename(fastqPath)))
-    }
-
-    /* examining the time stamps can be slow */
-    if (global.args.subsetFastqs) {
-        console.log(chalk.yellowBright.bold("\t\tOnly considering 100 FASTQs for speed reasons."))
-        fastqs = fastqs.slice(0, 100);
-    }
-
-    console.log(chalk.yellowBright.bold(`\t\tFound ${fastqs.length} FASTQ files.`));
-
-    if (sortByTime) {
-        process.stdout.write(chalk.yellowBright.bold(`\t\tSorting by timestamp... `)); /* no newline */
-        fastqs = await sortFastqsChronologically(fastqs);
-        console.log(chalk.yellowBright.bold(`SORTED.`))
-    }
-
     return fastqs;
 }
 
 const twoDeepDir = (absPath) => absPath.split("/").slice(-2).join("/");
 
+const log = (msg) => console.log(chalk.yellowBright.bold(msg));
+
 const startUp = async () => {
-    console.log(chalk.yellowBright.bold("\nRAMPART start up - Scanning input folders..."));
+    log`\nRAMPART start up - Scanning input folders...`;
     /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
     save_coordinate_reference_as_fasta(global.config.reference.sequence);
 
+    let unsortedBasecalledFastqs = [];
+    let unsortedDemuxedFastqs = [];
 
-    /* Scan the demuxed FASTQ folder */
+    /* Scan the basecalled FASTQ folder */
+    if (global.args.startWithDemuxedReads) {
+        log(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`);
+    } else if (fs.existsSync(global.config.basecalledPath)) {
+        log(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files.`); //  Ignoring ${global.mappingQueue.length} pre-demuxed files.
+        unsortedBasecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath);
+    } else {
+        log`\tBasecalled directory .../${twoDeepDir(global.config.basecalledPath)} doesn't yet eist (will watch)`;
+    }
+
+    /* Look at the demuxed folder */
     if (global.args.emptyDemuxed) {
-        console.log(chalk.yellowBright.bold(`\tClearing the demuxed folder (${twoDeepDir(global.config.demuxedPath)})`))
+        log`\tClearing the demuxed folder (${twoDeepDir(global.config.demuxedPath)})`;
         const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
         for (const file of demuxedFilesToDelete) {
             fs.unlinkSync(path.join(global.config.demuxedPath, file));
         }
-    }
-    console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.demuxedPath)} for demuxed FASTQ files`));
-    let filesToMap = await getFastqsFromDirectory(global.config.demuxedPath, {sortByTime: true});
-    filesToMap.forEach((f) => global.mappingQueue.push(f));
-    /* add the filenames to global.haveBeenSeen so that any future file watchers don't re-process them. This should be revisited */
-    filesToMap.forEach((f) => global.haveBeenSeen.add(path.basename(f)));
-
-
-    /* Scan the basecalled FASTQ folder */
-    if (global.args.startWithDemuxedReads) {
-        console.log(chalk.yellowBright.bold(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`));
-    } else if (fs.existsSync(global.config.basecalledPath)) {
-        console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files. Ignoring ${global.mappingQueue.length} pre-demuxed files.`));
-        const basecalledFiles = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true, exclude: global.mappingQueue});
-        basecalledFiles.forEach((f) => global.demuxQueue.push(f));
-        /* add the filenames to global.haveBeenSeen so that any future file watchers don't re-process them. This should be revisited */
-        basecalledFiles.forEach((f) => global.haveBeenSeen.add(path.basename(f)));
     } else {
-        console.log(chalk.yellowBright.bold(`\tBasecalled directory .../${twoDeepDir(global.config.basecalledPath)} doesn't yet eist (will watch)`));
+        log`\tScanning .../${twoDeepDir(global.config.demuxedPath)} for demuxed FASTQ files`;
+        unsortedDemuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath);
     }
 
-    console.log(chalk.yellowBright.bold("RAMPART start up FINISHED\n"));
+    /* set timestamps for everything... */
+    log`\tGetting timestamps from basecalled and demuxed files`;
+    let epochOffset = 1E100;
+    for (let fastq of unsortedBasecalledFastqs) {
+        await setReadTime(fastq);
+    }
+    for (let fastq of unsortedDemuxedFastqs) {
+        await setReadTime(fastq);
+    }
+    /* work out minimum epoch time to set the offset appropriately */
+    if (global.epochMap.size) {
+        global.epochMap.forEach((tRaw, key) => {
+            if (tRaw < epochOffset) epochOffset = tRaw;
+        });
+    }
+    /* what's the minimum offset time from the summary stats, if they exist? */
+    if (global.timeMap.size) {
+        let minT = 1E100;
+        let minKey;
+        global.timeMap.forEach((t, key) => {
+            if (t < minT) minKey = key;
+        });
+        const epochTime = await getTimeViaSequencingSummary(path.join(global.config.basecalledPath, minKey));
+        if (epochTime < epochOffset) {
+            epochOffset = epochTime;
+        }
+    }
+    console.log("epochOffset", epochOffset);
+    global.epochMap.forEach((tRaw, key) => {
+        global.timeMap.set(key, parseInt((tRaw - epochOffset)/1000, 10));
+    });
+    global.epochMap.clear();
+    global.epochMap.set("offset", epochOffset);
+    console.log("AA", global.timeMap);
+    console.log("AAA", global.epochMap);
+    
+    /* sort the fastqs via these timestamps and push onto the appropriate deques */
+    unsortedDemuxedFastqs
+        .sort((a, b) => global.timeMap.get(path.basename(a))>global.timeMap.get(path.basename(b)) ? 1 : -1)
+        .forEach((f) => {
+            global.mappingQueue.push(f);
+            global.haveBeenSeen.add(path.basename(f));
+        })
+
+    unsortedBasecalledFastqs
+        .filter((fastqPath) => !unsortedDemuxedFastqs.includes(path.basename(fastqPath)))
+        .sort((a, b) => global.timeMap.get(path.basename(a))>global.timeMap.get(path.basename(b)) ? 1 : -1)
+        .forEach((f) => {
+            global.demuxQueue.push(f);
+            global.haveBeenSeen.add(path.basename(f))
+        });
+
+    log`RAMPART start up FINISHED\n`;
 
 }
 

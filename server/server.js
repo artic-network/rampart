@@ -13,6 +13,7 @@ const error = (res, msg) => {
 const run = ({args, config, mappingResults}) => {
     let mappingResultsPointer = 0; /* idx of global.mappingResults to send next */
     let clientHasConnected = false;
+    let timeOfFirstSentRead;
 
     const app = express()
     app.use(cors())
@@ -47,7 +48,12 @@ const run = ({args, config, mappingResults}) => {
 
         let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
         // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingResultsPointer);
-    
+
+        if (nAvailable && !timeOfFirstSentRead) {
+            timeOfFirstSentRead = global.mappingResults[0].time;
+            console.log("SET FIRST READ TIME OF", timeOfFirstSentRead)
+        }
+
         if (nAvailable === 0 || nAvailable <= mappingResultsPointer) {
             res.statusMessage = 'No reads available.'
             return res.status(500).end();
@@ -55,14 +61,19 @@ const run = ({args, config, mappingResults}) => {
     
         const ret = [];
         while (mappingResultsPointer < nAvailable) {
+            if (timeOfFirstSentRead > global.mappingResults[mappingResultsPointer]) {
+                console.log("WTF -- time is before first read!?! ignoring...")
+                mappingResultsPointer++;
+                break;
+            }
             ret.push(global.mappingResults[mappingResultsPointer++]);
             if (ret.length >= global.config.maxMappingFilesPerRequest) {
                 break;
             }
         }
-    
+
         if (ret.length) {
-            console.log(chalk.blueBright("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation."));
+            console.log(chalk.blueBright("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation. Read times:", ret.map((r) => r.time+"s").join(", ")));
             res.json(ret);
         } else {
             res.statusMessage = 'No reads available.'

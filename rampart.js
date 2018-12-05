@@ -15,7 +15,9 @@ global.haveBeenSeen = new Set();
 global.demuxQueue = new Deque();
 global.mappingQueue = new Deque();
 global.mappingResults = new Deque();
-global.scriptStartTime = Date.now();
+global.timeMap = new Map();
+global.epochMap = new Map();
+
 
 const startWatchers = () => {
   /* as things get pushed onto the deques, we want to spawn the
