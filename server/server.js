@@ -12,6 +12,8 @@ const error = (res, msg) => {
 
 const run = ({args, config, mappingResults}) => {
     let mappingResultsPointer = 0; /* idx of global.mappingResults to send next */
+    let clientHasConnected = false;
+
     const app = express()
     app.use(cors())
 
@@ -30,10 +32,19 @@ const run = ({args, config, mappingResults}) => {
           mappingResultsPointer = 0;
         }
         console.log(chalk.blueBright.bold("\t\t*********************\n\n"));
+        clientHasConnected = true;
     });
 
     /* REQUEST AVAILABLE READS */
     app.get('/requestReads', (req, res) => {
+
+        if (!clientHasConnected) {
+            /* tell the client to re-initialise. This prevents out-of-sync bugs
+            if the client was connected to a previous instance of the rampart daemon */
+            res.statusMessage = 'force requestRunInfo'
+            return res.status(500).end();
+        }
+
         let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
         // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingResultsPointer);
     

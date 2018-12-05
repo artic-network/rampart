@@ -55,7 +55,7 @@ class App extends Component {
           setViewOptions={this.setViewOptions}
           viewOptions={this.state.viewOptions}
         />
-        {this.state.startTime ? (
+        {this.state.dataVersion ? (
           <div>
             <OverallSummary
               samples={this.state.samples}

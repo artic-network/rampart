@@ -42,6 +42,11 @@ export const requestReads = (state, setState) => {
     setState(addNewReadsToState(state, json))
   })
   .catch((err) => {
+    if (err.message === "force requestRunInfo") {
+      setState({status: "App Reloading", dataVersion: undefined});
+      queryServerForRunConfig(state, setState);
+      return;
+    }
     console.log("requestReads:", err.message)
     // setState({status: err});
   })
