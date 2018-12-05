@@ -2,26 +2,19 @@ const chokidar = require('chokidar');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
+const { sleep } = require('./utils');
 
 const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
   try {
-    const fastqNum = parseInt(newfile.match(/_(\d+)\.fastq/)[1], 10);
-    if (!fastqNum) return; /* 0 */
-
-    const fileToAdd = newfile.replace(`_${fastqNum}.fastq`, `_${fastqNum-1}.fastq`);
-    const fileToAddBasename = path.basename(fileToAdd)
-    if (global.haveBeenSeen.has(fileToAddBasename)) {
-      console.log(chalk.cyan(`chokidar ignoring ${fileToAddBasename} as it's already been processed`));
+    const basename = path.basename(newfile)
+    if (global.haveBeenSeen.has(basename)) {
+      console.log(chalk.cyan(`chokidar ignoring ${basename} as it's already been processed`));
       return;
     }
-    if (!fs.existsSync(fileToAdd)) {
-      console.log(chalk.red(`ignoring "${fileToAddBasename}" as it doesn't exist`));
-      return;
-    }
-    console.log(chalk.cyan(`DAEMON: new basecalled file "${path.basename(newfile)}" => adding "${fileToAddBasename}" to demux queue.`));
-    global.demuxQueue.push(fileToAdd);
-    global.haveBeenSeen.add(fileToAddBasename);
+    console.log(chalk.cyan(`WATCHER: new basecalled file => adding "${basename}" to demux queue.`));
+    global.demuxQueue.push(newfile);
+    global.haveBeenSeen.add(basename);
 
   } catch (err) {
     console.log(err);
@@ -29,7 +22,21 @@ const newFastqFileHandler = (newfile, details) => {
 
 }
 
-const startGuppyWatcher = () => {
+const startWatcher = () => {
+  const watcher = chokidar.watch(global.config.basecalledPath, {
+    ignored: /(^|[/\\])\../,
+    interval: 1000,
+    persistent: true,
+    depth: 1
+  });
+  watcher.on("ready", () => {
+    console.log(chalk.yellowBright(`Started watching folder ${global.config.basecalledPath}`));
+    console.log(chalk.yellowBright(`(basecalled files created here will be demuxed)`));      
+    watcher.on("add", newFastqFileHandler);
+  });
+}
+
+const startGuppyWatcher = async () => {
   if (global.args.startWithDemuxedReads) {
     console.log(chalk.green(`DAEMON: Not watching for guppy files due to --startWithDemuxedReads flag.`));
     return;
@@ -43,19 +50,14 @@ const startGuppyWatcher = () => {
    * We watch for file creation then add the previous fastq to the deque
    */
 
-  console.log(chalk.yellowBright(`Started watching folder ${global.config.basecalledPath}`));
-  console.log(chalk.yellowBright(`(basecalled files created here will be demuxed)`));
-
-  const watcher = chokidar.watch(global.config.basecalledPath, {
-      ignored: /(^|[/\\])\../,
-      interval: 1000,
-      persistent: true,
-      depth: 1
-    });
-  /* after the initial scan completes attatch the "new file" handler */
-  watcher.on("ready", () => {
-    watcher.on("add", newFastqFileHandler);
-  });
+  while (true) {
+    if (fs.existsSync(global.config.basecalledPath)) {
+      startWatcher();
+      break;
+    }
+    await sleep(5000);
+    console.log("INFO: basecalled directory doesn't yet exist...")
+  }
 
 }
 
