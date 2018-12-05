@@ -118,7 +118,10 @@ export const addNewReadsToState = (oldState, json) => {
 
             // start & end index, relative to genomeResolution
             const startIdx = Math.floor(line[2] / genomeResolution);
-            const endIdx   = Math.ceil(line[3] / genomeResolution);
+            let endIdx   = Math.ceil(line[3] / genomeResolution);
+            if (endIdx >= oldState.coveragePerSample[sampleIdxOfRead].length) {
+                endIdx = oldState.coveragePerSample[sampleIdxOfRead].length-1
+            }
             for (let i=startIdx; i<=endIdx; i++) {
                 oldState.coveragePerSample[sampleIdxOfRead][i]++
             }
