@@ -1,11 +1,17 @@
 const fs = require('fs')
 const path = require('path')
+const chalk = require('chalk');
 const { getAbsolutePath } = require("./utils");
 
-const ensurePathExists = (p) => {
+const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
-        console.log("ERROR. Path", p, "doesn't exist.");
-        process.exit(1);
+        if (make) {
+            console.log(chalk.yellowBright("Path", p, "created"));
+            fs.mkdirSync(p, {recursive: true})
+        } else {
+            console.log("ERROR. Path", p, "doesn't exist.");
+            process.exit(1);
+        }
     }
 }
 
@@ -24,10 +30,7 @@ const parseConfig = (args) => {
     /* check if paths exist (perhaps we could make them if they don't) */
     ensurePathExists(config.referenceConfigPath);
     ensurePathExists(config.referencePanelPath);
-    if (!global.args.startWithDemuxedReads) {
-        ensurePathExists(config.basecalledPath);
-    }
-    ensurePathExists(config.demuxedPath);
+    ensurePathExists(config.demuxedPath, {make: true});
 
     /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
     const secondConfig = JSON.parse(fs.readFileSync(config.referenceConfigPath));

@@ -83,12 +83,14 @@ const startUp = async () => {
     /* Scan the basecalled FASTQ folder */
     if (global.args.startWithDemuxedReads) {
         console.log(chalk.yellowBright.bold(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`));
-    } else {
+    } else if (fs.existsSync(global.config.basecalledPath)) {
         console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files. Ignoring ${global.mappingQueue.length} pre-demuxed files.`));
         const basecalledFiles = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true, exclude: global.mappingQueue});
         basecalledFiles.forEach((f) => global.demuxQueue.push(f));
         /* add the filenames to global.haveBeenSeen so that any future file watchers don't re-process them. This should be revisited */
         basecalledFiles.forEach((f) => global.haveBeenSeen.add(path.basename(f)));
+    } else {
+        console.log(chalk.yellowBright.bold(`\tBasecalled directory .../${twoDeepDir(global.config.basecalledPath)} doesn't yet eist (will watch)`));
     }
 
     console.log(chalk.yellowBright.bold("RAMPART start up FINISHED\n"));
