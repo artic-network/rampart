@@ -85,7 +85,7 @@ const startUp = async () => {
         console.log(chalk.yellowBright.bold(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`));
     } else {
         console.log(chalk.yellowBright.bold(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files. Ignoring ${global.mappingQueue.length} pre-demuxed files.`));
-        const basecalledFiles = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: false, exclude: global.mappingQueue});
+        const basecalledFiles = await getFastqsFromDirectory(global.config.basecalledPath, {sortByTime: true, exclude: global.mappingQueue});
         basecalledFiles.forEach((f) => global.demuxQueue.push(f));
         /* add the filenames to global.haveBeenSeen so that any future file watchers don't re-process them. This should be revisited */
         basecalledFiles.forEach((f) => global.haveBeenSeen.add(path.basename(f)));
