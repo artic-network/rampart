@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const { setTimeViaFastq } = require('./extractReadTime');
+const { prettyPath } = require('./utils');
 
 let isRunning = false; // only want one mapping thread at a time!
 
@@ -49,6 +50,7 @@ const mapper = async () => {
         let results;
         const fileToMap = global.mappingQueue.shift();
         try {
+            console.log(chalk.green(`MAPPER: queue length: ${global.mappingQueue.length+1}. Mapping ${prettyPath(fileToMap)}`));
             results = await call_python_mapper(fileToMap);
 
             if (!global.timeMap.has(path.basename(fileToMap))) {
@@ -56,7 +58,7 @@ const mapper = async () => {
             }
 
             global.mappingResults.push(results)
-            console.log(chalk.green(`MAPPER:  Mapped ${fileToMap.split("/").slice(-1)[0]}. Read time: ${results.time}`));
+            console.log(chalk.green(`MAPPER: Mapped ${prettyPath(fileToMap)}. Read time: ${results.time}`));
 
 
         } catch (err) {

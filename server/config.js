@@ -24,7 +24,13 @@ const parseConfig = (args) => {
     /* sort out paths */
     config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath, {relativeTo: configDir});
     config.referencePanelPath = getAbsolutePath(config.referencePanelPath, {relativeTo: configDir});
-    config.basecalledPath = getAbsolutePath(config.basecalledPath, {relativeTo: configDir});
+
+    if (args.basecalledDir) {
+        config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
+        console.log("BC:", config.basecalledPath)
+    } else {
+        config.basecalledPath = getAbsolutePath(config.basecalledPath, {relativeTo: configDir});
+    }
     config.demuxedPath = getAbsolutePath(config.demuxedPath, {relativeTo: configDir});
 
     /* check if paths exist (perhaps we could make them if they don't) */

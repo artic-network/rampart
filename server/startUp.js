@@ -5,6 +5,7 @@ const { save_coordinate_reference_as_fasta } = require("./mapper");
 const readdir = promisify(fs.readdir);
 const chalk = require('chalk');
 const { setReadTime, getTimeViaSequencingSummary } = require('./extractReadTime');
+const { prettyPath } = require('./utils');
 
 const getFastqsFromDirectory = async (dir) => {
     let fastqs = (await readdir(dir))
@@ -13,8 +14,6 @@ const getFastqsFromDirectory = async (dir) => {
         .map((j) => path.join(dir, j));
     return fastqs;
 }
-
-const twoDeepDir = (absPath) => absPath.split("/").slice(-2).join("/");
 
 const log = (msg) => console.log(chalk.yellowBright.bold(msg));
 
@@ -30,26 +29,26 @@ const startUp = async () => {
     if (global.args.startWithDemuxedReads) {
         log(`\tSkipping basecalled files due to --startWithDemuxedReads flag.`);
     } else if (fs.existsSync(global.config.basecalledPath)) {
-        log(`\tScanning .../${twoDeepDir(global.config.basecalledPath)} for basecalled FASTQ files.`); //  Ignoring ${global.mappingQueue.length} pre-demuxed files.
         unsortedBasecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath);
+        log(`\tFound ${unsortedBasecalledFastqs.length} basecalled fastqs in ${prettyPath(global.config.basecalledPath)}`);
     } else {
-        log`\tBasecalled directory .../${twoDeepDir(global.config.basecalledPath)} doesn't yet eist (will watch)`;
+        log(`\tBasecalled directory ${prettyPath(global.config.basecalledPath)} doesn't yet eist (will watch)`);
     }
 
     /* Look at the demuxed folder */
     if (global.args.emptyDemuxed) {
-        log`\tClearing the demuxed folder (${twoDeepDir(global.config.demuxedPath)})`;
+        log(`\tClearing the demuxed folder (${prettyPath(global.config.demuxedPath)})`);
         const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
         for (const file of demuxedFilesToDelete) {
             fs.unlinkSync(path.join(global.config.demuxedPath, file));
         }
     } else {
-        log`\tScanning .../${twoDeepDir(global.config.demuxedPath)} for demuxed FASTQ files`;
         unsortedDemuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath);
+        log(`\tFound ${unsortedDemuxedFastqs.length} basecalled fastqs in ${prettyPath(global.config.demuxedPath)}`);
     }
 
     /* set timestamps for everything... */
-    log`\tGetting timestamps from basecalled and demuxed files`;
+    log(`\tGetting read times from basecalled and demuxed files`);
     let epochOffset = 1E100;
     for (let fastq of unsortedBasecalledFastqs) {
         await setReadTime(fastq);
@@ -75,16 +74,18 @@ const startUp = async () => {
             epochOffset = epochTime;
         }
     }
-    console.log("epochOffset", epochOffset);
+    // console.log("epochOffset", epochOffset);
     global.epochMap.forEach((tRaw, key) => {
         global.timeMap.set(key, parseInt((tRaw - epochOffset)/1000, 10));
     });
+    // console.log("AA", global.timeMap);
+    // console.log("AAA", global.epochMap);
     global.epochMap.clear();
     global.epochMap.set("offset", epochOffset);
-    console.log("AA", global.timeMap);
-    console.log("AAA", global.epochMap);
+
     
     /* sort the fastqs via these timestamps and push onto the appropriate deques */
+    log(`\tSorting available basecalled and demuxed files based on read times`);
     unsortedDemuxedFastqs
         .sort((a, b) => global.timeMap.get(path.basename(a))>global.timeMap.get(path.basename(b)) ? 1 : -1)
         .forEach((f) => {
@@ -92,8 +93,9 @@ const startUp = async () => {
             global.haveBeenSeen.add(path.basename(f));
         })
 
+    const demuxedBasenames = unsortedDemuxedFastqs.map((name) => path.basename(name))
     unsortedBasecalledFastqs
-        .filter((fastqPath) => !unsortedDemuxedFastqs.includes(path.basename(fastqPath)))
+        .filter((fastqPath) => !demuxedBasenames.includes(path.basename(fastqPath)))
         .sort((a, b) => global.timeMap.get(path.basename(a))>global.timeMap.get(path.basename(b)) ? 1 : -1)
         .forEach((f) => {
             global.demuxQueue.push(f);
@@ -101,6 +103,9 @@ const startUp = async () => {
         });
 
     log`RAMPART start up FINISHED\n`;
+    console.log(global.demuxQueue)
+
+    console.log(global.mappingQueue)
 
 }
 

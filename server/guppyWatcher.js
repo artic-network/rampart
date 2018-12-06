@@ -9,7 +9,6 @@ const newFastqFileHandler = (newfile, details) => {
   try {
     const basename = path.basename(newfile)
     if (global.haveBeenSeen.has(basename)) {
-      console.log(chalk.cyan(`chokidar ignoring ${basename} as it's already been processed`));
       return;
     }
     console.log(chalk.cyan(`WATCHER: new basecalled file => adding "${basename}" to demux queue.`));
@@ -29,11 +28,9 @@ const startWatcher = () => {
     persistent: true,
     depth: 1
   });
-  watcher.on("ready", () => {
-    console.log(chalk.yellowBright(`Started watching folder ${global.config.basecalledPath}`));
-    console.log(chalk.yellowBright(`(basecalled files created here will be demuxed)`));      
-    watcher.on("add", newFastqFileHandler);
-  });
+  console.log(chalk.yellowBright(`Started watching folder ${global.config.basecalledPath}`));
+  console.log(chalk.yellowBright(`(basecalled files created here will be demuxed)`));      
+  watcher.on("add", newFastqFileHandler);
 }
 
 const startGuppyWatcher = async () => {

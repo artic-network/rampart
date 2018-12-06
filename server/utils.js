@@ -21,7 +21,17 @@ const sleep = (ms) => new Promise((resolve) =>
   setTimeout(resolve, ms)
 );
 
+
+const prettyPath = (path) => {
+  if (path.split("/").length > 3) {
+      return `.../${path.split("/").slice(-3).join("/")}`;
+  }
+  return path;
+}
+
+
 module.exports = {
   getAbsolutePath,
-  sleep
+  sleep,
+  prettyPath
 };
