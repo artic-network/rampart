@@ -103,10 +103,8 @@ const startUp = async () => {
         });
 
     log`RAMPART start up FINISHED\n`;
-    console.log(global.demuxQueue)
-
-    console.log(global.mappingQueue)
-
+    // console.log(global.demuxQueue)
+    // console.log(global.mappingQueue)
 }
 
 
