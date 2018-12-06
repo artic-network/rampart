@@ -80,6 +80,7 @@ export const createInitialState = (infoJson) => {
 
     state.readsOverTime = [];
     state.versions = [...Array(state.samples.length)].map(() => 1);
+    state.nFastqs = 0;
 
     return state;
 }
@@ -93,8 +94,8 @@ export const addNewReadsToState = (oldState, json) => {
     let readsAdded = 0;
     json.forEach((data) => {
         // console.log("DATA FROM SERVER:", data);
+        newState.nFastqs++;
         modifyReadsOverTime(newState.readsOverTime, data.time, data.readData.length);
-        console.log(newState.readsOverTime)
         data.readData.forEach((line) => {
             /* line[0] = barcode (STR)
                line[1] = ref-panel-index (INT)

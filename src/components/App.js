@@ -50,6 +50,7 @@ class App extends Component {
           name={this.state.name}
           runTime={this.state.readsOverTime && this.state.readsOverTime.length ? this.state.readsOverTime[this.state.readsOverTime.length-1][0] : 0}
           numReads={this.state.readCountPerSample ? sum(this.state.readCountPerSample) : 0}
+          nFastqs={this.state.nFastqs}
           numSamples={this.state.samples ? this.state.samples.length : 0}
           timeLastReadsReceived={this.state.timeLastReadsReceived}
           setViewOptions={this.setViewOptions}
