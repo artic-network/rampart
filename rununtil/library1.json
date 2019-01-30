@@ -1,44 +1,44 @@
 {
   "name": "Library1",
-  "referenceConfigPath": "CHKV_BHI3734.json",
-  "referencePanelPath": "arbovirus_reference_genomes.fasta",
+  "referenceConfigPath": "./CHKV_BHI3734.json",
+  "referencePanelPath": "./arbovirus_reference_genomes.fasta",
   "samples": [
       {
           "name": "CHIKV06",
           "description": "",
-          "barcodes": [ "barcode01" ]
+          "barcodes": [ "BC01" ]
       },
       {
           "name": "CHIKV07",
           "description": "",
-          "barcodes": [ "barcode02" ]
+          "barcodes": [ "BC02" ]
       },
       {
           "name": "CHIKV08",
           "description": "",
-          "barcodes": [ "barcode03" ]
+          "barcodes": [ "BC03" ]
       },
       {
           "name": "CHIKV09",
           "description": "",
-          "barcodes": [ "barcode04" ]
+          "barcodes": [ "BC04" ]
       },
       {
           "name": "CHIKV10",
           "description": "",
-          "barcodes": [ "barcode05" ]
+          "barcodes": [ "BC05" ]
       },
       {
           "name": "CHIKV11",
           "description": "",
-          "barcodes": [ "barcode06" ]
+          "barcodes": [ "BC06" ]
       },
       {
           "name": "NC_CHIK",
           "description": "",
-          "barcodes": [ "barcode11" ]
-      },
+          "barcodes": [ "BC11" ]
+      }
   ],
   "basecalledPath": "",
-  "demuxedPath": "",
+  "demuxedPath": "../demuxed/library1"
 }
