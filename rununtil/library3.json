@@ -1,0 +1,69 @@
+{
+  "name": "Library3",
+  "referenceConfigPath": "./YFV_config.json",
+  "referencePanelPath": "./arbovirus_reference_genomes.fasta",
+  "samples": [
+      {
+          "name": "1069A",
+          "description": "",
+          "barcodes": [ "BC01" ]
+      },
+      {
+          "name": "1069B",
+          "description": "",
+          "barcodes": [ "BC02" ]
+      },
+      {
+          "name": "1070A",
+          "description": "",
+          "barcodes": [ "BC03" ]
+      },
+      {
+          "name": "1070B",
+          "description": "",
+          "barcodes": [ "BC04" ]
+      },
+      {
+          "name": "1081A",
+          "description": "",
+          "barcodes": [ "BC05" ]
+      },
+      {
+          "name": "1081B",
+          "description": "",
+          "barcodes": [ "BC06" ]
+      },
+      {
+          "name": "1074A",
+          "description": "",
+          "barcodes": [ "BC07" ]
+      },
+      {
+          "name": "1074B",
+          "description": "",
+          "barcodes": [ "BC08" ]
+      },
+      {
+          "name": "Z88A",
+          "description": "",
+          "barcodes": [ "BC09" ]
+      },
+      {
+          "name": "Z88B",
+          "description": "",
+          "barcodes": [ "BC10" ]
+      },
+      {
+          "name": "CHIKV26A",
+          "description": "",
+          "barcodes": [ "BC11" ]
+      },
+      {
+          "name": "CHIKV26B",
+          "description": "",
+          "barcodes": [ "BC12" ]
+      }
+  ],
+  "basecalledPath": "",
+  "demuxedPath": "../demuxed/library3"
+}
