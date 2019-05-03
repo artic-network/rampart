@@ -94,7 +94,7 @@ const run = ({args, config, mappingResults}) => {
     app.listen(app.get('port'), () => {
         console.log(chalk.blueBright.bold(`\n\n---------------------------------------------------------------------------`));
         console.log(chalk.blueBright.bold(`RAMPART daemon & server running (listening on port ${port})`));
-        console.log(chalk.blueBright.bold(`Now run run "npm run start" to start the web app`));
+        console.log(chalk.blueBright.bold(`Open a browser to localhost:${port} to view the results`));
         console.log(chalk.blueBright.bold(`---------------------------------------------------------------------------\n\n`));
     });
     return app;
