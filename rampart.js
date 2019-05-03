@@ -5,14 +5,19 @@ const Deque = require("collections/deque");
 const { mapper } = require("./server/mapper");
 const { demuxer } = require("./server/demuxer");
 const { startUp } = require("./server/startUp");
+const { startGuppyWatcher } = require("./server/guppyWatcher");
+const { sleep } = require("./server/utils");
 
 /* make some globals available everywhere */
 global.args = parser.parseArgs();
 global.config = parseConfig(global.args);
+global.haveBeenSeen = new Set();
 global.demuxQueue = new Deque();
 global.mappingQueue = new Deque();
 global.mappingResults = new Deque();
-global.scriptStartTime = Date.now();
+global.timeMap = new Map();
+global.epochMap = new Map();
+
 
 const startWatchers = () => {
   /* as things get pushed onto the deques, we want to spawn the
@@ -25,14 +30,16 @@ const startWatchers = () => {
   // start watchers
   demuxer();
   mapper();
+  startGuppyWatcher();
 }
 
 
 const main = async () => {
   await startUp(); /* block until we've read the appropriate files */
-  startWatchers();
   /* Listen on localhost and process requests from the client */
   const app = server.run({}); // eslint-disable-line
+  await sleep(200);
+  startWatchers();
 }
 
 main();

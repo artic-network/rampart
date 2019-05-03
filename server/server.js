@@ -1,21 +1,20 @@
 const express = require('express')
 const cors = require('cors')
-// const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk');
 
-let firstTimestamp;
-let mappingFilesPointer = 0; /* idx of global.mappingResults to send next */
-const maxMappingFilesPerRequest = 10; /* can catch up faster if a client re-connects and there's a bunch of mapped data ready */
-
 const error = (res, msg) => {
     res.statusMessage = msg;
-    console.warn("WARNING", res.statusMessage);
+    console.warn(chalk.red("WARNING", res.statusMessage));
     res.status(500).end();
     return;
 }
 
 const run = ({args, config, mappingResults}) => {
+    let mappingResultsPointer = 0; /* idx of global.mappingResults to send next */
+    let clientHasConnected = false;
+    // let timeOfFirstSentRead;
+
     const app = express()
     app.use(cors())
 
@@ -29,63 +28,58 @@ const run = ({args, config, mappingResults}) => {
         console.log(chalk.blueBright.bold("\n\n\t\t*********************"));
         console.log(chalk.blueBright.bold("SERVER: Client initialising. Sending info & annotation data."));
         res.json(global.config);
-        if (mappingFilesPointer !== 0) {
-          console.log(chalk.blueBright.bold("Restoring previously sent reads."));
-          mappingFilesPointer = 0;
+        if (mappingResultsPointer !== 0) {
+          console.log(chalk.blueBright.bold("Previously sent reads will be resent."));
+          mappingResultsPointer = 0;
         }
         console.log(chalk.blueBright.bold("\t\t*********************\n\n"));
+        clientHasConnected = true;
     });
 
     /* REQUEST AVAILABLE READS */
     app.get('/requestReads', (req, res) => {
-        let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
-        // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingFilesPointer);
 
-        if (nAvailable === 0 || nAvailable <= mappingFilesPointer) {
-            res.statusMessage = 'No reads available.'
+        if (!clientHasConnected) {
+            /* tell the client to re-initialise. This prevents out-of-sync bugs
+            if the client was connected to a previous instance of the rampart daemon */
+            res.statusMessage = 'force requestRunInfo'
             return res.status(500).end();
         }
 
-        /* the first read mapped is taken as the run start timestamp */
-        if (!firstTimestamp) {
-            firstTimestamp = global.mappingResults[0].time;
-            console.log(chalk.blueBright.bold("SERVER: firstTimestamp", firstTimestamp));
+        let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
+        // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingResultsPointer);
+
+        // if (nAvailable && !timeOfFirstSentRead) {
+        //     timeOfFirstSentRead = global.mappingResults[0].time;
+        //     console.log("SET FIRST READ TIME OF", timeOfFirstSentRead)
+        // }
+
+        if (nAvailable === 0 || nAvailable <= mappingResultsPointer) {
+            res.statusMessage = 'No reads available.'
+            return res.status(500).end();
         }
-
-        /* how many reads should we send to the client? we want to do this in "real time",
-        so only send reads that have been generated in the time this script has been run
-        That is, don't send reads from 5min into the capture if the script's been running
-        for 20seconds! */
-
-        /*
-         AR - On an update by the client, we should quickly send them all again so it can get back to the same point.
-         */
-
-        /* TODO if a client reconnects (refreshes) then it never sees the previously sent JSONs */
-
-        // const durationThisScriptHasBeenRunning = Date.now() - global.scriptStartTime;
+    
         const ret = [];
-        while (mappingFilesPointer < nAvailable) {
-          // const readTime = global.mappingResults[mappingFilesPointer].time - firstTimestamp;
-          // if (readTime > durationThisScriptHasBeenRunning) {
-          //     break;
-          // }
-          ret.push(global.mappingResults[mappingFilesPointer++]);
-          if (ret.length >= maxMappingFilesPerRequest) {
-            break;
-          }
+        while (mappingResultsPointer < nAvailable) {
+            // if (timeOfFirstSentRead > global.mappingResults[mappingResultsPointer].time) {
+            //     console.log("WTF -- time is before first read!?! ignoring...")
+            //     mappingResultsPointer++;
+            //     break;
+            // }
+            ret.push(global.mappingResults[mappingResultsPointer++]);
+            if (ret.length >= global.config.maxMappingFilesPerRequest) {
+                break;
+            }
         }
 
         if (ret.length) {
-            console.log(chalk.blueBright.bold("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation."));
+            console.log(chalk.blueBright("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation. Read times:", ret.map((r) => r.time+"s").join(", ")));
             res.json(ret);
         } else {
-            // const nextReadTime = parseInt((global.mappingResults.peek().time - firstTimestamp)/1000, 10);
-            // console.log(`*** Not sending data because the next read was after ${nextReadTime}s of capture, and this script has only been running for ${parseInt(durationThisScriptHasBeenRunning/1000, 10)}s. ***`)
             res.statusMessage = 'No reads available.'
             return res.status(500).end();
         }
-    })
+    });
 
     /* serve the html & javascript */
     /* THIS IS FOR THE PRODUCTION, BUILT BUNDLE. USE npm run start FOR DEVELOPMENT */
@@ -100,7 +94,7 @@ const run = ({args, config, mappingResults}) => {
     app.listen(app.get('port'), () => {
         console.log(chalk.blueBright.bold(`\n\n---------------------------------------------------------------------------`));
         console.log(chalk.blueBright.bold(`RAMPART daemon & server running (listening on port ${port})`));
-        console.log(chalk.blueBright.bold(`Now run run "npm run start" to start the web app`));
+        console.log(chalk.blueBright.bold(`Open a browser to localhost:${port} to view the results`));
         console.log(chalk.blueBright.bold(`---------------------------------------------------------------------------\n\n`));
     });
     return app;

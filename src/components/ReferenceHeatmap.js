@@ -65,21 +65,21 @@ const drawHeatMap = (state, props, infoRef) => {
         .attr("class", "refLabel")
         .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
         .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
-        .attr('x', state.chartGeom.spaceLeft - 8 - state.cellDims.height)
+        .attr('x', state.chartGeom.spaceLeft - 8 /* - state.cellDims.height */)
         .attr("text-anchor", "end")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "middle"); /* i.e. y value specifies top of text */
 
-    state.svg.selectAll(".refColour")
-        .data(props.references) /* get the labels */
-        .enter()
-        .append("rect")
-        .attr("class", "refColour")
-        .attr('width', state.cellDims.height)
-        .attr('height', state.cellDims.height)
-        .attr("x", state.chartGeom.spaceLeft - 4 - state.cellDims.height)
-        .attr('y', (refName, refIdx) => state.scales.y(refIdx+1))
-        .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
+    // state.svg.selectAll(".refColour")
+    //     .data(props.references) /* get the labels */
+    //     .enter()
+    //     .append("rect")
+    //     .attr("class", "refColour")
+    //     .attr('width', state.cellDims.height)
+    //     .attr('height', state.cellDims.height)
+    //     .attr("x", state.chartGeom.spaceLeft - 4 - state.cellDims.height)
+    //     .attr('y', (refName, refIdx) => state.scales.y(refIdx+1))
+    //     .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
     /* render the column labels (barcodes) on the bottom */
     state.svg.selectAll(".sampleNames")

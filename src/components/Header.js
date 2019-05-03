@@ -46,7 +46,7 @@ class Header extends React.Component {
       <div>
         <h2 style={{margin: "2px"}}>{this.props.name}</h2>
         <h3 style={{margin: "2px"}}>{runTimeMsg}</h3>
-        <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.numSamples} samples`}</h3>
+        <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3>
       </div>
     )
   }

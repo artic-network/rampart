@@ -12,9 +12,10 @@ const parser = new argparse.ArgumentParser({
 parser.addArgument('--config', {required: true, help: "path to JSON configuration file"});
 parser.addArgument('--subsetFastqs', {action: "storeTrue", help: "Development flag -- only considers subset of FASTQs for speed reasons"});
 parser.addArgument('--mockFailures', {action: "storeTrue", help: "Development flag -- stochastically fail to run guppy / porechop / mapping"});
-parser.addArgument('--ignoreTimeStamps', {action: "storeTrue", help: "Development flag -- ignore the timestamps on the reads"});
 parser.addArgument('--startWithDemuxedReads', {action: "storeTrue", help: "Development flag."});
 parser.addArgument('--relaxedDemuxing', {action: "storeTrue", help: "Development flag -- don't require matching barcodes to demux."});
+parser.addArgument('--emptyDemuxed', {action: "storeTrue", help: "Development flag -- remove any demuxed files present when rampart starts up"});
+parser.addArgument('--basecalledDir', {help: "Overwrite the config provided basecalled directory"});
 
 module.exports = {
   parser

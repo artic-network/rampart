@@ -1,31 +1,42 @@
 const fs = require('fs')
+const path = require('path')
+const chalk = require('chalk');
 const { getAbsolutePath } = require("./utils");
 
-const ensurePathExists = (p) => {
+const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
-        console.log("ERROR. Path", p, "doesn't exist.");
-        process.exit(1);
+        if (make) {
+            console.log(chalk.yellowBright("Path", p, "created"));
+            fs.mkdirSync(p, {recursive: true})
+        } else {
+            console.log("ERROR. Path", p, "doesn't exist.");
+            process.exit(1);
+        }
     }
 }
 
 const parseConfig = (args) => {
+    const configDir = path.dirname(getAbsolutePath(args.config));
     let config = JSON.parse(fs.readFileSync(getAbsolutePath(args.config)));
 
     /* check config file has the appropriate fields... */
 
     /* sort out paths */
-    config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath);
-    config.referencePanelPath = getAbsolutePath(config.referencePanelPath);
-    config.basecalledPath = getAbsolutePath(config.basecalledPath);
-    config.demuxedPath = getAbsolutePath(config.demuxedPath);
+    config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath, {relativeTo: configDir});
+    config.referencePanelPath = getAbsolutePath(config.referencePanelPath, {relativeTo: configDir});
+
+    if (args.basecalledDir) {
+        config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
+        console.log("BC:", config.basecalledPath)
+    } else {
+        config.basecalledPath = getAbsolutePath(config.basecalledPath, {relativeTo: configDir});
+    }
+    config.demuxedPath = getAbsolutePath(config.demuxedPath, {relativeTo: configDir});
 
     /* check if paths exist (perhaps we could make them if they don't) */
     ensurePathExists(config.referenceConfigPath);
     ensurePathExists(config.referencePanelPath);
-    if (!global.args.startWithDemuxedReads) {
-        ensurePathExists(config.basecalledPath);
-    }
-    ensurePathExists(config.demuxedPath);
+    ensurePathExists(config.demuxedPath, {make: true});
 
     /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
     const secondConfig = JSON.parse(fs.readFileSync(config.referenceConfigPath));
@@ -48,6 +59,9 @@ const parseConfig = (args) => {
                 };
             }
         }); // remove the > character
+
+    /* things that may be put into the config JSON in the future */
+    config.maxMappingFilesPerRequest = 100;
 
     return config;
 }

@@ -1,7 +1,7 @@
 {
   "name": "ZIKV USVI 7 (A. Black)",
-  "referenceConfigPath": "./examples/ZIKV/ZIKV_v1.0.json",
-  "referencePanelPath": "./examples/ZIKV/zika_reference_genomes.fasta",
+  "referenceConfigPath": "ZIKV_v1.0.json",
+  "referencePanelPath": "zika_reference_genomes.fasta",
   "samples": [
       {
           "name": "VI34_pool1&2",
@@ -34,6 +34,6 @@
           "barcodes": [ "barcode06" ]
       }
   ],
-  "basecalledPath": "/doesnt/exist",
-  "demuxedPath": "./datasets/ZIKV_USVI_7/demuxed"
+  "basecalledPath": "doesn't exist. Rampart must be run with the --startWithDemuxedReads flag",
+  "demuxedPath": "../../datasets/ZIKV_USVI_7/demuxed"
 }

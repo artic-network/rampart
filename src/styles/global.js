@@ -1,9 +1,13 @@
 import {css} from 'glamor';
 // import colours from "./colours";
 
+const dark_background = "#02292e";
+const dark_foreground = "#fffcf2";
 
 css.global('body', {
   "fontFamily": "Lato",
+    "background": dark_background,
+    "color":dark_foreground
 })
 
 css.global('a', {
@@ -31,7 +35,7 @@ css.global('div, p', {
 
 css.global('.dc-chart .axis path, .axis line', {
   fill: 'none',
-  stroke: '#000',
+  stroke: foreground,
   strokeWidth: 1,
   shapeRendering: 'auto'
 })

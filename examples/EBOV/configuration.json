@@ -1,7 +1,7 @@
 {
   "name": "EBOV Validation Run (Small Test)",
-  "referenceConfigPath": "./examples/EBOV/EBOV_v1.0.json",
-  "referencePanelPath": "./examples/EBOV/reference-genomes.fasta",
+  "referenceConfigPath": "EBOV_v1.0.json",
+  "referencePanelPath": "reference-genomes.fasta",
   "samples": [
       {
           "name": "Mayinga",
@@ -24,6 +24,6 @@
           "barcodes": [ "BC02" ]
       }
   ],
-  "basecalledPath": "./examples/EBOV/data/basecalled/",
-  "demuxedPath": "./examples/EBOV/data/demuxed/"
+  "basecalledPath": "./data/basecalled/",
+  "demuxedPath": "./data/demuxed/"
 }

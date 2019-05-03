@@ -1,6 +1,9 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
-const { sleep } = require("./utils");
+const path = require('path');
+const chalk = require('chalk');
+const { setTimeViaFastq } = require('./extractReadTime');
+const { prettyPath } = require('./utils');
 
 let isRunning = false; // only want one mapping thread at a time!
 
@@ -32,11 +35,8 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
         // console.log(`Python script finished. Exit code ${code}`);
         if (code === 0) {
             let mappingResult = JSON.parse(stdout);
-            if (global.args.ignoreTimeStamps) {
-                mappingResult.time = Date.now();
-            } else {
-                mappingResult.time = (new Date(mappingResult.timeStamp)).getTime()
-            }
+            mappingResult.time = global.timeMap.get(path.basename(fastq));
+            delete mappingResult.timeStamp;
             resolve(mappingResult)
         } else {
             reject(stderr)
@@ -45,19 +45,24 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
 });
 
 const mapper = async () => {
-    // console.log("mappingQueue listener", mappingQueue.length)
-    // console.log("isRunning", isRunning)
     if (global.mappingQueue.length && !isRunning) {
         isRunning = true;
         let results;
         const fileToMap = global.mappingQueue.shift();
         try {
-            // await sleep(1000); // slow things down for development
+            console.log(chalk.green(`MAPPER: queue length: ${global.mappingQueue.length+1}. Mapping ${prettyPath(fileToMap)}`));
             results = await call_python_mapper(fileToMap);
+
+            if (!global.timeMap.has(path.basename(fileToMap))) {
+                await setTimeViaFastq(fileToMap);
+            }
+
             global.mappingResults.push(results)
-            console.log(`Mapped ${fileToMap.split("/").slice(-1)[0]}. Num seqs: ${results.readData.length}. Timestamp: ${results.timeStamp}`);
+            console.log(chalk.green(`MAPPER: Mapped ${prettyPath(fileToMap)}. Read time: ${results.time}`));
+
+
         } catch (err) {
-            console.log(`*** ERROR *** Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`);
+            console.log(chalk.redBright(`*** ERROR *** Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`));
         }
         isRunning = false;
         mapper(); // recurse
