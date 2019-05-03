@@ -33,14 +33,15 @@ css.global('div, p', {
   "fontSize": "1em"
 })
 
-css.global('.dc-chart .axis path, .axis line', {
+css.global('.axis path, .axis line', {
   fill: 'none',
-  stroke: foreground,
+  stroke: dark_foreground,
   strokeWidth: 1,
   shapeRendering: 'auto'
 })
 
 css.global('.axis text', {
+    fill: dark_foreground,
     fontSize: '12px'
 })
 
