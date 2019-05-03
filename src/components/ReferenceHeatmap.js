@@ -142,8 +142,9 @@ const drawHeatMap = (state, props, infoRef) => {
         .attr("width", legendBoxWidth)
         .attr("height", legendBoxHeight)
         .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
-    legend.append("text axis")
+    legend.append("text")
         .text((d, i) => i ? d+"%" : "")
+        .attr("class", "axis")
         .attr('x', (d, i) => legendBoxWidth * i)
         .attr('y', legendRoof + legendBoxHeight + 2)
         .attr("text-anchor", "middle")
