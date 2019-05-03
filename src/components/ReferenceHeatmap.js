@@ -62,7 +62,7 @@ const drawHeatMap = (state, props, infoRef) => {
         .data(props.references) /* get the labels */
         .enter()
         .append("text")
-        .attr("class", "refLabel")
+        .attr("class", "refLabel axis")
         .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
         .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
         .attr('x', state.chartGeom.spaceLeft - 8 /* - state.cellDims.height */)
@@ -86,7 +86,7 @@ const drawHeatMap = (state, props, infoRef) => {
         .data(state.samples)
         .enter()
         .append("text")
-        .attr("class", "sampleNames")
+        .attr("class", "sampleNames axis")
         .text((name, idx) => idx + 1)
         .attr('x', (name, idx) => state.scales.x(idx) + 0.5*state.cellDims.width)
         .attr('y', state.chartGeom.height - state.chartGeom.spaceBottom + 5)
@@ -142,7 +142,7 @@ const drawHeatMap = (state, props, infoRef) => {
         .attr("width", legendBoxWidth)
         .attr("height", legendBoxHeight)
         .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
-    legend.append("text")
+    legend.append("text axis")
         .text((d, i) => i ? d+"%" : "")
         .attr('x', (d, i) => legendBoxWidth * i)
         .attr('y', legendRoof + legendBoxHeight + 2)
