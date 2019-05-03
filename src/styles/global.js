@@ -1,13 +1,26 @@
 import {css} from 'glamor';
 // import colours from "./colours";
 
-const dark_background = "#02292e";
-const dark_foreground = "#fffcf2";
+const lightScheme = {
+    background: "#ffffff",
+    foreground: "#02292e"
+};
+
+const darkScheme = {
+    background: "#02292e",
+    foreground: "#fffcf2"
+};
+
+let scheme = lightScheme;
+
+if (theme === "dark") {
+    scheme = darkScheme;
+}
 
 css.global('body', {
   "fontFamily": "Lato",
-    "background": dark_background,
-    "color":dark_foreground
+    "background": scheme.background,
+    "color": scheme.foreground
 })
 
 css.global('a', {
@@ -35,13 +48,13 @@ css.global('div, p', {
 
 css.global('.axis path, .axis line', {
   fill: 'none',
-  stroke: dark_foreground,
+  stroke: scheme.foreground,
   strokeWidth: 1,
   shapeRendering: 'auto'
 })
 
 css.global('.axis text', {
-    fill: dark_foreground,
+    fill: scheme.foreground,
     fontSize: '12px'
 })
 
