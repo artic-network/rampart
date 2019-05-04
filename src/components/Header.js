@@ -1,19 +1,20 @@
 import React from 'react';
+import PropTypes from "prop-types";
 import logo from "../images/logo.png";
 import { makeTimeFormatter } from "../utils/commonFunctions";
 
 class Header extends React.Component {
   constructor(props) {
-      super(props);
-      this.handleKeyDown = (event) => {
-          switch(event.keyCode) {
-              case 76: // key: "l"
-                  this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
-                  break;
-              default:
-                  break;
-          }
+    super(props);
+    this.handleKeyDown = (event) => {
+      switch(event.keyCode) {
+        case 76: // key: "l"
+          this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
+          break;
+        default:
+          break;
       }
+    }
   }
   componentWillMount() {
       document.addEventListener("keydown", this.handleKeyDown);
@@ -21,38 +22,36 @@ class Header extends React.Component {
   renderButtons() {
     return this.props.sidebarButtonNames.map((name) => {
       return (
-        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(name)}>
+        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(name)} key={name}>
           {name}
         </button>
       )
     })
   }
-  renderStats() {
-    const runTime = this.props.runTime
-    let runTimeMsg = `Run time: ${makeTimeFormatter()(runTime)}`;
-    const tSinceLastUpdate = (new Date()) - this.props.timeLastReadsReceived;
-    if (tSinceLastUpdate > 10) {
-      runTimeMsg += ` (last updated ${makeTimeFormatter()(tSinceLastUpdate)} ago)`;
-    }
-    if (!runTime) {
-      return (
-        <div>
-          <h2 style={{margin: "2px"}}>{this.props.name}</h2>
-          <h3 style={{margin: "2px"}}>{`Awaiting reads...`}</h3>
-        </div>
-      )
-    }
+  renderInfo() {
+    // const runTime = //this.props.runTime
+    // let runTimeMsg = `Run time: ${makeTimeFormatter()(runTime)}`;
+    // const tSinceLastUpdate = (new Date()) - this.props.timeLastReadsReceived;
+    // if (tSinceLastUpdate > 10) {
+    //   runTimeMsg += ` (last updated ${makeTimeFormatter()(tSinceLastUpdate)} ago)`;
+    // }
+    // if (!runTime) {
+    //   return (
+    //     <div>
+    //       <h2 style={{margin: "2px"}}>{this.props.name}</h2>
+    //       <h3 style={{margin: "2px"}}>{`Awaiting reads...`}</h3>
+    //     </div>
+    //   )
+    // }
+
+    const readsMsg = this.props.data ? `${this.props.data.demuxedCount} reads demuxed, ${this.props.data.mappedCount} reads mapped.` : "No data yet";
     return (
       <div>
-        <h2 style={{margin: "2px"}}>{this.props.name}</h2>
-        <h3 style={{margin: "2px"}}>{runTimeMsg}</h3>
-        <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3>
+        <h2 style={{margin: "2px"}}>{this.props.config.title}</h2>
+        <h3 style={{margin: "2px"}}>{readsMsg}</h3>
+        {/* <h3 style={{margin: "2px"}}>{runTimeMsg}</h3> */}
+        {/* <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3> */}
       </div>
-    )
-  }
-  renderStatus() {
-    return (
-      <h2 style={{margin: "2px"}}>{`Server status: ${this.props.status}`}</h2>
     )
   }
   render() {
@@ -70,7 +69,7 @@ class Header extends React.Component {
             <span style={{fontSize: "1.8em"}}>RAMPART</span>
             <span>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
           </h2>
-          {this.props.name ? this.renderStats() : this.renderStatus()}
+          {this.renderInfo()}
         </div>
 
 
@@ -82,6 +81,18 @@ class Header extends React.Component {
     )
 
   }
+}
+
+Header.propTypes = {
+  setViewOptions: PropTypes.func.isRequired,
+  sidebarButtonNames: PropTypes.array.isRequired,
+  sidebarOpenCB: PropTypes.func.isRequired,
+  config: PropTypes.object,
+  data: PropTypes.object
+};
+
+Header.defaultProps = {
+  config: {title: "Config not set!"},
 }
 
 export default Header;

@@ -15,14 +15,32 @@ const getData = () => {
     if (!response[name]) {
       response[name] = {
         demuxedCount: 0,
-        mappedCount: 0
+        mappedCount: 0,
+        refMatches: {}
       }
     }
 
     dataPoints.forEach((d) => {
       response[name].demuxedCount += d.demuxedCount;
       if (d.mappedCount) response[name].mappedCount += d.mappedCount;
+      if (d.refMatches) {
+        for (const [ref, values] of Object.entries(d.refMatches)) {
+          if (!response[name].refMatches[ref]) {
+            response[name].refMatches[ref] = values.length; /* currently the number of hits, not the percentage */
+          }
+        }
+      }
     });
+  }
+
+  /* now that all barcodes have had each datapoint processed, run post calcs */
+  for (const [, data] of Object.entries(response)) {
+    if (data.refMatches) {
+      const tot = Object.values(data.refMatches).reduce((pv, cv) => cv+pv, 0);
+      for (const ref of Object.keys(data.refMatches)) {
+        data.refMatches[ref] = parseInt(data.refMatches[ref] / tot * 100, 10);
+      }
+    }
   }
 
   /* collect everything into response.all */
@@ -30,7 +48,7 @@ const getData = () => {
     demuxedCount: 0,
     mappedCount: 0
   }
-  for (const [, data] of Object.entries(global.datastore)) {
+  for (const [, data] of Object.entries(response)) {
     all.demuxedCount += data.demuxedCount;
     all.mappedCount += data.mappedCount;
   }

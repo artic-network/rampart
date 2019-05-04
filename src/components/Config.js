@@ -96,7 +96,7 @@ Config.propTypes = {
   data: PropTypes.object,
   config: PropTypes.object,
   setConfig: PropTypes.func.isRequired,
-  socket: PropTypes.func.isRequired
+  socket: PropTypes.object.isRequired
 };
 
 

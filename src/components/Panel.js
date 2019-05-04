@@ -101,39 +101,64 @@ class Panel extends React.Component {
         )
     }
     renderHeader() {
-        const latestCoverageData = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
-        let summaryTitle = `${this.props.sampleIdx + 1} – ${this.props.name}`;
-        let summaryText = `${this.props.readCount} reads.`;
-        if (this.props.readCount) {
-            summaryText += ` ${latestCoverageData[1]}% > 1000x, ${latestCoverageData[2]}% > 100x, ${latestCoverageData[3]}% > 10x coverage.`;
-        }
+        const summaryTitle = `${this.props.name}`;
+        const summaryText = `${this.props.data.demuxedCount} reads demuxed, ${this.props.data.mappedCount} mapped.`;
 
         return (
-            <div
-                {...headerCSS}
-                onClick={() => this.setState({expanded: !this.state.expanded})}
-            >
+            <div {...headerCSS} onClick={() => this.setState({expanded: !this.state.expanded})}>
                 <span {...panelTitle}>
                   {summaryTitle}
                 </span>
                 <span {...panelText}>
                   {summaryText}
                 </span>
-
-                {this.state.expanded || this.props.readCount===0 ? null : (
-                    <span style={{flexBasis: "30%"}}>
-                        <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
-                        </svg>
-                    </span>
-                )}
-
-                {this.props.readCount > 0 ? (
-                    <span style={{position: "absolute", top: "10px", right: "10px"}}>
-                        {this.state.expanded ? "click to contract" : "click to expand"}
-                    </span>
-                ) : null}
+                {
+                    this.props.readCount > 0 ? (
+                        <span style={{position: "absolute", top: "10px", right: "10px"}}>
+                            {this.state.expanded ? "click to contract" : "click to expand"}
+                        </span>
+                    ) : null
+                }
             </div>
-        )
+        );
+        
+
+        // `${name}: ${props.data[name].demuxedCount} reads demuxed, ${props.data[name].mappedCount} mapped.`
+
+
+        // const latestCoverageData = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
+        // let summaryTitle = `${this.props.sampleIdx + 1} – ${this.props.name}`;
+        // let summaryText = `${this.props.readCount} reads.`;
+        // if (this.props.readCount) {
+        //     summaryText += ` ${latestCoverageData[1]}% > 1000x, ${latestCoverageData[2]}% > 100x, ${latestCoverageData[3]}% > 10x coverage.`;
+        // }
+
+        // return (
+        //     <div
+        //         {...headerCSS}
+        //         onClick={() => this.setState({expanded: !this.state.expanded})}
+        //     >
+        //         <span {...panelTitle}>
+        //           {summaryTitle}
+        //         </span>
+        //         <span {...panelText}>
+        //           {summaryText}
+        //         </span>
+
+        //         {this.state.expanded || this.props.readCount===0 ? null : (
+        //             <span style={{flexBasis: "30%"}}>
+        //                 <svg width={300} height={25} ref={(r) => {this.coverageHeaderRef = r}}>
+        //                 </svg>
+        //             </span>
+        //         )}
+
+        //         {this.props.readCount > 0 ? (
+        //             <span style={{position: "absolute", top: "10px", right: "10px"}}>
+        //                 {this.state.expanded ? "click to contract" : "click to expand"}
+        //             </span>
+        //         ) : null}
+        //     </div>
+        // )
     }
     renderCoverage() {
       return (
@@ -198,19 +223,10 @@ class Panel extends React.Component {
     }
     render() {
         let panelStyles = { ...(this.state.expanded ? panelContainerExpanded : panelContainerCollapsed), ...{ borderColor: this.props.colour} };
-        const anyData = !!this.props.readLength.length;
-        if (anyData) {
-            return (
-                <div style={panelStyles}>
-                    {this.renderHeader()}
-                    {this.state.expanded ? this.renderPanels() : null}
-                </div>
-            )
-        }
-        /* else there's no data... */
         return (
             <div style={panelStyles}>
-                {this.renderNoDataHeader()}
+                {this.renderHeader()}
+                {this.state.expanded ? this.renderPanels() : null}
             </div>
         )
     }

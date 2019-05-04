@@ -26,7 +26,7 @@ class OverallSummary extends React.Component {
     return (
       <div {...panelContainer}>
         <div {...flexRow}>
-          <CoveragePlot
+          {/* <CoveragePlot
             style={{width: '35%', ...genericGraphContainerStyles}}
             showReferenceMatches={false}
             coverage={this.props.coveragePerSample}
@@ -49,11 +49,12 @@ class OverallSummary extends React.Component {
             version={this.props.version}
             colours={this.props.sampleColours}
             viewOptions={this.props.viewOptions}
-          />
+          /> */}
           <ReferenceHeatmap
             style={{width: '25%', ...genericGraphContainerStyles}}
             title={"Reference Matches"}
-            references={this.props.references}
+            data={this.props.data}
+            referencePanel={this.props.referencePanel}
             samples={this.props.samples}
             refMatchPerSample={this.props.refMatchPerSample}
             version={this.props.version}
@@ -66,3 +67,8 @@ class OverallSummary extends React.Component {
 }
 
 export default OverallSummary;
+
+
+// viewOptions={this.props.viewOptions}
+// data={this.props.data}
+// referencePanel={this.props.config.referencePanel}

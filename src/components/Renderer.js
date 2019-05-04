@@ -20,92 +20,68 @@ const container = css({
   overflowX: "hidden"
 })
 
-const renderHeader = (props) => (
-  <Header
-    status={props.status}
-    name={props.config ? props.config.title : "unknown"}
-    runTime={props.readsOverTime && props.readsOverTime.length ? props.readsOverTime[props.readsOverTime.length-1][0] : 0}
-    numReads={props.readCountPerSample ? sum(props.readCountPerSample) : 0}
-    nFastqs={props.nFastqs}
-    numSamples={props.samples ? props.samples.length : 0}
-    timeLastReadsReceived={props.timeLastReadsReceived}
-    setViewOptions={props.setViewOptions}
-    viewOptions={props.viewOptions}
-    sidebarButtonNames={props.sidebarButtonNames}
-    sidebarOpenCB={props.sidebarOpenCB}
-  />
-);
+// const renderOverallSummary = (props) => (
+//   <OverallSummary
+//     samples={props.samples}
+//     readsOverTime={props.readsOverTime}
+//     annotation={props.annotation}
+//     references={props.references}
+//     coveragePerSample={props.coveragePerSample}
+//     readCountPerSample={props.readCountPerSample}
+//     refMatchPerSample={props.refMatchPerSample}
+//     version={props.dataVersion}
+//     sampleColours={props.sampleColours}
+//     viewOptions={props.viewOptions}
+//   />
+// )
 
-const renderOverallSummary = (props) => (
-  <OverallSummary
-    samples={props.samples}
-    readsOverTime={props.readsOverTime}
-    annotation={props.annotation}
-    references={props.references}
-    coveragePerSample={props.coveragePerSample}
-    readCountPerSample={props.readCountPerSample}
-    refMatchPerSample={props.refMatchPerSample}
-    version={props.dataVersion}
-    sampleColours={props.sampleColours}
-    viewOptions={props.viewOptions}
-  />
-)
+// const renderPanel = (props, sampleName, sampleIdx) => (
+//   <Panel
+//     key={sampleName}
+//     readCount={props.readCountPerSample[sampleIdx]}
+//     version={props.dataVersion}
+//     annotation={props.annotation}
+//     coverage={props.coveragePerSample[sampleIdx]}
+//     readLength={props.readLengthPerSample[sampleIdx]}
+//     references={props.references}
+//     refMatchCounts={props.refMatchPerSample[sampleIdx]}
+//     referenceMatchAcrossGenome={props.referenceMatchAcrossGenome[sampleIdx]}
+//     name={sampleName}
+//     sampleIdx={sampleIdx}
+//     numSamples={props.samples.length}
+//     coverageOverTime={props.coverageOverTime[sampleIdx]}
+//     colour={props.sampleColours[sampleIdx]}
+//     referenceColours={props.referenceColours}
+//     viewOptions={props.viewOptions}
+//   />
+// )
 
-const renderPanel = (props, sampleName, sampleIdx) => (
-  <Panel
-    key={sampleName}
-    readCount={props.readCountPerSample[sampleIdx]}
-    version={props.dataVersion}
-    annotation={props.annotation}
-    coverage={props.coveragePerSample[sampleIdx]}
-    readLength={props.readLengthPerSample[sampleIdx]}
-    references={props.references}
-    refMatchCounts={props.refMatchPerSample[sampleIdx]}
-    referenceMatchAcrossGenome={props.referenceMatchAcrossGenome[sampleIdx]}
-    name={sampleName}
-    sampleIdx={sampleIdx}
-    numSamples={props.samples.length}
-    coverageOverTime={props.coverageOverTime[sampleIdx]}
-    colour={props.sampleColours[sampleIdx]}
-    referenceColours={props.referenceColours}
-    viewOptions={props.viewOptions}
-  />
-)
-
-const DataDisplay = (props) => {
-  if (!props.data) {
+const RenderPanels = ({data, viewOptions, config}) => {
+  if (!data) {
     return (
       <h1>????</h1>
     );
   }
-  return Object.keys(props.data).map((name) => {
-    return (
-      <h3 key={name}>{`${name}: ${props.data[name].demuxedCount} reads demuxed, ${props.data[name].mappedCount} mapped.`}</h3>
-    )
-  });
+  const elements = [];
+  /* we want to render the "overall" progress in a special panel */
+  elements.push(
+    <OverallSummary
+      viewOptions={viewOptions}
+      data={data}
+      referencePanel={config.referencePanel}
+      key={"overall"}
+    />
+  );
+
+  /* For each sample name we want to render a panel */
+  Object.keys(data).forEach((name) => {
+    if (name === "all") return;
+    elements.push(
+      <Panel data={data[name]} name={name} key={name}/>
+    );
+  })
+  return elements;
 }
-
-// const _calcSidebarInitialState = (sidebars) => {
-//   const initialState = {};
-//   sidebars.forEach((arr) => initialState[arr[0]] = false)
-//   return initialState;
-// }
-// const _sidebarReducer = (state, action) => {
-//   state[action.name] = !state[action.name];
-//   /* check we don't have multiple ones open! */
-//   if (state[action.name]) {
-//     Object.keys(state)
-//       .filter((n) => n !== action.name)
-//       .forEach((sidebarName) => {
-//         state[sidebarName] = false;
-//       });
-//   }
-//   return Object.assign({}, state);
-// }
-
-
-// {/* <SidebarManager data={props.data} config={props.config} setConfig={props.setConfig} socket={props.socket} sidebarOpen={sidebarOpen}/> */}
-
 
 const Sidebar = ({title, open, onChange, children, idx}) => {
   if (!children) {
@@ -126,7 +102,6 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 
 const Renderer = (props) => {
 
-  // const [sidebarOpen, dispatch] = useReducer(_reducer, sidebars, _calcInitialState);
   const [sidebarOpen, setState] = useState(undefined);
 
   const sidebars = {
@@ -135,30 +110,28 @@ const Renderer = (props) => {
     report: (<h1>report time</h1>)
   };
 
-  const headerProps = {
-    sidebarButtonNames: Object.keys(sidebars),
-    sidebarOpenCB: setState,
-    ...props
-  }
-
   return (
     <div {...container}>
-      <Sidebar onChange={() => setState(undefined)}>
-        {sidebarOpen ? sidebars[sidebarOpen] : null}
-      </Sidebar>
-
-      {renderHeader(headerProps)}
+      <Header
+        setViewOptions={props.setViewOptions}
+        config={props.config}
+        sidebarButtonNames={Object.keys(sidebars)}
+        sidebarOpenCB={setState}
+        data={props.data ? props.data.all : undefined}
+      />
       {
         props.mainPage === "chooseBasecalledDirectory" ?
           <ChooseBasecalledDirectory/> :
           props.mainPage === "loading" ?
             <h1>LOADING</h1> :
-            <DataDisplay {...props}/>
+            <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config}/>
       }
+      <Footer/>
+      <Sidebar onChange={() => setState(undefined)}>
+        {sidebarOpen ? sidebars[sidebarOpen] : null}
+      </Sidebar>
     </div>
   )
-
-
 }
 
 
@@ -166,25 +139,9 @@ Renderer.propTypes = {
   data: PropTypes.object,
   config: PropTypes.object,
   setConfig: PropTypes.func.isRequired,
-  socket: PropTypes.func.isRequired
+  socket: PropTypes.object.isRequired
 };
 
 
 export default Renderer;
 
-
-  // return (
-  //   <div {...container}>
-  //     {renderHeader(props)}
-  //     {props.dataVersion ? (
-  //       <div>
-  //         {/*renderOverallSummary(props)*/}
-  //         {props.samples.map((sampleName, sampleIdx) => 
-  //           renderPanel(props, sampleName, sampleIdx)
-  //         )}
-  //       </div>
-  //     ) : null
-  //   }
-  //     <Footer/>
-  //   </div>
-  // )

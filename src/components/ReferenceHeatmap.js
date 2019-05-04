@@ -29,84 +29,86 @@ const calcCellDims = (chartGeom, numSamples, numReferences) => {
     }
 }
 
-const drawHeatMap = (state, props, infoRef) => {
+
+const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartGeom, infoRef}) => {
     /* convert the refMatchPerSample data from raw counts to percentages & change to a d3-friendly struct.
     Input format:
-      props.refMatchPerSample[sampleIdx][reference_idx] = INT
+      refMatchPerSample[sampleIdx][reference_idx] = INT
     Output data format:
       flat list, with each value itself a list:
         [sampleIdx, refPanelMatchIdx, fracIdentity]
     */
-    const data = Array.from(new Array(state.samples.length*props.references.length));
+
+
+
+    const d3data = Array.from(new Array(names.length*referencePanel.length));
+
     let dataIdx = 0;
-    for (let sampleIdx=0; sampleIdx<state.samples.length; sampleIdx++) {
-        const totalReads = props.refMatchPerSample[sampleIdx].reduce((n, val) => n+val, 0);
-        for (let refIdx=0; refIdx<props.references.length; refIdx++) {
-            const perc = totalReads === 0 ? 0 : props.refMatchPerSample[sampleIdx][refIdx] / totalReads * 100;
-            data[dataIdx] = [
-                sampleIdx, // 0-based sample index
-                refIdx,    // 0-based reference panel index
-                perc
-            ];
+    for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
+        for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
+            d3data[dataIdx] = [
+                sampleIdx,
+                refIdx,
+                data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]
+            ]
             dataIdx++;
         }
     }
-
-    /* NOTE scales.x(0) returns the far left pixel value of the cells, not the labels */
+    // /* NOTE scales.x(0) returns the far left pixel value of the cells, not the labels */
 
     /* remove the previous renderings... */
-    state.svg.selectAll("*").remove();
+    svg.selectAll("*").remove();
 
     /* render the reference names (on the far left) */
-    state.svg.selectAll(".refLabel")
-        .data(props.references) /* get the labels */
+    svg.selectAll(".refLabel")
+        .data(referencePanel) /* get the labels */
         .enter()
         .append("text")
         .attr("class", "refLabel axis")
         .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
-        .attr('y', (refName, refIdx) => state.scales.y(refIdx+1) + 0.5*state.cellDims.height)
-        .attr('x', state.chartGeom.spaceLeft - 8 /* - state.cellDims.height */)
+        .attr('y', (refName, refIdx) => scales.y(refIdx+1) + 0.5*cellDims.height)
+        .attr('x', chartGeom.spaceLeft - 8 /* - cellDims.height */)
         .attr("text-anchor", "end")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "middle"); /* i.e. y value specifies top of text */
 
-    // state.svg.selectAll(".refColour")
-    //     .data(props.references) /* get the labels */
+    // svg.selectAll(".refColour")
+    //     .data(references) /* get the labels */
     //     .enter()
     //     .append("rect")
     //     .attr("class", "refColour")
-    //     .attr('width', state.cellDims.height)
-    //     .attr('height', state.cellDims.height)
-    //     .attr("x", state.chartGeom.spaceLeft - 4 - state.cellDims.height)
-    //     .attr('y', (refName, refIdx) => state.scales.y(refIdx+1))
+    //     .attr('width', cellDims.height)
+    //     .attr('height', cellDims.height)
+    //     .attr("x", chartGeom.spaceLeft - 4 - cellDims.height)
+    //     .attr('y', (refName, refIdx) => scales.y(refIdx+1))
     //     .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
     /* render the column labels (barcodes) on the bottom */
-    state.svg.selectAll(".sampleNames")
-        .data(state.samples)
+    svg.selectAll(".sampleNames")
+        .data(names)
         .enter()
         .append("text")
         .attr("class", "sampleNames axis")
         .text((name, idx) => idx + 1)
-        .attr('x', (name, idx) => state.scales.x(idx) + 0.5*state.cellDims.width)
-        .attr('y', state.chartGeom.height - state.chartGeom.spaceBottom + 5)
+        .attr('x', (name, idx) => scales.x(idx) + 0.5*cellDims.width)
+        .attr('y', chartGeom.height - chartGeom.spaceBottom + 5)
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "hanging");
 
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
-        const left  = mouseX > 0.5 * state.scales.x.range()[1] ? "" : `${mouseX + 16}px`;
-        const right = mouseX > 0.5 * state.scales.x.range()[1] ? `${state.scales.x.range()[1] - mouseX}px` : "";
+        const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
+        const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
         select(infoRef)
             .style("left", left)
             .style("right", right)
             .style("top", `${mouseY}px`)
             .style("visibility", "visible")
             .html(`
-                Sample: ${props.samples[d[0]]}
+                Sample: ${names[d[0]]}
                 <br/>
-                ${parseFloat(d[2]).toFixed(2)}% reads map to ${props.references[d[1]].name}
+                ${parseFloat(d[2]).toFixed(2)}% reads map to ${referencePanel[d[1]].name}
             `);
     }
     function handleMouseOut() {
@@ -114,25 +116,25 @@ const drawHeatMap = (state, props, infoRef) => {
     }
 
     /* render the coloured cells of the heatmap */
-    state.svg.selectAll(".heatCell")
-        .data(data)
+    svg.selectAll(".heatCell")
+        .data(d3data)
         .enter()
         .append("rect")
         .attr("class", "heatCell")
-        .attr('width', state.cellDims.width)
-        .attr('height', state.cellDims.height)
-        .attr("x", d => state.scales.x(d[0]) + state.cellDims.padding)
-        .attr("y", d => state.scales.y(d[1]+1) + state.cellDims.padding)
+        .attr('width', cellDims.width)
+        .attr('height', cellDims.height)
+        .attr("x", d => scales.x(d[0]) + cellDims.padding)
+        .attr("y", d => scales.y(d[1]+1) + cellDims.padding)
         .attr("fill", d => d[2] === 0 ? "#ccc" : heatColourScale(d[2]))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
     /* render the legend (bottom) -- includes coloured cells & text */
     const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-    const legendBoxWidth = (state.chartGeom.width - state.chartGeom.spaceRight) / (legendDataValues.length -1);
+    const legendBoxWidth = (chartGeom.width - chartGeom.spaceRight) / (legendDataValues.length -1);
     const legendBoxHeight = 12;
-    const legendRoof = state.chartGeom.height - state.chartGeom.spaceBottom + 32;
-    const legend = state.svg.selectAll(".legend")
+    const legendRoof = chartGeom.height - chartGeom.spaceBottom + 32;
+    const legend = svg.selectAll(".legend")
         .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
         .enter().append("g")
         .attr("class", "legend")
@@ -157,27 +159,36 @@ class ReferenceHeatmap extends React.Component {
         super(props);
         this.state = {chartGeom: {}};
     }
-    componentDidMount() {
+    redraw() {
+        /* currently redo everything, but we could make this much much smarter */
         const svg = select(this.DOMref);
-        const samples = this.props.samples;
-        const references = this.props.references;
-        const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-        const cellDims = calcCellDims(chartGeom, samples.length, references.length);
+        console.log(this.props.data)
+        const names = Object.keys(this.props.data).filter((name) => name!=="all");
+        const referencePanel = this.props.referencePanel;
+        const chartGeom = this.state.chartGeom;
+        const cellDims = calcCellDims(chartGeom, names.length, referencePanel.length);
         const scales = calcScales(
             chartGeom,
-            samples.length,     // number of columns
-            references.length   // number of rows
+            names.length,           // number of columns
+            referencePanel.length   // number of rows
         );
-
-        const newState = {svg, chartGeom, cellDims, scales, samples}
-        drawHeatMap(newState, this.props, this.infoRef);
-        this.setState(newState); // may be async...
+        drawHeatMap({
+            names,
+            referencePanel,
+            data: this.props.data,
+            svg,
+            scales,
+            cellDims,
+            chartGeom,
+            infoRef: this.infoRef
+        });
     }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.version !== this.props.version) {
-            drawHeatMap(this.state, this.props, this.infoRef);
-        }
+    componentDidMount() {
+        const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
+        this.setState({chartGeom})
+    }
+    componentDidUpdate() {
+        this.redraw();
     }
     render() {
         return (
