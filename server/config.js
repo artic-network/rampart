@@ -1,71 +1,128 @@
 const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk');
-const { getAbsolutePath } = require("./utils");
+const { getAbsolutePath, verbose, log, warn } = require("./utils");
+const { mapper } = require("./mapper");
 
 const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
         if (make) {
-            console.log(chalk.yellowBright("Path", p, "created"));
+            log(`Creating path ${p}`);
             fs.mkdirSync(p, {recursive: true})
         } else {
-            console.log("ERROR. Path", p, "doesn't exist.");
-            process.exit(1);
+            throw new Error(`ERROR. Path ${p} doesn't exist.`);
         }
     }
 }
 
-const parseConfig = (args) => {
-    const configDir = path.dirname(getAbsolutePath(args.config));
-    let config = JSON.parse(fs.readFileSync(getAbsolutePath(args.config)));
-
-    /* check config file has the appropriate fields... */
-
-    /* sort out paths */
-    config.referenceConfigPath = getAbsolutePath(config.referenceConfigPath, {relativeTo: configDir});
-    config.referencePanelPath = getAbsolutePath(config.referencePanelPath, {relativeTo: configDir});
-
-    if (args.basecalledDir) {
-        config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
-        console.log("BC:", config.basecalledPath)
-    } else {
-        config.basecalledPath = getAbsolutePath(config.basecalledPath, {relativeTo: configDir});
-    }
-    config.demuxedPath = getAbsolutePath(config.demuxedPath, {relativeTo: configDir});
-
-    /* check if paths exist (perhaps we could make them if they don't) */
-    ensurePathExists(config.referenceConfigPath);
-    ensurePathExists(config.referencePanelPath);
-    ensurePathExists(config.demuxedPath, {make: true});
-
-    /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
-    const secondConfig = JSON.parse(fs.readFileSync(config.referenceConfigPath));
-    config = {...config, ...secondConfig};
-
-    /* get the names of the sequences in the reference panel */
-    config.referencePanel = fs.readFileSync(config.referencePanelPath, "utf8")
-        .split("\n")
-        .filter((l) => l.startsWith(">"))
-        .map((n) => {
-            if (n.indexOf(" ") > 0) {
-                return {
-                    "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
-                    "description": n.substring(n.indexOf(" ")) // fasta description is the rest
-                };
-            } else {
-                return {
-                    "name": n.substring(1),
-                    "description": ""
-                };
-            }
-        }); // remove the > character
-
-    /* things that may be put into the config JSON in the future */
-    config.maxMappingFilesPerRequest = 100;
-
-    return config;
+const getReferenceNames = (referencePanelPath) => {
+  return fs.readFileSync(referencePanelPath, "utf8")
+    .split("\n")
+    .filter((l) => l.startsWith(">"))
+    .map((n) => {
+      if (n.indexOf(" ") > 0) {
+        return {
+          "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
+          "description": n.substring(n.indexOf(" ")) // fasta description is the rest
+        };
+      } else {
+        return {
+          "name": n.substring(1),
+          "description": ""
+        };
+      }
+    });
 }
 
+/**
+ * Create initial config file from command line arguments
+ */
+const getInitialConfig = (args) => {
+  const barcodes = [
+    "BC01", "BC02", "BC03", "BC04", "BC05", "BC06", "BC07", "BC08", "BC09", "BC10", "BC11", "BC12"
+  ];
+
+  const config = {
+    title: args.title ? args.title : "",
+    barcodeToName: {},
+    barcodes,
+    basecalledPath: "",
+    demuxedPath: "",
+    referenceConfigPath: "",
+    referencePanelPath: "",
+    referencePanel: [],
+    reference: undefined,
+    relaxedDemuxing: args.relaxedDemuxing,
+  };
+
+  /* most options _can_ be specified on the command line, but may also be specified in the client */
+  barcodes.forEach((bc) => {
+    config.barcodeToName[bc] = undefined;
+  })
+  if (args.barcodeNames) {
+    args.barcodeNames.forEach((raw) => {
+      const [bc, name] = raw.split('=');
+      if (!barcodes.includes(bc)) {
+        throw new Error(`Invalid barcode ${bc}`)
+      }
+      config.barcodeToName[bc] = name;
+    });
+  }
+
+  if (args.basecalledDir !== "") {
+    config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
+  }
+  if (args.demuxedDir !== "") {
+    config.demuxedPath = getAbsolutePath(args.demuxedDir, {relativeTo: process.cwd()});
+    ensurePathExists(config.demuxedPath, {make: true});
+  }
+
+  if (args.referencePanelPath) {
+    ensurePathExists(args.referencePanelPath);
+    config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
+    config.referencePanel = getReferenceNames(config.referencePanelPath);
+  }
+
+  if (args.referenceConfigPath) {
+    ensurePathExists(args.referenceConfigPath);
+    config.referenceConfigPath = getAbsolutePath(args.referenceConfigPath, {relativeTo: process.cwd()});
+
+    /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
+    const reference = JSON.parse(fs.readFileSync(config.referenceConfigPath)).reference;
+    config.reference = reference;
+
+  }
+  
+
+  return config;
+};
+
+/**
+ * update the config file via GUI provided data
+ */
+const modifyConfig = (newConfig) => {
+
+  global.config.barcodeToName = newConfig.barcodeToName;
+
+  if (!global.config.referencePanelPath && newConfig.referencePanelPath) {
+    try {
+      ensurePathExists(newConfig.referencePanelPath);
+      // take approprieate action?
+    } catch (err) {
+      warn(err.message);
+      newConfig.referencePanelPath = "";
+    }
+  }
+
+  global.config = Object.assign({}, global.config, newConfig);
+
+  /* try to start the mapper, which may not be running due to insufficent
+  config information. It will exit gracefully if required */
+  mapper();
+
+}
+
+
 module.exports = {
-    parseConfig
+    getInitialConfig,
+    modifyConfig
 };

@@ -1,107 +1,61 @@
 const express = require('express')
-const cors = require('cors')
 const path = require('path')
-const chalk = require('chalk');
+const http = require('http');
+const SocketIO = require('socket.io')
+const { initialConnection, setUpIOListeners } = require("./socket");
+const { log } = require("./utils");
 
-const error = (res, msg) => {
-    res.statusMessage = msg;
-    console.warn(chalk.red("WARNING", res.statusMessage));
-    res.status(500).end();
-    return;
-}
 
-const run = ({args, config, mappingResults}) => {
-    let mappingResultsPointer = 0; /* idx of global.mappingResults to send next */
-    let clientHasConnected = false;
-    // let timeOfFirstSentRead;
+/**
+ * Start a simple express server to deliver the index.html
+ * And open a socket (using socket.io) for all communications
+ * (this is in preperation for a move to electron, where main-renderer
+ * process communication is socket-like)
+ */
+const run = ({devClient}) => {
+  const serverPort = process.env.PORT || 3001;
+  const socketPort = process.env.SOCKET || 3002;
 
-    const app = express()
-    app.use(cors())
+  const app = express()
+  app.set('port', serverPort);
+  const httpServer = http.Server(app);
+  httpServer.listen(socketPort);
+  const io = SocketIO(httpServer);
+  global.io = io;
 
-    app.get('/test', (req, res) => {
-        console.log("API test request received");
-        res.json({"serverAlive": true})
-    });
-
-    /* INITIAL REQUEST FROM FRONTEND - note that many reads may be ready, this is just to init the web app */
-    app.get('/requestRunInfo', (req, res) => {
-        console.log(chalk.blueBright.bold("\n\n\t\t*********************"));
-        console.log(chalk.blueBright.bold("SERVER: Client initialising. Sending info & annotation data."));
-        res.json(global.config);
-        if (mappingResultsPointer !== 0) {
-          console.log(chalk.blueBright.bold("Previously sent reads will be resent."));
-          mappingResultsPointer = 0;
-        }
-        console.log(chalk.blueBright.bold("\t\t*********************\n\n"));
-        clientHasConnected = true;
-    });
-
-    /* REQUEST AVAILABLE READS */
-    app.get('/requestReads', (req, res) => {
-
-        if (!clientHasConnected) {
-            /* tell the client to re-initialise. This prevents out-of-sync bugs
-            if the client was connected to a previous instance of the rampart daemon */
-            res.statusMessage = 'force requestRunInfo'
-            return res.status(500).end();
-        }
-
-        let nAvailable = global.mappingResults.length; // the number of mapped guppy-called FASTQ files
-        // console.log("SERVER: Request reads.", nAvailable, "are available. Pointer:", mappingResultsPointer);
-
-        // if (nAvailable && !timeOfFirstSentRead) {
-        //     timeOfFirstSentRead = global.mappingResults[0].time;
-        //     console.log("SET FIRST READ TIME OF", timeOfFirstSentRead)
-        // }
-
-        if (nAvailable === 0 || nAvailable <= mappingResultsPointer) {
-            res.statusMessage = 'No reads available.'
-            return res.status(500).end();
-        }
-    
-        const ret = [];
-        while (mappingResultsPointer < nAvailable) {
-            // if (timeOfFirstSentRead > global.mappingResults[mappingResultsPointer].time) {
-            //     console.log("WTF -- time is before first read!?! ignoring...")
-            //     mappingResultsPointer++;
-            //     break;
-            // }
-            ret.push(global.mappingResults[mappingResultsPointer++]);
-            if (ret.length >= global.config.maxMappingFilesPerRequest) {
-                break;
-            }
-        }
-
-        if (ret.length) {
-            console.log(chalk.blueBright("SERVER: Sending ", ret.length, "mapped FASTQs for visualisation. Read times:", ret.map((r) => r.time+"s").join(", ")));
-            res.json(ret);
-        } else {
-            res.statusMessage = 'No reads available.'
-            return res.status(500).end();
-        }
-    });
-
+  if (!devClient) {
     /* serve the html & javascript */
     /* THIS IS FOR THE PRODUCTION, BUILT BUNDLE. USE npm run start FOR DEVELOPMENT */
     // https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#deployment
     app.use(express.static(path.join(__dirname, "..", 'build')));
     app.get('/', function (req, res) {
-        res.sendFile(path.join(__dirname, "..", 'build', 'index.html'));
+      res.sendFile(path.join(__dirname, "..", 'build', 'index.html'));
     });
+  }
 
-    const port = process.env.PORT || 3001;
-    app.set('port', port);
-    app.listen(app.get('port'), () => {
-        console.log(chalk.blueBright.bold(`\n\n---------------------------------------------------------------------------`));
-        console.log(chalk.blueBright.bold(`RAMPART daemon & server running (listening on port ${port})`));
-        console.log(chalk.blueBright.bold(`Open a browser to localhost:${port} to view the results`));
-        console.log(chalk.blueBright.bold(`---------------------------------------------------------------------------\n\n`));
-    });
-    return app;
+  app.listen(app.get('port'), () => {
+    log(`\n\n---------------------------------------------------------------------------`);
+    log(`RAMPART daemon running`);
+    log(`socket open on port ${socketPort}`);
+    if (devClient) {
+      log(`Using --devClient -> run "npm run start" to run the client`);
+    } else {
+      log(`Serving built bundle at http://localhost:${serverPort}`);
+    }
+    log(`---------------------------------------------------------------------------\n\n`);
+  });
+
+  /*     S  O  C  K  E  T     */
+  io.on('connection', (socket) => {
+    log('client connection detected');
+    initialConnection(socket);
+    setUpIOListeners(socket);
+  });
+
+
+  return app;
 }
 
-
-
 module.exports = {
-    run
+  run
 };

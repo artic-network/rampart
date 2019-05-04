@@ -1,15 +1,6 @@
 import React from 'react';
 import logo from "../images/logo.png";
-import { css } from 'glamor'
 import { makeTimeFormatter } from "../utils/commonFunctions";
-
-const child = css({
-  width: '100%',
-  margin: 'auto',
-  background: '#005C68',
-  color: '#F6EECA',
-  borderRadius: '5px'
-})
 
 class Header extends React.Component {
   constructor(props) {
@@ -26,6 +17,15 @@ class Header extends React.Component {
   }
   componentWillMount() {
       document.addEventListener("keydown", this.handleKeyDown);
+  }
+  renderButtons() {
+    return this.props.sidebarButtonNames.map((name) => {
+      return (
+        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(name)}>
+          {name}
+        </button>
+      )
+    })
   }
   renderStats() {
     const runTime = this.props.runTime
@@ -57,14 +57,15 @@ class Header extends React.Component {
   }
   render() {
     return (
-      <div {...child}>
-        <div style={{float: "left", margin: "10px"}}>
+      <div className="header">
+
+        <div className="logo">
           <a href="http://artic.network" target="_blank" rel="noopener noreferrer">
             <img src={logo} alt={"logo"} width="132"/>
           </a>
         </div>
 
-        <div style={{paddingLeft: "160px"}}>
+        <div>
           <h2 style={{marginTop: "0px", marginBottom: "8px"}}>
             <span style={{fontSize: "1.8em"}}>RAMPART</span>
             <span>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
@@ -72,6 +73,10 @@ class Header extends React.Component {
           {this.props.name ? this.renderStats() : this.renderStatus()}
         </div>
 
+
+        <div className="buttons">
+          {this.renderButtons()}
+        </div>
 
       </div>
     )

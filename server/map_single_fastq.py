@@ -56,12 +56,12 @@ def mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel
 
         header = re.search(r'start_time=([^\s]+)', comment)
         if header and not first_read_time_stamp:
-            first_read_time_stamp = header.group(1);
+            first_read_time_stamp = header.group(1)
 
         try:
             coord = next(coordinate_aligner.map(seq))
         except StopIteration:
-            coord = None;
+            coord = None
 
         try:
             panel = next(panel_aligner.map(seq))
@@ -84,7 +84,7 @@ def mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel
         # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.mlen / panel.blen)
         mapping_results.append(
             # barcode, reference panel match (idx),   start pos,  end pos, reference length,   identity
-            [barcode, panel_names.index(panel.ctg), start, end, panel.mlen / panel.blen]
+            [barcode, panel.ctg, start, end, panel.mlen / panel.blen]
         )
 
     return (first_read_time_stamp, unmatched, mapping_results)
@@ -107,10 +107,9 @@ if __name__ == '__main__':
 
     panel_aligner, panel_names = create_reference_index(args.reference_panel)
     first_read_time_stamp, unmatched, mapping_results = mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel_names, args.fastq)
-    summary = {
-        "unmappedReadsPerBarcode": [unmatched[idx] for idx in unmatched.keys()],
-        "timeStamp": str(first_read_time_stamp),
-        "readData": mapping_results
-    }
-    print(json.dumps(summary))
+    # summary = {
+    #     "timeStamp": str(first_read_time_stamp),
+    #     "readData": mapping_results
+    # }
+    print(json.dumps(mapping_results))
     sys.exit(0)

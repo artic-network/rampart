@@ -3,6 +3,7 @@ const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const { sleep } = require('./utils');
+const { addToDemuxQueue } = require("./demuxer");
 
 const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
@@ -12,7 +13,7 @@ const newFastqFileHandler = (newfile, details) => {
       return;
     }
     console.log(chalk.cyan(`WATCHER: new basecalled file => adding "${basename}" to demux queue.`));
-    global.demuxQueue.push(newfile);
+    addToDemuxQueue(newfile);
     global.haveBeenSeen.add(basename);
 
   } catch (err) {

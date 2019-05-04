@@ -1,0 +1,161 @@
+
+:root {
+  --dark-background: #02292e;
+  --dark-foreground: #fffcf2;
+  --artic-red: #e06962;
+  --header: #255a66;
+  --light-text: #F6EECA;
+}
+
+
+/* ----------- GLOBALS (BODY) --------------*/
+body {
+  overflow-x: hidden;
+}
+
+
+/* ------------- TOGGLE  SWITCH ---------------*/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 18px;
+  top: 3px;
+}
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc; /* blue is #2196F3; */
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 1px;
+  bottom: 1px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(12px);
+  -ms-transform: translateX(12px);
+  transform: translateX(12px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 16px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+
+
+
+/* --------------- SIDEBARS --------------- */
+div.sidebar {
+  position: absolute;
+  /* width: 400px; */
+  height: 95%;
+  color: #fffcf2;
+  background-color: var(--dark-background);
+  padding: 10px;
+  border: 3px solid var(--artic-red);
+  border-radius: 10px;
+  transition: right 0.5s ease-out;
+  -webkit-transition: right 0.5s ease-out;
+}
+div.sidebar.closed {
+  right: -500px;
+}
+div.sidebar.open {
+  right: 5px;
+}
+.sidebar label {
+  display: block;
+  padding: 5px;
+}
+.sidebar input {
+  border-radius: 3px;
+  border: 2px solid var(--artic-red);
+  background-color: var(--dark-foreground);
+  color: var(--artic-red);
+  font-size: 16px;
+  margin-left: 10px;
+  height: 22px;
+  padding: 4px;
+}
+.sidebar .bcLabel {
+  display: inline-block;
+  min-width: 130px;
+}
+.sidebar .inner {
+  height: 100%;
+  overflow: scroll;
+}
+
+/* -------------------- HEADER --------------------- */
+div.header {
+  width: 100%;
+  margin: auto;
+  background-color: var(--header);
+  color: var(--light-text);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+div.header .logo {
+  float: left;
+  margin: 10px;
+}
+div.header .buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ----------------- MODERN BUTTONS --------------------- */
+button.modernButton {
+  display: block;
+  background: var(--dark-foreground);
+  color: var(--artic-red);
+  border: 1px solid var(--dark-foreground);
+  border-radius: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 0.3s, color 0.3s;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2em;
+  padding: 5px;
+  margin: 5px;
+}
+button.modernButton:hover {
+  background: var(--artic-red);
+  color: var(--dark-foreground);
+}
+
+
+/* -------------------   UNKNOWN --------------------- */
+
+/* config stuff */
+div.sidebar {
+  position: absolute;
+  right: 0px;
+}

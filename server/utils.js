@@ -1,4 +1,5 @@
 const path = require('path')
+const chalk = require('chalk');
 
 const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
   if (filepath[0] === '~') {
@@ -16,6 +17,21 @@ const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
   return path.join(__dirname, "..", filepath)
 }
 
+const fatal = (msg) => {
+  console.log(chalk.redBright(`[FATAL] ${msg}`));
+  process.exit(2);
+}
+const verbose = (msg) => {
+  if (global.VERBOSE) {
+    console.log(chalk.greenBright(`[verbose]\t${msg}`));
+  }
+};
+const log = (msg) => {
+  console.log(chalk.blueBright(msg));
+};
+const warn = (msg) => {
+  console.warn(chalk.yellowBright(`[warning]\t${msg}`));
+};
 
 const sleep = (ms) => new Promise((resolve) =>
   setTimeout(resolve, ms)
@@ -33,5 +49,9 @@ const prettyPath = (path) => {
 module.exports = {
   getAbsolutePath,
   sleep,
-  prettyPath
+  prettyPath,
+  fatal,
+  log,
+  warn,
+  verbose
 };

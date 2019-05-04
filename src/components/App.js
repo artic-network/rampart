@@ -1,20 +1,27 @@
 import React, { Component } from 'react';
-import Header from "./Header";
-import Footer from "./Footer";
-import Panel from "./Panel"
-import '../styles/global'; // sets global CSS
-import '../styles/fonts.css'; // sets global fonts
-import '../styles/temporary.css'; // TODO
-import { css } from 'glamor'
 import { queryServerForRunConfig, requestReads } from "../utils/getData"
-import OverallSummary from "./OverallSummary";
-import { sum } from "d3-array";
+import Renderer from './Renderer';
+import io from 'socket.io-client';
 
-const container = css({
-  display: "flex",
-  'flexDirection': 'column'
-})
+
 const timeBetweenUpdates = 2000;
+
+// /* config reducer */
+// const configReducer = (state, action) => {
+//   switch (action.type) {
+//     case 'NEW':
+//       return action.config;
+//     case 'UPDATE':
+//       return Object.assign({}, state, action.data);
+//     case 'BARCODE_NAME':
+//       const barcodeToName = state.barcodeToName;
+//       barcodeToName[action.barcode] = action.name;
+//       return Object.assign({}, state, {barcodeToName});
+//     default:
+//       throw new Error();
+//   }
+// };
+
 
 class App extends Component {
   constructor(props) {
@@ -22,6 +29,7 @@ class App extends Component {
     this.intervalRefInitialData = undefined;
     this.state = {
       status: "App Loading",
+      mainPage: "loading",
       viewOptions: {
         logYAxis: false
       }
@@ -29,76 +37,70 @@ class App extends Component {
     this.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     }
-  }
-  componentDidMount() {
-    queryServerForRunConfig(this.state, this.setState.bind(this));
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.name && !prevState.name) {
-      /* config has arrived! */
-      setInterval(
-        () => requestReads(this.state, this.setState.bind(this)),
-        timeBetweenUpdates
-      )
+    this.state.setConfig = (newConfig) => {
+      this.setState({config: newConfig});
     }
+
+    this.state.socket = io('http://localhost:3002');
+    this.state.socket.on("noBasecalledDir", () => {
+      console.log("noBasecalledDir");
+      this.setState({mainPage: "chooseBasecalledDirectory"});
+    });
+    this.state.socket.on("data", (data) => {
+      console.log("DATA:", data);
+      this.setState({data, mainPage: "viz"});
+    })
+    this.state.socket.on("config", (config) => {
+      this.setState({config});
+      console.log("CONFIG:", config);
+    })
+
   }
+
   render() {
+    const props = {setViewOptions: this.setViewOptions, ...this.state};
     return (
-      <div {...container}>
-        <Header
-          status={this.state.status}
-          name={this.state.name}
-          runTime={this.state.readsOverTime && this.state.readsOverTime.length ? this.state.readsOverTime[this.state.readsOverTime.length-1][0] : 0}
-          numReads={this.state.readCountPerSample ? sum(this.state.readCountPerSample) : 0}
-          nFastqs={this.state.nFastqs}
-          numSamples={this.state.samples ? this.state.samples.length : 0}
-          timeLastReadsReceived={this.state.timeLastReadsReceived}
-          setViewOptions={this.setViewOptions}
-          viewOptions={this.state.viewOptions}
-        />
-        {this.state.dataVersion ? (
-          <div>
-            <OverallSummary
-              samples={this.state.samples}
-              readsOverTime={this.state.readsOverTime}
-              annotation={this.state.annotation}
-              references={this.state.references}
-              coveragePerSample={this.state.coveragePerSample}
-              readCountPerSample={this.state.readCountPerSample}
-              refMatchPerSample={this.state.refMatchPerSample}
-              version={this.state.dataVersion}
-              sampleColours={this.state.sampleColours}
-              viewOptions={this.state.viewOptions}
-            />
-            {this.state.samples.map((sampleName, sampleIdx) => {
-              return (
-                <Panel
-                  key={sampleName}
-                  readCount={this.state.readCountPerSample[sampleIdx]}
-                  version={this.state.dataVersion}
-                  annotation={this.state.annotation}
-                  coverage={this.state.coveragePerSample[sampleIdx]}
-                  readLength={this.state.readLengthPerSample[sampleIdx]}
-                  references={this.state.references}
-                  refMatchCounts={this.state.refMatchPerSample[sampleIdx]}
-                  referenceMatchAcrossGenome={this.state.referenceMatchAcrossGenome[sampleIdx]}
-                  name={sampleName}
-                  sampleIdx={sampleIdx}
-                  numSamples={this.state.samples.length}
-                  coverageOverTime={this.state.coverageOverTime[sampleIdx]}
-                  colour={this.state.sampleColours[sampleIdx]}
-                  referenceColours={this.state.referenceColours}
-                  viewOptions={this.state.viewOptions}
-                />
-              )
-            })}
-          </div>
-        ) : null
-      }
-        <Footer/>
-      </div>
-    )
+      <Renderer {...props}/>
+    );
   }
 }
+
+
+
+// const App = () => {
+//   const socketRef = useRef();
+//   const [data, setData] = useState(undefined);
+//   const [mainPage, setMainPage] = useState("loading");
+//   const [config, configDispatch] = useReducer(configReducer, undefined);
+
+//   useEffect(
+//     () => {
+//       console.log("Connecting to socket.io")
+//       const socket = io('http://localhost:3002');
+//       socket.on("noBasecalledDir", () => {
+//         console.log("noBasecalledDir");
+//         setMainPage("chooseBasecalledDirectory");
+//       });
+//       socket.on("data", (data) => {
+//         console.log(data);
+//         setMainPage("viz");
+//         setData(data);
+//       })
+//       socket.on("config", (config) => {
+//         configDispatch({type: "NEW", config});
+//       })
+
+//       return () => {
+//         console.log("TO DO - close socket if needed");
+//       };
+//     },
+//     []
+//   );
+
+//   return (
+//     <Renderer data={data} mainPage={mainPage} config={config} configDispatch={configDispatch}/>
+//   );
+
+// }
 
 export default App;

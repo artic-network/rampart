@@ -135,43 +135,57 @@ class Panel extends React.Component {
             </div>
         )
     }
-    renderPanels() {
-        return (
-            <div {...flexRowContainer}>
-                <CoveragePlot
-                    style={{width: '45%', margin: 'auto', height: "100%", position: "relative"}}
-                    showReferenceMatches={true}
-                    coverage={[this.props.coverage]}
-                    references={this.props.references}
-                    referenceMatchAcrossGenome={this.props.referenceMatchAcrossGenome}
-                    annotation={this.props.annotation}
-                    version={this.props.version}
-                    colours={[this.props.colour]}
-                    referenceColours={this.props.referenceColours}
-                    viewOptions={this.props.viewOptions}
-                />
-                <ReadLengthDistribution
-                    style={{width: '20%', margin: 'auto', height: "100%"}}
-                    title={"Read Lengths"}
-                    readLength={this.props.readLength}
-                    version={this.props.version}
-                    colour={this.props.colour}
-                    viewOptions={this.props.viewOptions}
-                />
-                <CoverageOverTime
-                    style={{width: '30%', margin: 'auto', height: "100%"}}
-                    title={"Coverage Progress"}
-                    coverageOverTime={this.props.coverageOverTime}
-                    version={this.props.version}
-                    colour={this.props.colour}
-                    sampleIdx={this.props.sampleIdx}
-                    numSamples={this.props.numSamples}
-                    viewOptions={this.props.viewOptions}
-                />
-            </div>
-        )
+    renderCoverage() {
+      return (
+        <CoveragePlot
+          style={{width: '45%', margin: 'auto', height: "100%", position: "relative"}}
+          showReferenceMatches={true}
+          coverage={[this.props.coverage]}
+          references={this.props.references}
+          referenceMatchAcrossGenome={this.props.referenceMatchAcrossGenome}
+          annotation={this.props.annotation}
+          version={this.props.version}
+          colours={[this.props.colour]}
+          referenceColours={this.props.referenceColours}
+          viewOptions={this.props.viewOptions}
+        />
+      )
     }
-
+    renderReadLengthDistribution() {
+      return (
+        <ReadLengthDistribution
+          style={{width: '20%', margin: 'auto', height: "100%"}}
+          title={"Read Lengths"}
+          readLength={this.props.readLength}
+          version={this.props.version}
+          colour={this.props.colour}
+          viewOptions={this.props.viewOptions}
+        />
+      )
+    }
+    renderCoverageOverTime() {
+      return (
+        <CoverageOverTime
+          style={{width: '30%', margin: 'auto', height: "100%"}}
+          title={"Coverage Progress"}
+          coverageOverTime={this.props.coverageOverTime}
+          version={this.props.version}
+          colour={this.props.colour}
+          sampleIdx={this.props.sampleIdx}
+          numSamples={this.props.numSamples}
+          viewOptions={this.props.viewOptions}
+        />
+      )
+    }
+    renderPanels() {
+      return (
+        <div {...flexRowContainer}>
+          {this.renderCoverage()}
+          {this.renderReadLengthDistribution()}
+          {this.renderCoverageOverTime()}
+        </div>
+      )
+    }
     componentDidMount() {
         if (!this.state.expanded && this.props.readCount > 0) {
             renderCoverageHeatmap(this.coverageHeaderRef, this.props.coverage);
