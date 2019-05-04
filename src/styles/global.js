@@ -1,6 +1,8 @@
 import {css} from 'glamor';
 // import colours from "./colours";
 
+const THEME = "light"; // currently a constant - this could be set by a configuration
+
 const lightScheme = {
     background: "#ffffff",
     foreground: "#02292e"
@@ -13,7 +15,7 @@ const darkScheme = {
 
 let scheme = lightScheme;
 
-if (theme === "dark") {
+if (THEME === "dark") {
     scheme = darkScheme;
 }
 
