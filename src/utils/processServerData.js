@@ -73,7 +73,8 @@ export const createInitialState = (infoJson) => {
 
     // keep the colours consistent irrespective of how many channels there are (only work if there are a maximimum of 13)
     // 13 gives 12 barcodes and 1 unclassified channel?
-    state.sampleColours = createSampleColours(13);
+    // TODO: Updating this for the 24 native barcodes but this needs to be dynamic.
+    state.sampleColours = createSampleColours(25);
     // state.sampleColours = createSampleColours(state.samples.length);
     state.referenceColours = createReferenceColours(state.references.length);
     state.timeLastReadsReceived = undefined;
