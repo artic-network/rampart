@@ -1,7 +1,6 @@
 import React from 'react';
 
-const RefMatches = ({data, config}) => {
-
+const ReferenceMatches = ({data, config}) => {
   const refNames = config.referencePanel.map((r) => r.name);
   return (
     <table>
@@ -39,6 +38,34 @@ const RefMatches = ({data, config}) => {
   );
 }
 
+const ReadCounts = ({data, config}) => {
+  const names = Object.keys(data);
+
+  return (
+    <table>
+      <caption>Read Counts</caption>
+      <thead className="sideways">
+        <tr>
+          <th/>
+          <th>Demuxed</th>
+          <th>Mapped</th>
+        </tr>
+      </thead>
+      <tbody>
+        {names.map((name) => {
+          return (
+            <tr>
+              <th>{name}</th>
+              <td>{data[name].demuxedCount || 0}</td>
+              <td>{data[name].mappedCount || 0}</td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 const Report = ({data, config}) => {
 
   if (!config || !data) {
@@ -51,7 +78,8 @@ const Report = ({data, config}) => {
 
   return (
     <div className="report">
-      <RefMatches data={data} config={config}/>
+      <ReadCounts data={data} config={config}/>
+      <ReferenceMatches data={data} config={config}/>
     </div>
   )
 

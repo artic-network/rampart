@@ -77,8 +77,8 @@ div.sidebar {
   padding: 10px;
   border: 3px solid var(--artic-red);
   border-radius: 10px;
-  transition: right 0.5s ease-out;
-  -webkit-transition: right 0.5s ease-out;
+  transition: 0.5s ease-out;
+  -webkit-transition: 0.5s ease-out;
 }
 div.sidebar.closed {
   right: -500px;
@@ -162,15 +162,24 @@ div.sidebar {
 }
 
 /* -------------------- REPORT -------------------------- */
+.report {
+  min-width: 70vw; /* sidebar's max width */
+}
+.report caption {
+  padding-top: 40px;
+  text-align: left;
+}
 .report table {
   border-collapse: collapse;
   border-spacing: 0;
 }
-div.report {
-  padding-top: 50px;
+.report td {
+  border-top: 1px solid var(--dark-foreground);
+  border-bottom: 1px solid var(--dark-foreground);
 }
-.report td, th {
-  border: 1px solid var(--dark-foreground);
+.report th {
+  border: none;
+  padding: 2px 3px 2px 3px;
 }
 .report caption {
   color: var(--artic-red);
@@ -179,16 +188,101 @@ div.report {
 }
 th.rotate > div {
   /* see https://css-tricks.com/rotated-table-column-headers/ */
-  transform: translate(25px, -18px) rotate(315deg); /* magic numbers */
+  transform: translate(27px, -16px) rotate(315deg); /* magic numbers */
   width: 45px;
 }
 th.rotate > div > span {
   /* the underlining of rotated labels */
-  padding-bottom: 10px;
-  border-bottom:  1px solid var(--dark-foreground);
+  padding: 0px 0px 10px 0px;
+  border-bottom: 0.5px dashed var(--dark-foreground);
   font-weight: 600;
 }
 th.rotate {
-  padding-top: 150px;
+  padding-top: 135px; /* must calculate */
   border: none
+}
+
+
+/* -----------S U M M A R Y   P A N E L ---------- */
+#overallSummaryContainer {
+  width: calc(100% - 30px);
+  height: 350px;       /* adjusting will also adjust the graphs */
+  min-height: 350px;
+  margin: 10px 10px 10px 10px;
+}
+
+
+/* ---------------  P A N E L S  ----------------- */
+.panelContainer {
+  position: relative;
+  width: 98%;
+  margin: 10px 10px 10px 10px;
+  transition: height 0.5s ease-in;
+  -webkit-transition: height 0.5s ease-in;
+  border: 1px solid gray;
+  border-radius: 5px;
+  border-left: 5px solid gray;
+}
+.panelContainer.collapsed {
+  height: 30px;
+  min-height: 30px;
+}
+.panelContainer.expanded {
+  height: 370px;
+  min-height: 370px;
+}
+.panelContainer > .infoRow {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+  justify-content: space-between;
+}
+.panelContainer > .infoRow > span {
+  font-weight: bold;
+  font-size: 1.3em;
+}
+.panelContainer > .infoRow > span:first-child {
+  padding-left: 20px;
+}
+.panelContainer > .infoRow > span:last-child {
+  padding-right: 10px;
+}
+.panelFlexRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: calc(100% - 26px);
+}
+
+/* ---------------  C H A R T S ----------------- */
+.graphContainer {
+  margin: auto;
+  height: 100%;
+  position: relative;
+}
+.chartTitle {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2em;
+  color: var(--light-text);
+}
+.hoverInfo {
+  z-index: 20;
+  position: absolute;
+  border-radius: 5px;
+  padding: 5px;
+  margin: auto;
+  /* background-color: hsla(0,0%,0%,.8); */
+  background-color: var(--artic-red);
+  color: var(--light-text);
+  pointer-events: none;
+  visibility: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+
+/* --------------------- D3 --------------------- */
+text.axis {
+  fill: var(--light-text); /* not color as it's SVG */
 }

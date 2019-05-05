@@ -24,7 +24,6 @@ const { prettyPath, log, warn, verbose } = require('./utils');
  * calls minimap2) is contained here
  */
 const mappingQueue = new Deque();
-console.log(mappingQueue)
 
 mappingQueue.observeRangeChange(() => {mapper();});
 const addToMappingQueue = (thing) => mappingQueue.push(thing);

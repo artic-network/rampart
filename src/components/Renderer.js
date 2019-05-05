@@ -14,6 +14,7 @@ import Config from "./Config";
 import { hidden } from 'ansi-colors';
 // import SidebarManager from "./Sidebar";
 import Report from "./Report";
+import ViewOptions from "./ViewOptions";
 
 const container = css({
   display: "flex",
@@ -69,21 +70,34 @@ const RenderPanels = ({data, viewOptions, config}) => {
     <OverallSummary
       viewOptions={viewOptions}
       data={data}
+      reference={config.reference}
       referencePanel={config.referencePanel}
       key={"overall"}
     />
   );
 
+
   /* For each sample name we want to render a panel */
   Object.keys(data).forEach((name) => {
     if (name === "all") return;
     elements.push(
-      <Panel data={data[name]} name={name} key={name}/>
+      <Panel
+        sampleName={name}
+        sampleData={data[name]}
+        sampleColour={viewOptions.sampleColours[name]}
+        key={name}
+        viewOptions={viewOptions}
+        reference={config.reference}
+      />
     );
   })
   return elements;
 }
 
+/**
+ * React component to render & control a sidebar which transitions
+ * in from the right hand side.
+ */
 const Sidebar = ({title, open, onChange, children, idx}) => {
   if (!children) {
     return (
@@ -103,17 +117,20 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 
 const Renderer = (props) => {
 
-  const [sidebarOpen, setState] = useState("report");
+  // const [sidebarOpen, setState] = useState("report");
+  const [sidebarOpen, setState] = useState(undefined);
+
 
   const sidebars = {
     config: (<Config data={props.data} config={props.config} setConfig={props.setConfig} socket={props.socket}/>),
-    vizSettings: (<h1 style={{width: "300px"}}>to do!</h1>),
+    vizSettings: (<ViewOptions viewOptions={props.viewOptions}/>),
     report: (<Report data={props.data} config={props.config}/>)
   };
 
   return (
     <div {...container}>
       <Header
+        viewOptions={props.viewOptions}
         setViewOptions={props.setViewOptions}
         config={props.config}
         sidebarButtonNames={Object.keys(sidebars)}

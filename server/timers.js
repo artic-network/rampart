@@ -29,7 +29,7 @@ const timerEnd = (name) => {
     dbsingle[name][2] += thisTook;
     const msg = `Timer ${name} (#${dbsingle[name][1]}) took ${thisTook}ms. Average: ${parseInt(dbsingle[name][2] / dbsingle[name][1], 10)}ms.`;
     if (thisTook > 20) {
-      console.log(chalk.white.bgMagentaBright(msg));
+      console.log(chalk.black.bgMagentaBright(msg));
     } else {
       console.log(chalk.black.bgWhite(msg));
     }

@@ -2,7 +2,6 @@ const server = require("./server/server");
 const { parser } = require("./server/args");
 const getInitialConfig = require("./server/config").getInitialConfig;
 const { startUp } = require("./server/startUp");
-
 /* make some globals available everywhere */
 const args = parser.parseArgs();
 if (args.verbose) global.VERBOSE = true;

@@ -9,7 +9,7 @@ import {referenceDiscreteColours} from "../utils/colours";
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
     width: DOMRect.width,
-    height: DOMRect.height - 20, // title line
+    height: DOMRect.height, // title line
     spaceLeft: 140, // space for the reference names
     spaceRight: 0,
     spaceBottom: 60,
@@ -39,8 +39,6 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         [sampleIdx, refPanelMatchIdx, fracIdentity]
     */
 
-
-
     const d3data = Array.from(new Array(names.length*referencePanel.length));
 
     let dataIdx = 0;
@@ -49,7 +47,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             d3data[dataIdx] = [
                 sampleIdx,
                 refIdx,
-                data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]
+                data[names[sampleIdx]].refMatches[referencePanel[refIdx].name] || 0
             ]
             dataIdx++;
         }
@@ -84,17 +82,17 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     //     .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
     /* render the column labels (barcodes) on the bottom */
-    svg.selectAll(".sampleNames")
-        .data(names)
-        .enter()
-        .append("text")
-        .attr("class", "sampleNames axis")
-        .text((name, idx) => idx + 1)
-        .attr('x', (name, idx) => scales.x(idx) + 0.5*cellDims.width)
-        .attr('y', chartGeom.height - chartGeom.spaceBottom + 5)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("alignment-baseline", "hanging");
+    // svg.selectAll(".sampleNames")
+    //     .data(names)
+    //     .enter()
+    //     .append("text")
+    //     .attr("class", "sampleNames axis")
+    //     .text((name, idx) => idx + 1)
+    //     .attr('x', (name, idx) => scales.x(idx) + 0.5*cellDims.width)
+    //     .attr('y', chartGeom.height - chartGeom.spaceBottom + 5)
+    //     .attr("text-anchor", "middle")
+    //     .attr("font-size", "12px")
+    //     .attr("alignment-baseline", "hanging");
 
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
@@ -125,7 +123,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr('height', cellDims.height)
         .attr("x", d => scales.x(d[0]) + cellDims.padding)
         .attr("y", d => scales.y(d[1]+1) + cellDims.padding)
-        .attr("fill", d => d[2] === 0 ? "#ccc" : heatColourScale(d[2]))
+        .attr("fill", d => d[2] === 0 ? "rgba(256, 256, 256, 0.15)" : heatColourScale(d[2]))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
@@ -133,7 +131,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
     const legendBoxWidth = (chartGeom.width - chartGeom.spaceRight) / (legendDataValues.length -1);
     const legendBoxHeight = 12;
-    const legendRoof = chartGeom.height - chartGeom.spaceBottom + 32;
+    const legendRoof = chartGeom.height - chartGeom.spaceBottom + 10;
     const legend = svg.selectAll(".legend")
         .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
         .enter().append("g")
@@ -145,10 +143,10 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr("height", legendBoxHeight)
         .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
     legend.append("text")
-        .text((d, i) => i ? d+"%" : "")
+        .text((d, i) => i%2 ? d+"%" : "")
         .attr("class", "axis")
         .attr('x', (d, i) => legendBoxWidth * i)
-        .attr('y', legendRoof + legendBoxHeight + 2)
+        .attr('y', legendRoof + legendBoxHeight + 11)
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "hanging")
@@ -157,12 +155,10 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
 class ReferenceHeatmap extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {chartGeom: {}};
+        this.state = {chartGeom: {}, hoverWidth: 0, svg: undefined};
     }
     redraw() {
         /* currently redo everything, but we could make this much much smarter */
-        const svg = select(this.DOMref);
-        console.log(this.props.data)
         const names = Object.keys(this.props.data).filter((name) => name!=="all");
         const referencePanel = this.props.referencePanel;
         const chartGeom = this.state.chartGeom;
@@ -176,7 +172,7 @@ class ReferenceHeatmap extends React.Component {
             names,
             referencePanel,
             data: this.props.data,
-            svg,
+            svg: this.state.svg,
             scales,
             cellDims,
             chartGeom,
@@ -184,21 +180,23 @@ class ReferenceHeatmap extends React.Component {
         });
     }
     componentDidMount() {
+        const svg = select(this.DOMref);
         const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-        this.setState({chartGeom})
+        const hoverWidth = parseInt(chartGeom.width * 2/3, 10);
+        this.setState({chartGeom, svg, hoverWidth})
     }
     componentDidUpdate() {
         this.redraw();
     }
     render() {
         return (
-            <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
-                <div {...chartTitleCSS}>{this.props.title}</div>
-                <div
-                    {...toolTipCSS}
-                    style={{maxWidth: this.state.chartGeom.width/2}}
-                    ref={(r) => {this.infoRef = r}}
-                />
+            <div
+                className={this.props.className}
+                style={{width: this.props.width}}
+                ref={(r) => {this.boundingDOMref = r}}
+            >
+                <div className="chartTitle">{this.props.title}</div>
+                <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
                 <svg
                     ref={(r) => {this.DOMref = r}}
                     height={this.state.chartGeom.height || 0}
@@ -210,3 +208,7 @@ class ReferenceHeatmap extends React.Component {
 }
 
 export default ReferenceHeatmap;
+
+
+// {...toolTipCSS}
+// style={{maxWidth: this.state.chartGeom.width/2 || 0}}

@@ -12,9 +12,13 @@ export const createSampleColours = (n) => {
 }
 
 export const createReferenceColours = (n) => {
-    return referenceDiscreteColours;
-  // const linSpace = range(n).map((d) => d/n+1/n); /* don't include 0 or 1 */
-  // return linSpace.map((x) => interpolateRdPu(x));
+  return Array.from(new Array(n), (_, idx) => {
+    if (idx < referenceDiscreteColours.length) {
+      console.log(idx)
+      return referenceDiscreteColours[idx];
+    }
+    return "white";
+  })
 }
 
 export const heatColourScale = scaleSequential(interpolateYlOrRd)
@@ -28,6 +32,7 @@ export const heatColourScale = scaleSequential(interpolateYlOrRd)
 //   );
 
 export const foreground = "#235a64";
+
 
 export const referenceDiscreteColours = [
     "#086375",
@@ -44,4 +49,5 @@ export const referenceDiscreteColours = [
     "#FFE066",
     "#247BA0"
 ]
+
 

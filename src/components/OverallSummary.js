@@ -1,74 +1,58 @@
 import React from 'react';
-import { css } from 'glamor';
 import CoveragePlot from "./Coverage";
 import ReadsOverTime from "./ReadsOverTime";
 import ReadsPerSample from "./ReadsPerSample";
 import ReferenceHeatmap from "./ReferenceHeatmap";
 
-const panelContainer = css({
-  width: 'calc(100% - 30px)',
-  height: "350px", /* adjusting these will also adjust the graphs */
-  minHeight: "350px",
-  margin: "10px 10px 10px 10px"
-})
+const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
 
-const flexRow = css({
-  display: "flex",
-  'flexDirection': 'row',
-  justifyContent: 'space-between',
-  height: "calc(100% - 25px)"
-})
+  return (
+    <div id="overallSummaryContainer">
+      <div className="panelFlexRow">
 
-const genericGraphContainerStyles = {margin: 'auto', height: "100%", position: "relative"};
+        {
+          reference ? (
+            <CoveragePlot
+              className="graphContainer"
+              width="35%"
+              showReferenceMatches={false}
+              data={data}
+              reference={reference}
+              viewOptions={viewOptions}
+            />
+          ) : null
+        }
 
-class OverallSummary extends React.Component {
-  render() {
-    return (
-      <div {...panelContainer}>
-        <div {...flexRow}>
-          {/* <CoveragePlot
-            style={{width: '35%', ...genericGraphContainerStyles}}
-            showReferenceMatches={false}
-            coverage={this.props.coveragePerSample}
-            colours={this.props.sampleColours}
-            version={this.props.version}
-            annotation={this.props.annotation}
-            viewOptions={this.props.viewOptions}
-          />
-          <ReadsOverTime
-            style={{width: '22%', ...genericGraphContainerStyles}}
-            title={"Total reads over time"}
-            readsOverTime={this.props.readsOverTime}
-            version={this.props.version}
-            viewOptions={this.props.viewOptions}
-          />
-          <ReadsPerSample
-            style={{width: '18%', ...genericGraphContainerStyles}}
-            title={"Reads per Sample"}
-            readCountPerSample={this.props.readCountPerSample}
-            version={this.props.version}
-            colours={this.props.sampleColours}
-            viewOptions={this.props.viewOptions}
-          /> */}
-          <ReferenceHeatmap
-            style={{width: '25%', ...genericGraphContainerStyles}}
-            title={"Reference Matches"}
-            data={this.props.data}
-            referencePanel={this.props.referencePanel}
-            samples={this.props.samples}
-            refMatchPerSample={this.props.refMatchPerSample}
-            version={this.props.version}
-            viewOptions={this.props.viewOptions}
-          />
-        </div>
+        <ReadsPerSample
+          className="graphContainer"
+          width="18%"
+          title="Mapped Reads per Sample"
+          data={data}
+          viewOptions={viewOptions}
+        />
+
+        {
+          referencePanel ? (
+            <ReferenceHeatmap
+              className="graphContainer"
+              width="25%"
+              title="Reference Matches"
+              data={data}
+              referencePanel={referencePanel}
+            />
+          ) : null
+        }
       </div>
-    )
-  }
+    </div>
+  )
 }
 
 export default OverallSummary;
 
-
-// viewOptions={this.props.viewOptions}
-// data={this.props.data}
-// referencePanel={this.props.config.referencePanel}
+/* <ReadsOverTime
+  style={{width: '22%', ...genericGraphContainerStyles}}
+  title={"Total reads over time"}
+  readsOverTime={this.props.readsOverTime}
+  version={this.props.version}
+  viewOptions={this.props.viewOptions}
+/> */

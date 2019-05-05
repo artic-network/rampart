@@ -2659,12 +2659,25 @@ collection-visit@^1.0.0:
     map-visit "^1.0.0"
     object-visit "^1.0.0"
 
-collections@^5.1.5:
-  version "5.1.5"
-  resolved "https://registry.yarnpkg.com/collections/-/collections-5.1.5.tgz#55b900799306d4fbd1c3587b1f400bf7db572d77"
-  integrity sha1-VbkAeZMG1PvRw1h7H0AL99tXLXc=
+collections@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/collections/-/collections-2.0.3.tgz#7657125e84a4086a2dc797ff2d696d819a720fb5"
+  integrity sha1-dlcSXoSkCGotx5f/LWltgZpyD7U=
   dependencies:
-    weak-map "~1.0.x"
+    mini-map "^1.0.0"
+    pop-arrayify "^1.0.0"
+    pop-clear "^1.0.0"
+    pop-clone "^1.0.1"
+    pop-compare "^1.0.0"
+    pop-equals "^1.0.0"
+    pop-has "^1.0.0"
+    pop-hash "^1.0.0"
+    pop-iterate "^1.0.1"
+    pop-observe "^2.0.2"
+    pop-swap "^1.0.0"
+    pop-zip "^1.0.0"
+    regexp-escape "0.0.1"
+    weak-map "^1.0.4"
 
 color-convert@^1.9.0:
   version "1.9.1"
@@ -6961,6 +6974,11 @@ mini-css-extract-plugin@0.5.0:
     schema-utils "^1.0.0"
     webpack-sources "^1.1.0"
 
+mini-map@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/mini-map/-/mini-map-1.0.0.tgz#9641e0115d99b3dc13711cf8cfda4c8199893f4e"
+  integrity sha1-lkHgEV2Zs9wTcRz4z9pMgZmJP04=
+
 minimalistic-assert@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz#2e194de044626d4a10e7f7fbc00ce73e83e4d5c7"
@@ -7919,6 +7937,74 @@ pnp-webpack-plugin@1.2.1:
   integrity sha512-W6GctK7K2qQiVR+gYSv/Gyt6jwwIH4vwdviFqx+Y2jAtVf5eZyYIDf5Ac2NCDMBiX5yWscBLZElPTsyA1UtVVA==
   dependencies:
     ts-pnp "^1.0.0"
+
+pop-arrayify@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-arrayify/-/pop-arrayify-1.0.0.tgz#65522b3fe3ae21be4f8e8b2b9e44634c15a6c481"
+  integrity sha1-ZVIrP+OuIb5PjosrnkRjTBWmxIE=
+
+pop-clear@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-clear/-/pop-clear-1.0.0.tgz#fc8164fc85f89f288f23b936b6801ea822ae4586"
+  integrity sha1-/IFk/IX4nyiPI7k2toAeqCKuRYY=
+
+pop-clone@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/pop-clone/-/pop-clone-1.0.1.tgz#618d462497e96d06f9cda315b325cca3a2636038"
+  integrity sha1-YY1GJJfpbQb5zaMVsyXMo6JjYDg=
+  dependencies:
+    mini-map "^1.0.0"
+    pop-equals "^1.0.0"
+
+pop-compare@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-compare/-/pop-compare-1.0.0.tgz#c732e22c27f0cfab80a217d45e7722b5ce151820"
+  integrity sha1-xzLiLCfwz6uAohfUXncitc4VGCA=
+
+pop-equals@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-equals/-/pop-equals-1.0.0.tgz#90414f8fda71a37f881d1e5e3a2e02ef0c3b7e0b"
+  integrity sha1-kEFPj9pxo3+IHR5eOi4C7ww7fgs=
+  dependencies:
+    mini-map "^1.0.0"
+
+pop-has@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-has/-/pop-has-1.0.0.tgz#9b226b59b960ab65eab0b412dd5570dce90e651c"
+  integrity sha1-myJrWblgq2XqsLQS3VVw3OkOZRw=
+  dependencies:
+    pop-equals "^1.0.0"
+
+pop-hash@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/pop-hash/-/pop-hash-1.0.1.tgz#bcd69454bd2f99ded20b5fc8a2b93d6b5fab44cc"
+  integrity sha1-vNaUVL0vmd7SC1/Iork9a1+rRMw=
+  dependencies:
+    weak-map "^1.0.5"
+
+pop-iterate@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/pop-iterate/-/pop-iterate-1.0.1.tgz#ceacfdab4abf353d7a0f2aaa2c1fc7b3f9413ba3"
+  integrity sha1-zqz9q0q/NT16DyqqLB/Hs/lBO6M=
+
+pop-observe@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/pop-observe/-/pop-observe-2.0.2.tgz#5acb5ac6f24c7c6ffab2c32151b0adb740eef363"
+  integrity sha1-WstaxvJMfG/6ssMhUbCtt0Du82M=
+  dependencies:
+    pop-equals "^1.0.0"
+    pop-has "^1.0.0"
+    pop-swap "^1.0.0"
+
+pop-swap@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-swap/-/pop-swap-1.0.0.tgz#88b440553e085d0179d32255b09f93aab9890c66"
+  integrity sha1-iLRAVT4IXQF50yJVsJ+TqrmJDGY=
+
+pop-zip@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pop-zip/-/pop-zip-1.0.0.tgz#3dc114007b2cece74ff3b8cea73eb120c70db056"
+  integrity sha1-PcEUAHss7OdP87jOpz6xIMcNsFY=
 
 portfinder@^1.0.9:
   version "1.0.13"
@@ -9181,6 +9267,11 @@ regex-not@^1.0.0, regex-not@^1.0.2:
   dependencies:
     extend-shallow "^3.0.2"
     safe-regex "^1.1.0"
+
+regexp-escape@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/regexp-escape/-/regexp-escape-0.0.1.tgz#3f326a062d8f7596b2914929550aac77eaf8de75"
+  integrity sha1-PzJqBi2PdZaykUkpVQqsd+r43nU=
 
 regexp-tree@^0.1.0:
   version "0.1.6"
@@ -10866,7 +10957,7 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   dependencies:
     minimalistic-assert "^1.0.0"
 
-weak-map@~1.0.x:
+weak-map@^1.0.4, weak-map@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/weak-map/-/weak-map-1.0.5.tgz#79691584d98607f5070bd3b70a40e6bb22e401eb"
   integrity sha1-eWkVhNmGB/UHC9O3CkDmuyLkAes=
