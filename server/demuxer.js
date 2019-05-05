@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const Deque = require("collections/deque");
 const { setReadTime, getReadTime } = require("./readTimes");
-const { datastoreUpdated } = require("./socket");
+// const { datastoreUpdated } = require("./socket");
 const { verbose, warn } = require("./utils");
 const { addToMappingQueue } = require("./mapper");
 
@@ -106,7 +106,8 @@ const demuxer = async () => {
             ]);
             const datastoreIdx = await addToDatastore(fastqToWrite);
             verbose(`[demuxer] ${fileToDemuxBasename} demuxed. Read time: ${getReadTime(fileToDemuxBasename)}`);
-            datastoreUpdated();
+            // datastoreUpdated(); // see note in mapper.js
+            global.TMP_DATASTORE_UPDATED_FUNC();
             addToMappingQueue([datastoreIdx, fastqToWrite]);
         } catch (err) {
           warn(`Demuxing / extracting time of ${fileToDemuxBasename}: ${err}`);

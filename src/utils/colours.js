@@ -14,7 +14,6 @@ export const createSampleColours = (n) => {
 export const createReferenceColours = (n) => {
   return Array.from(new Array(n), (_, idx) => {
     if (idx < referenceDiscreteColours.length) {
-      console.log(idx)
       return referenceDiscreteColours[idx];
     }
     return "white";

@@ -68,10 +68,11 @@ const getInitialConfig = (args) => {
     });
   }
 
-  if (args.basecalledDir !== "") {
+  if (args.basecalledDir) {
+    console.log("!!!!", args.basecalledDir)
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }
-  if (args.demuxedDir !== "") {
+  if (args.demuxedDir) {
     config.demuxedPath = getAbsolutePath(args.demuxedDir, {relativeTo: process.cwd()});
     ensurePathExists(config.demuxedPath, {make: true});
   }

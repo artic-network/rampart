@@ -66,15 +66,28 @@ const RenderPanels = ({data, viewOptions, config}) => {
   }
   const elements = [];
   /* we want to render the "overall" progress in a special panel */
-  elements.push(
-    <OverallSummary
-      viewOptions={viewOptions}
-      data={data}
-      reference={config.reference}
-      referencePanel={config.referencePanel}
-      key={"overall"}
-    />
-  );
+
+  const mappingDataAvailable = config.reference && config.referencePanel;
+
+  if (mappingDataAvailable) {
+    elements.push(
+      <OverallSummary
+        viewOptions={viewOptions}
+        data={data}
+        reference={config.reference}
+        referencePanel={config.referencePanel}
+        key={"overall"}
+      />
+    );
+  } else {
+    elements.push(
+      <div key="msg" className="centerHorizontally">
+        <h3 style={{maxWidth: "50vw"}}>
+          {`Please specify mapping references via config panel, without these we cannot display nice things!`}
+        </h3>
+      </div>
+    )
+  }
 
 
   /* For each sample name we want to render a panel */
@@ -88,6 +101,7 @@ const RenderPanels = ({data, viewOptions, config}) => {
         key={name}
         viewOptions={viewOptions}
         reference={config.reference}
+        canExpand={mappingDataAvailable}
       />
     );
   })
@@ -139,7 +153,7 @@ const Renderer = (props) => {
       />
       {
         props.mainPage === "chooseBasecalledDirectory" ?
-          <ChooseBasecalledDirectory/> :
+          <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/> :
           props.mainPage === "loading" ?
             <h1>LOADING</h1> :
             <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config}/>

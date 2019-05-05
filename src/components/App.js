@@ -15,6 +15,7 @@ class App extends Component {
         referenceColours: {}
       },
       config: {},
+      changePage: (page) => this.setState({mainPage: page})
     };
     this.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
@@ -24,8 +25,8 @@ class App extends Component {
     }
 
     this.state.socket = io('http://localhost:3002');
-    this.state.socket.on("noBasecalledDir", () => {
-      console.log("noBasecalledDir");
+    this.state.socket.on("noBasecalledPath", () => {
+      console.log("noBasecalledPath");
       this.setState({mainPage: "chooseBasecalledDirectory"});
     });
     this.state.socket.on("data", (response) => {

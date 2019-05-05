@@ -5,7 +5,7 @@ const { save_coordinate_reference_as_fasta, addToMappingQueue } = require("./map
 const { addToDemuxQueue } = require("./demuxer");
 const readdir = promisify(fs.readdir);
 const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
-const { prettyPath, fatal, log } = require('./utils');
+const { prettyPath, verbose, log } = require('./utils');
 
 const getFastqsFromDirectory = async (dir) => {
     let fastqs = (await readdir(dir))
@@ -16,14 +16,17 @@ const getFastqsFromDirectory = async (dir) => {
 }
 
 const startUp = async ({emptyDemuxed=false}={}) => {
+
   log("Rampart Start Up")
   if (!fs.existsSync(global.config.basecalledPath) || !fs.existsSync(global.config.demuxedPath)) {
-    fatal("no basecalled dir / demuxed dir")
+    verbose("[startUp] no basecalled dir / demuxed dir");
+    return false;
   }
 
-  /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
-  save_coordinate_reference_as_fasta(global.config.reference.sequence);
-
+  if (global.config.reference) {
+    /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
+    save_coordinate_reference_as_fasta(global.config.reference.sequence);
+  }
 
   /* LIST BASECALLED & DEMUXED FILES */
   const unsortedBasecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath);
@@ -72,6 +75,7 @@ const startUp = async ({emptyDemuxed=false}={}) => {
     });
 
   log`RAMPART start up FINISHED\n`;
+  return true;
 }
 
 module.exports = {startUp}

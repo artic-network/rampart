@@ -286,3 +286,40 @@ th.rotate {
 text.axis {
   fill: var(--light-text); /* not color as it's SVG */
 }
+
+
+/* -------------- BASECALLED DIR ---------------- */
+.centerVertically {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.centerHorizontally {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.startUp > label {
+  display: block;
+  padding: 5px;
+}
+.startUp input {
+  border-radius: 3px;
+  border: 2px solid var(--artic-red);
+  background-color: var(--dark-foreground);
+  color: var(--artic-red);
+  font-size: 16px;
+  margin-left: 10px;
+  height: 22px;
+  padding: 4px;
+  width: 80vw;
+  max-width: 800px;
+}
+.startUp > button {
+  margin-top: 50px;
+  margin-bottom: 100px;
+}

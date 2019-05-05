@@ -6,21 +6,23 @@ import {select} from "d3-selection";
 import {consensusCoverage, okCoverage} from "../magics";
 import {heatColourScale} from "../utils/colours";
 
-const InfoRow = ({sampleName, sampleData, handleClick, isExpanded}) => {
+const InfoRow = ({sampleName, sampleData, handleClick, isExpanded, canExpand}) => {
   const summaryTitle = `${sampleName}`;
   const summaryText = `${sampleData.demuxedCount} reads demuxed, ${sampleData.mappedCount} mapped.`;
   return (
-    <div className="infoRow" onClick={handleClick}>
+    <div className="infoRow" onClick={() => {if (canExpand) {handleClick();}}}>
       <span style={{flexBasis: "15%"}}>{summaryTitle}</span>
       <span>{summaryText}</span>
-      <span className="toggle">
-        {isExpanded ? "click to contract" : "click to expand"}
-      </span>
+      { canExpand ? (
+        <span className="toggle">
+          {isExpanded ? "click to contract" : "click to expand"}
+        </span>
+      ) : <span/>}
     </div>
   );
 };
 
-const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference}) => {
+const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand}) => {
   const [expanded, setExpanded] = useState(false);
   const coverageData = {};
   coverageData[sampleName] = sampleData;
@@ -29,7 +31,7 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference}) =
       className={`panelContainer ${expanded ? "expanded" : "collapsed"}`}
       style={{borderColor: sampleColour}}
     >
-      <InfoRow sampleName={sampleName} sampleData={sampleData} handleClick={() => setExpanded(!expanded)} isExpanded={expanded}/>
+      <InfoRow sampleName={sampleName} sampleData={sampleData} handleClick={() => setExpanded(!expanded)} isExpanded={expanded} canExpand={canExpand}/>
 
       {
         expanded ? (

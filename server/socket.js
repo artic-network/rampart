@@ -1,7 +1,9 @@
+const fs = require('fs')
 const modifyConfig = require("./config").modifyConfig;
 const { verbose, log } = require("./utils");
 const { timerStart, timerEnd } = require('./timers');
 const { getData } = require("./transformResults");
+const { startUp } = require("./startUp");
 
 /**
  * Collect all data (from global.datastore) and send to client
@@ -36,10 +38,28 @@ const initialConnection = (socket) => {
 const setUpIOListeners = (socket) => {
   verbose("[setUpIOListeners]")
   socket.on('config', (newConfig) => {
-    console.log("!!!!!!")
     modifyConfig(newConfig);
     sendData(); /* as the barcode -> names may have changed */
     sendConfig();
+  });
+  socket.on('basecalledAndDemuxedPaths', async (clientData) => {
+    verbose("[basecalledAndDemuxedPaths]")
+    global.config.basecalledPath = clientData.basecalledPath;
+    global.config.demuxedPath = clientData.demuxedPath;
+    const success = await startUp({emptyDemuxed: true}); // TODO
+    if (success) {
+      verbose("[basecalledAndDemuxedPaths] success")
+      sendConfig();
+    } else {
+      verbose("[basecalledAndDemuxedPaths] failed")
+      setTimeout(() => socket.emit("noBasecalledPath"), 100);
+    }
+  })
+  socket.on("doesPathExist", (data) => {
+    return socket.emit("doesPathExist", {
+      path: data.path,
+      exists: fs.existsSync(data.path)
+    });
   });
 }
 

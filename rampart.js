@@ -14,8 +14,8 @@ global.haveBeenSeen = new Set();
 
 
 const main = async () => {
-  await startUp({emptyDemuxed: args.emptyDemuxed}); /* block until we've read the appropriate files */
   const app = await server.run({devClient: args.devClient}); // eslint-disable-line
+  await ({emptyDemuxed: args.emptyDemuxed})
 }
 
 main();
