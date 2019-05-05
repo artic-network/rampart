@@ -69,7 +69,8 @@ input:checked + .slider:before {
 /* --------------- SIDEBARS --------------- */
 div.sidebar {
   position: absolute;
-  /* width: 400px; */
+  max-width: 85%;
+  overflow-x: scroll;
   height: 95%;
   color: #fffcf2;
   background-color: var(--dark-background);
@@ -158,4 +159,36 @@ button.modernButton:hover {
 div.sidebar {
   position: absolute;
   right: 0px;
+}
+
+/* -------------------- REPORT -------------------------- */
+.report table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+div.report {
+  padding-top: 50px;
+}
+.report td, th {
+  border: 1px solid var(--dark-foreground);
+}
+.report caption {
+  color: var(--artic-red);
+  font-size: 1.5em;
+  font-weight: 600;
+}
+th.rotate > div {
+  /* see https://css-tricks.com/rotated-table-column-headers/ */
+  transform: translate(25px, -18px) rotate(315deg); /* magic numbers */
+  width: 45px;
+}
+th.rotate > div > span {
+  /* the underlining of rotated labels */
+  padding-bottom: 10px;
+  border-bottom:  1px solid var(--dark-foreground);
+  font-weight: 600;
+}
+th.rotate {
+  padding-top: 150px;
+  border: none
 }

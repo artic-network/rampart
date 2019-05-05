@@ -13,6 +13,7 @@ import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./Config";
 import { hidden } from 'ansi-colors';
 // import SidebarManager from "./Sidebar";
+import Report from "./Report";
 
 const container = css({
   display: "flex",
@@ -102,12 +103,12 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 
 const Renderer = (props) => {
 
-  const [sidebarOpen, setState] = useState(undefined);
+  const [sidebarOpen, setState] = useState("report");
 
   const sidebars = {
     config: (<Config data={props.data} config={props.config} setConfig={props.setConfig} socket={props.socket}/>),
     vizSettings: (<h1 style={{width: "300px"}}>to do!</h1>),
-    report: (<h1>report time</h1>)
+    report: (<Report data={props.data} config={props.config}/>)
   };
 
   return (
