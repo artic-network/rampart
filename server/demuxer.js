@@ -14,7 +14,9 @@ const { addToMappingQueue } = require("./mapper");
  * is contained here
  */
 const demuxQueue = new Deque();
-demuxQueue.addRangeChangeListener(() => demuxer());
+demuxQueue.observeRangeChange(() => {demuxer();});
+
+
 const addToDemuxQueue = (thing) => demuxQueue.push(thing);
 
 

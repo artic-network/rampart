@@ -24,9 +24,10 @@ const { prettyPath, log, warn, verbose } = require('./utils');
  * calls minimap2) is contained here
  */
 const mappingQueue = new Deque();
-mappingQueue.addRangeChangeListener(() => mapper());
-const addToMappingQueue = (thing) => mappingQueue.push(thing);
+console.log(mappingQueue)
 
+mappingQueue.observeRangeChange(() => {mapper();});
+const addToMappingQueue = (thing) => mappingQueue.push(thing);
 
 
 const save_coordinate_reference_as_fasta = (refSeq) => {
