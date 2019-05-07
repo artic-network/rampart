@@ -4,6 +4,7 @@ const { verbose, log, warn } = require("./utils");
 const { timerStart, timerEnd } = require('./timers');
 const { getData } = require("./transformResults");
 const { startUp } = require("./startUp");
+const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 
 /**
  * Collect all data (from global.datastore) and send to client
@@ -56,6 +57,8 @@ const setUpIOListeners = (socket) => {
     if (success) {
       verbose("[basecalledAndDemuxedPaths] success")
       sendConfig();
+      startBasecalledFilesWatcher();
+
     } else {
       verbose("[basecalledAndDemuxedPaths] failed")
       setTimeout(() => socket.emit("noBasecalledPath"), 100);
