@@ -16,37 +16,38 @@ const calcChartGeom = (DOMRect) => ({
   spaceTop: 10
 });
 
-export const getMaxes = (data) => ({
-  y: max(data),
-  x: data.length * readLengthResolution
-});
-
 class ReadLengthDistribution extends React.Component {
   constructor(props) {
     super(props);
     this.state = {chartGeom: {}};
   }
-  redraw(SVG, chartGeom) {
-    const readLengthMaxes = getMaxes(this.props.readLength)
-    const scales = calcScales(chartGeom, readLengthMaxes.x, readLengthMaxes.y);
-    drawAxes(SVG, chartGeom, scales, {xSuffix: "bp", xTicks: 4})
-    drawSteps(SVG, chartGeom, scales, [this.props.readLength], [this.props.colour], readLengthResolution, true)
+  redraw() {
+    if (!this.props.xyValues.length) return;
+    const maxX = this.props.xyValues[this.props.xyValues.length-1][0];
+    const maxY = max(this.props.xyValues.map((xy) => xy[1]));
+    const scales = calcScales(this.state.chartGeom, maxX, maxY);
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", xTicks: 4})
+    const data = [{name: "Read Lengths", xyValues: this.props.xyValues, colour: this.props.colour}];
+    const hoverDisplayFunc = ({name, xValue, yValue}) => (`Read length ${xValue}bp<br/>Num reads: ${yValue}`);
+    drawSteps({svg: this.state.svg, chartGeom: this.state.chartGeom, scales, data, fillBelowLine: true, hoverSelection: this.state.hoverSelection, hoverDisplayFunc});
   }
   componentDidMount() {
-    const SVG = select(this.DOMref);
+    const svg = select(this.DOMref);
+    const hoverSelection = select(this.infoRef);
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-    this.redraw(SVG, chartGeom);
-    this.setState({SVG, chartGeom});
+    const hoverWidth = parseInt(chartGeom.width * 1/2, 10);
+    this.setState({svg, chartGeom, hoverSelection, hoverWidth});
   }
   componentDidUpdate(prevProps) {
-    if (prevProps.version !== this.props.version) {
-      this.redraw(this.state.SVG, this.state.chartGeom);
-    }
+    this.redraw();
   }
   render() {
     return (
-      <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
-        <div {...chartTitleCSS}>{this.props.title}</div>
+      <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
+        <div className="chartTitle">
+          {this.props.title}
+        </div>
+        <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
         <svg
           ref={(r) => {this.DOMref = r}}
           height={this.state.chartGeom.height || 0}

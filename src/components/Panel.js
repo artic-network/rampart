@@ -49,6 +49,15 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
               fillIn={true}
             />
 
+            <ReadLengthDistribution
+              className="graphContainer"
+              title={"Read Lengths"}
+              width="20%"
+              xyValues={sampleData.readLengths.xyValues}
+              colour={sampleColour}
+              viewOptions={viewOptions}
+            />
+
             <CoverageOverTime
               title={"Coverage Progress"}
               width="30%"

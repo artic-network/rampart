@@ -22,6 +22,33 @@ const _addReadsToCoverage = (coverage, readPositions) => {
   }
 }
 
+const _addReadLengths = (store, readLengths) => {
+  /* store them in `tmp` as key-value pairs so we can only keep the xvalues where we have data */
+  readLengths.forEach((n) => {
+    const len = parseInt(n/magics.readLengthResolution, 10) * magics.readLengthResolution;
+    if (!store.tmp[len]) store.tmp[len] = 0;
+    store.tmp[len]++
+  })
+}
+/* due to the way we draw lines, we need padding zeros! else the d3 curve will join up points */
+const _postProcessReadLengths = (readLengths) => {
+  const xValues = Object.keys(readLengths.tmp).map((n) => parseInt(n, 10)).sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
+  const counts = xValues.map((x) => readLengths.tmp[x]);
+  /* edge case */
+  readLengths.xyValues = [
+    [xValues[0]-magics.readLengthResolution, 0],
+    [xValues[0], counts[0]]
+  ];
+  /* for each point, pad with zero on LHS unless it's a single step ahead */
+  for (let i = 1; i < xValues.length; i++) {
+    const singleStepAhead = xValues[i] - magics.readLengthResolution === xValues[i-1];
+    if (!singleStepAhead) {
+      readLengths.xyValues.push([xValues[i]-magics.readLengthResolution, 0]);
+    }
+    readLengths.xyValues.push([xValues[i], counts[i]]);
+  }
+  delete readLengths.tmp;
+}
 
 /* adds temporal data to the temporalMap */
 const _addTemporalData = (temporalMap, mappedCount, coverage, timestamp) => {
@@ -92,6 +119,7 @@ const _summariseTemporalData = (data) => {
  *    `coverage` {array} may be length 0. array of coverage at positions.
  *    `maxCoverage` {int}
  *    `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
+ *    `readLengths` {Object} keys: `xyValues`, array of [int, int]
  */
 const getData = () => {
   const response = {data: {}, settings: {}}
@@ -109,6 +137,7 @@ const getData = () => {
       coverage: mainReference ? _createEmptyCoverage(nGenomeSlices) : [],
       temporal: [],
       tmpTemporal: {}, // will be removed before send
+      readLengths: {xyValues: [], tmp: {}} // tmp will be removed before send
     };
     // eslint-disable-next-line no-loop-func
     dataPoints.forEach((d) => {
@@ -124,6 +153,7 @@ const getData = () => {
       if (mainReference && d.readPositions) {
         _addReadsToCoverage(sampleData.coverage, d.readPositions);
         _addTemporalData(sampleData.tmpTemporal, sampleData.mappedCount, sampleData.coverage, d.timestamp);
+        _addReadLengths(sampleData.readLengths, d.readLengths);
       }
 
     });
@@ -140,7 +170,7 @@ const getData = () => {
         sampleData.refMatches[ref] = parseInt(sampleData.refMatches[ref] / tot * 100, 10);
       }
     }
-
+    _postProcessReadLengths(sampleData.readLengths)
     sampleData.maxCoverage = sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0);
     sampleData.temporal = Object.values(sampleData.tmpTemporal).map((d) => d)
       .sort((a, b) => a.time>b.time ? 1 : -1);

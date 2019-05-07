@@ -70,18 +70,23 @@ class CoveragePlot extends React.Component {
             //   this.infoRef
             // );
         } else {
-            const coverages = Object.keys(this.props.data)
+            const coverageData = Object.keys(this.props.data)
                 .filter((name) => name!=="all")
-                .map((name) => [name, this.props.data[name].coverage]);
+                .map((name) => ({
+                    name,
+                    xyValues: this.props.data[name].coverage.map((cov, idx) => [idx*this.props.viewOptions.genomeResolution, cov]),
+                    colour: this.props.viewOptions.sampleColours[name]
+                }));
+            const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${yValue}x`);
+
             drawSteps({
                 svg: this.state.svg,
                 chartGeom: this.state.chartGeom,
                 scales,
-                coverages: coverages,
-                sampleColours: this.props.viewOptions.sampleColours,
-                genomeResolution: this.props.viewOptions.genomeResolution,
+                data: coverageData,
                 fillBelowLine: !!this.props.fillIn,
-                hoverSelection: this.state.hoverSelection
+                hoverSelection: this.state.hoverSelection,
+                hoverDisplayFunc
             });
         }
     }
