@@ -90,6 +90,9 @@ div.sidebar.open {
   display: block;
   padding: 5px;
 }
+.sidebar input.hidden {
+  display: none;
+}
 .sidebar input {
   border-radius: 3px;
   border: 2px solid var(--artic-red);
@@ -108,6 +111,25 @@ div.sidebar.open {
   height: 100%;
   overflow: scroll;
 }
+
+/* ------------ CONFIG SIDEBAR -------------------- */
+.sidebar div.fileDropZone {
+  width: 200px;
+  height: 24px;
+  border: 1px dashed var(--dark-foreground);
+  display: inline-block;
+  margin-right: 20px;
+  text-align: center;
+  padding-top: 4px;
+  font-weight: 600;
+}
+.sidebar div.fileDropZone.dragging {
+  background-color: var(--artic-red);
+}
+.sidebar div + button {
+  display: inline-block;
+}
+
 
 /* -------------------- HEADER --------------------- */
 div.header {

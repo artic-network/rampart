@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require("fs");
 const chalk = require('chalk');
 
 const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
@@ -16,6 +17,20 @@ const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
   }
   return path.join(__dirname, "..", filepath)
 }
+
+const deleteFolderRecursive = function(pathToRm) {
+  if (fs.existsSync(pathToRm)) {
+    fs.readdirSync(pathToRm).forEach(function(file, index){
+      var curPath = path.join(pathToRm, file);
+      if (fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(pathToRm);
+  }
+};
 
 const fatal = (msg) => {
   console.log(chalk.redBright(`[FATAL] ${msg}`));
@@ -53,5 +68,6 @@ module.exports = {
   fatal,
   log,
   warn,
-  verbose
+  verbose,
+  deleteFolderRecursive
 };

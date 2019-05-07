@@ -28,3 +28,6 @@ coordinate_reference.fasta
 
 #don't commit demuxed reads...
 demuxed/
+
+# file to save data to during a run
+/tmp/

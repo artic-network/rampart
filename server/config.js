@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const { getAbsolutePath, verbose, log, warn } = require("./utils");
-const { mapper } = require("./mapper");
+const { mapper, save_coordinate_reference_as_fasta } = require("./mapper");
 
 const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
@@ -37,18 +37,21 @@ const getReferenceNames = (referencePanelPath) => {
  * Create initial config file from command line arguments
  */
 const getInitialConfig = (args) => {
+
   const barcodes = [
     "BC01", "BC02", "BC03", "BC04", "BC05", "BC06", "BC07", "BC08", "BC09", "BC10", "BC11", "BC12"
   ];
 
   const config = {
-    title: args.title ? args.title : "",
+    title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
     barcodeToName: {},
     barcodes,
+    rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
     basecalledPath: "",
     demuxedPath: "",
     referenceConfigPath: "",
-    referencePanelPath: "",
+    referencePanelPath: "",  // supplied to the mapper
+    coordinateReferencePath: "", // supplied to the mapper
     referencePanel: [],
     reference: undefined,
     relaxedDemuxing: args.relaxedDemuxing,
@@ -100,26 +103,49 @@ const getInitialConfig = (args) => {
 /**
  * update the config file via GUI provided data
  */
-const modifyConfig = (newConfig) => {
+const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
-  global.config.barcodeToName = newConfig.barcodeToName;
-
-  if (!global.config.referencePanelPath && newConfig.referencePanelPath) {
-    try {
-      ensurePathExists(newConfig.referencePanelPath);
-      // take approprieate action?
-    } catch (err) {
-      warn(err.message);
-      newConfig.referencePanelPath = "";
+  /* if client is sending us FASTA file */
+  if (refFasta) {
+    if (global.config.referencePanelPath) {
+      throw new Error("Shouldn't be able to supply a reference panel fasta when referencePanelPath exists");
     }
+    newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
+    fs.writeFileSync(newConfig.referencePanelPath, refFasta);
+    newConfig.referencePanel = getReferenceNames(newConfig.referencePanelPath);
+
+    /* try to start the mapper, which may not be running due to insufficent
+    config information. It will exit gracefully if required */
+    mapper();
+  }
+
+  /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
+  if (refJsonString || refJsonPath) {
+    if (global.config.referenceConfigPath) {
+      throw new Error("Shouldn't be able to supply a reference config JSON when referenceConfigPath exists");
+    }
+
+    if (refJsonPath) {
+      ensurePathExists(refJsonPath);
+      newConfig.referenceConfigPath = getAbsolutePath(refJsonPath);
+    } else {
+      newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
+      fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
+    }
+
+    /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
+    newConfig.reference = JSON.parse(fs.readFileSync(newConfig.referenceConfigPath)).reference;
+
+    /* the python mapping script needs a FASTA of the main reference */
+    newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
+
+    /* try to start the mapper, which may not be running due to insufficent
+    config information. It will exit gracefully if required */
+    mapper();
+
   }
 
   global.config = Object.assign({}, global.config, newConfig);
-
-  /* try to start the mapper, which may not be running due to insufficent
-  config information. It will exit gracefully if required */
-  mapper();
-
 }
 
 

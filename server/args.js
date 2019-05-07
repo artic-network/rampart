@@ -29,8 +29,6 @@ development.addArgument('--mockFailures', {action: "storeTrue", help: "stochasti
 
 /* ----------------- DEPRECATED -------------------- */
 const deprecated = parser.addArgumentGroup({title: 'Deprecated commands'});
-deprecated.addArgument('--config', {required: true, help: "path to JSON configuration file"});
-deprecated.addArgument('--subsetFastqs', {action: "storeTrue", help: "Development flag -- only considers subset of FASTQs for speed reasons"});
 deprecated.addArgument('--startWithDemuxedReads', {action: "storeTrue", help: "Development flag."});
 deprecated.addArgument('--relaxedDemuxing', {action: "storeTrue", help: "Development flag -- don't require matching barcodes to demux."});
 

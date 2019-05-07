@@ -67,7 +67,7 @@ const RenderPanels = ({data, viewOptions, config}) => {
   const elements = [];
   /* we want to render the "overall" progress in a special panel */
 
-  const mappingDataAvailable = config.reference && config.referencePanel;
+  const mappingDataAvailable = config.reference && config.referencePanel.length;
 
   if (mappingDataAvailable) {
     elements.push(
@@ -132,11 +132,11 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 const Renderer = (props) => {
 
   // const [sidebarOpen, setState] = useState("report");
-  const [sidebarOpen, setState] = useState(undefined);
+  const [sidebarOpen, setState] = useState("config");
 
 
   const sidebars = {
-    config: (<Config data={props.data} config={props.config} setConfig={props.setConfig} socket={props.socket}/>),
+    config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket}/>),
     vizSettings: (<ViewOptions viewOptions={props.viewOptions}/>),
     report: (<Report data={props.data} config={props.config}/>)
   };

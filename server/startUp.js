@@ -5,7 +5,7 @@ const { save_coordinate_reference_as_fasta, addToMappingQueue } = require("./map
 const { addToDemuxQueue } = require("./demuxer");
 const readdir = promisify(fs.readdir);
 const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
-const { prettyPath, verbose, log } = require('./utils');
+const { prettyPath, verbose, log, deleteFolderRecursive } = require('./utils');
 
 const getFastqsFromDirectory = async (dir) => {
     let fastqs = (await readdir(dir))
@@ -23,9 +23,15 @@ const startUp = async ({emptyDemuxed=false}={}) => {
     return false;
   }
 
+  /* Create & clear a temporary directory to store data in during the run */
+  if (fs.existsSync(global.config.rampartTmpDir)) {
+    deleteFolderRecursive(global.config.rampartTmpDir);
+  }
+  fs.mkdirSync(global.config.rampartTmpDir);
+
   if (global.config.reference) {
-    /* the python mapping script needs a FASTA of the main reference (we have this inside the config JSON) */
-    save_coordinate_reference_as_fasta(global.config.reference.sequence);
+    /* the python mapping script needs a FASTA of the main reference */
+    global.config.coordinateReferencePath = save_coordinate_reference_as_fasta(global.config.reference.sequence, global.config.rampartTmpDir);
   }
 
   /* LIST BASECALLED & DEMUXED FILES */

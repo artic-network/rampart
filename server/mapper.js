@@ -29,12 +29,14 @@ mappingQueue.observeRangeChange(() => {mapper();});
 const addToMappingQueue = (thing) => mappingQueue.push(thing);
 
 
-const save_coordinate_reference_as_fasta = (refSeq) => {
+const save_coordinate_reference_as_fasta = (refSeq, dir) => {
   /* python's mappy needs a FASTA file of the reference sequence,
   you can't give it the string from the coorinate JSON :( */
   verbose("[save_coordinate_reference_as_fasta]");
   const fasta = ">COORDINATE_REFERENCE\n"+refSeq;
-  fs.writeFileSync("coordinate_reference.fasta", fasta);
+  const filePath = path.join(dir, "coordinate_reference.fasta");
+  fs.writeFileSync(filePath, fasta);
+  return filePath;
 }
 
 /**
@@ -79,7 +81,7 @@ const addToDatastore = (datastorePointers, results) => {
 const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
     const pyprog = spawn('python3', [
         "./server/map_single_fastq.py",
-        "-c", "coordinate_reference.fasta",
+        "-c", global.config.coordinateReferencePath,
         "-p", global.config.referencePanelPath,
         "-f", fastq
     ]);
@@ -108,10 +110,12 @@ const mapper = async () => {
 
   /* the mapper can _only_ run _if_ we have defined both a reference panel and a
   "main" reference config. (Perhaps this could be relaxed in the future) */
-  if (!(global.config.reference && global.config.referencePanel)) {
-    verbose("Cannot start mapper without main reference & reference panel");
+  if (!(global.config.reference && global.config.referencePanel.length)) {
+    verbose(`Cannot start mapper without main reference (provided: ${!!global.config.reference}) AND reference panel (provided: ${!!global.config.referencePanel.length})`);
     return;
   }
+
+
   if (isRunning) {
     verbose("[mapper] called but already running");
     return;

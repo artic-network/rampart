@@ -6,7 +6,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
-    "collections": "@2.0.3",
+    "collections": "^2.0.3",
     "cors": "^2.8.4",
     "csvtojson": "^1.1.9",
     "d3-array": "1.2.4",
@@ -24,6 +24,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.0",
+    "react-select": "1.0.0-rc.5",
     "socket.io": "2.2.0",
     "socket.io-client": "^2.2.0"
   },

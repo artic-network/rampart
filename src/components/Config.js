@@ -1,29 +1,64 @@
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import PropTypes from "prop-types";
 
+/**
+ * Handler for dropped files (e.g. FASTA / JSON) to read and store as a string
+ * using the provided `setter`.
+ * @param {DataTransfer} file
+ * @param {string} type
+ * @param {function} setter
+ */
+const handleDroppedFile = (file, type, setter) => {
+  const fileNameLower = file.name.toLowerCase() || file.toLowerCase();
+  if (
+    (type === "refFASTA" && !(fileNameLower.endsWith(".fasta") || fileNameLower.endsWith(".fas") || fileNameLower.endsWith(".mfa"))) ||
+    (type === "refJSON" && !fileNameLower.endsWith(".json"))
+  ) {
+    console.error(`Dropped file ${file.name} has incorrect extension`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    setter(event.target.result);
+  };
+  reader.onerror = function (event) {
+    console.error("Error reading reference FASTA")
+    setter(false);
+  }
+  reader.readAsText(file);
+}
 
-const Config = ({data, config, setConfig, socket}) => {
+const Config = ({config, setConfig, socket}) => {
+  const refPanelChooser = useRef();
+  const [refPanelDropperHover, setRefPanelDropperHover] = useState(false);
+  const [refPanelFileDropped, setRefPanelFileDropped] = useState(undefined);
+  const refConfigChooser = useRef();
+  const [refConfigDropperHover, setRefConfigDropperHover] = useState(false);
+  const [refConfigFileDropped, setRefConfigFileDropped] = useState(undefined);
 
-  /* can't render anything useful if we haven't gotten the config from the server! */
-  if (!config) {
+  /* data checks to avoid trying to render things before it's appropriate */
+  if (!Object.keys(config).length) {
     return (
       <p>Can't display config before we get one from the server!</p>
     );
   }
 
-
-  const barcodesSeen = Object.keys(data);
+  const barcodesSeen = []; // TODO
 
   const submit = () => {
     console.log("sending new config to server")
-    socket.emit('config', config);
+    setRefPanelFileDropped(false);
+    setRefConfigFileDropped(false);
+    socket.emit('config', {config, refFasta: refPanelFileDropped, refJsonString: refConfigFileDropped});
   }
 
   return (
-    <div>
+    <div onDrop={(e) => {e.preventDefault()}}>
 
       <h1>Set Config</h1>
-      <p>Click submit when you've made modifications</p>
+      <p>Click "save config" when you've made modifications</p>
+
+      <button className="modernButton" onClick={submit}>save config</button>
 
       <h2>Experiment Title</h2>
       <label>
@@ -36,34 +71,69 @@ const Config = ({data, config, setConfig, socket}) => {
 
       <h2>Reference Config (JSON)</h2>
       {config.reference ? (
-        <div>{`Reference: ${config.reference.label}, ${config.reference.length}bp`}</div>
-      ) : (
-        <label>
-          <input
-            type="text"
-            value={config.referenceConfigPath}
-            onChange={(event) => {setConfig(Object.assign({}, config, {referenceConfigPath: event.target.value}))}}
-          />
-        </label>
-      )}
+        <div>{`Reference: ${config.reference.label}, ${config.reference.length}bp. This cannot be changed.`}</div>
+      ) : refConfigFileDropped ? (
+          <div>File loaded -- click submit!</div>
+        ) : (
+          <div>
+            <div
+              className={`fileDropZone ${refConfigDropperHover ? "dragging" : ""}`}
+              onDragEnterCapture={() => setRefConfigDropperHover(true)}
+              onDragOver={(e) => {e.preventDefault()}}
+              onDragExitCapture={() => setRefConfigDropperHover(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setRefPanelDropperHover(false);
+                handleDroppedFile(e.dataTransfer.files[0], "refFasta", setRefConfigFileDropped);
+              }}
+            >
+              drop JSON here
+            </div>
+            <button className="modernButton" onClick={() => refConfigChooser.current.click()}>
+              choose file
+            </button>
+            <input
+              className="hidden"
+              type='file'
+              ref={refConfigChooser}
+              onChange={(e) => {handleDroppedFile(e.target.files[0], "refJSON", setRefConfigFileDropped);}}
+            />
+          </div>
+        )
+      }
 
       <h2>Reference Panel (FASTA)</h2>
-      {config.referencePanel ? 
-        config.referencePanel.map((refObj) => (
-          <div key={refObj.name}>
-            {`Name: ${refObj.name}${refObj.description ? `, description: ${refObj.description}` : ""}`}
+      {config.referencePanel.length ? (
+        <div>{`Set, with ${config.referencePanel.length} references. You cannot change this!`}</div>
+      ) : refPanelFileDropped ? (
+          <div>File loaded -- click submit!</div>
+        ) : (
+          <div>
+            <div
+              className={`fileDropZone ${refPanelDropperHover ? "dragging" : ""}`}
+              onDragEnterCapture={() => setRefPanelDropperHover(true)}
+              onDragOver={(e) => {e.preventDefault()}}
+              onDragExitCapture={() => setRefPanelDropperHover(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setRefPanelDropperHover(false);
+                handleDroppedFile(e.dataTransfer.files[0], "refFASTA", setRefPanelFileDropped);
+              }}
+            >
+              drop FASTA here
+            </div>
+            <button className="modernButton" onClick={() => refPanelChooser.current.click()}>
+              choose file
+            </button>
+            <input
+              className="hidden"
+              type='file'
+              ref={refPanelChooser}
+              onChange={(e) => {handleDroppedFile(e.target.files[0], "refFasta", setRefPanelFileDropped);}}
+            />
           </div>
-
-        ))
-      : (
-        <label>
-          <input
-            type="text"
-            value={config.referencePanelPath}
-            onChange={(event) => {setConfig(Object.assign({}, config, {referencePanelPath: event.target.value}))}}
-          />
-        </label>
-      )}
+        )
+      }
 
       <h2>Barcodes</h2>
       {config.barcodes.map((bc) => {
@@ -93,8 +163,7 @@ const Config = ({data, config, setConfig, socket}) => {
 }
 
 Config.propTypes = {
-  data: PropTypes.object,
-  config: PropTypes.object,
+  config: PropTypes.object.isRequired,
   setConfig: PropTypes.func.isRequired,
   socket: PropTypes.object.isRequired
 };
@@ -102,21 +171,3 @@ Config.propTypes = {
 
 export default Config;
 
-
-
-/* For reference, we can add a file picker, but it's impossible to get the absolute path
-(security reasons). We could load the file and send it over a socket and then process it
-in the server, but that's for a later dat.
-
-const inputFile = useRef(null) 
-
-<input
-  type='file'
-  ref={inputFile}
-  style={{display: 'none'}}
-  onChange={(event) => {console.log(event.target.files[0]); setConfig(Object.assign({}, config, {referenceConfigPath: event.target.files[0].name}))}}
-/>
-<button onClick={() => inputFile.current.click()}>
-  select file
-</button>
-*/

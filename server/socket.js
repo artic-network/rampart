@@ -1,6 +1,6 @@
 const fs = require('fs')
 const modifyConfig = require("./config").modifyConfig;
-const { verbose, log } = require("./utils");
+const { verbose, log, warn } = require("./utils");
 const { timerStart, timerEnd } = require('./timers');
 const { getData } = require("./transformResults");
 const { startUp } = require("./startUp");
@@ -38,7 +38,13 @@ const initialConnection = (socket) => {
 const setUpIOListeners = (socket) => {
   verbose("[setUpIOListeners]")
   socket.on('config', (newConfig) => {
-    modifyConfig(newConfig);
+    try {
+      modifyConfig(newConfig);
+    } catch (err) {
+      console.log(err.message);
+      warn("setting of new config FAILED")
+      return;
+    }
     sendData(); /* as the barcode -> names may have changed */
     sendConfig();
   });
