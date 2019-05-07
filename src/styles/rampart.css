@@ -203,6 +203,13 @@ div.sidebar {
   border: none;
   padding: 2px 3px 2px 3px;
 }
+.report td {
+  padding: 2px 4px 2px 4px;
+}
+.report .spaceLeft {
+  padding-left: 50px
+}
+.report div.caption,
 .report caption {
   color: var(--artic-red);
   font-size: 1.5em;

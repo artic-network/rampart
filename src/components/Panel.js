@@ -26,7 +26,7 @@ const InfoRow = ({sampleName, sampleData, handleClick, isExpanded, canExpand}) =
 };
 
 const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand}) => {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const coverageData = {};
   coverageData[sampleName] = sampleData;
   return (

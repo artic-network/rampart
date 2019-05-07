@@ -183,7 +183,8 @@ const getData = () => {
     coverage: [],
     maxCoverage: 0,
     refMatches: {},
-    temporal: _summariseTemporalData(response.data)
+    temporal: _summariseTemporalData(response.data),
+    readLengths: {xyValues: []}
   }
   for (const [, sampleData] of Object.entries(response.data)) {
     all.demuxedCount += sampleData.demuxedCount;
