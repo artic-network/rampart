@@ -7,10 +7,47 @@
   --light-text: #F6EECA;
 }
 
+/* ------------ FONTS --------------------- */
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Light'), url(./LatoLatin-Light.woff) format('woff');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Hairline'), url(./LatoLatin-Hairline.woff) format('woff');
+  font-weight: normal;
+}
+
 
 /* ----------- GLOBALS (BODY) --------------*/
 body {
   overflow-x: hidden;
+  font-family: "Lato";
+  background: var(--dark-background);
+  color: var(--dark-foreground);
+}
+
+/* ----------- BASIC ELEMENTS --------------*/
+a {
+  text-decoration: none;
+  color: #5097BA;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 94%;
+}
+h1 {
+  font-weight: 600;
+  font-size: 2em;
+}
+h1 {
+  font-weight: 600;
+  font-size: 1.5em;
+}
+div {
+  font-weight: normal;
+  font-size: 1em;
 }
 
 
@@ -312,12 +349,31 @@ th.rotate {
 }
 
 /* --------------------- D3 --------------------- */
+.axis text,
 text.axis {
   fill: var(--light-text); /* not color as it's SVG */
+  font-size: '12px';
 }
 .legend > text {
   fill: var(--light-text); /* not color as it's SVG */
 }
+rect.amplicon,
+rect.gene {
+  stroke: none;
+  fill: var(--light-text);
+}
+rect.gene + text {
+  fill: var(--dark-background);
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: var(--light-text);
+  stroke-width: 1;
+  shape-rendering: auto;
+}
+
+
 
 
 /* -------------- BASECALLED DIR ---------------- */

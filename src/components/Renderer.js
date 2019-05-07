@@ -3,8 +3,6 @@ import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
 import Panel from "./Panel"
-import '../styles/global'; // sets global CSS
-import '../styles/fonts.css'; // sets global fonts
 import '../styles/rampart.css';
 import { css } from 'glamor'
 import OverallSummary from "./OverallSummary";
@@ -12,7 +10,6 @@ import { sum } from "d3-array";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./Config";
 import { hidden } from 'ansi-colors';
-// import SidebarManager from "./Sidebar";
 import Report from "./Report";
 import ViewOptions from "./ViewOptions";
 

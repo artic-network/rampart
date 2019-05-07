@@ -44,13 +44,11 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hove
       .data(amplicons)
       .enter()
       .append("rect")
-      .attr("class", "primer")
+      .attr("class", "amplicon")
       .attr("x", (d) => scales.x(d[0]))
       .attr("y", (d, i) => i%2 ? ampliconRoof : ampliconRoof+ampliconHeight)
       .attr("width", (d) => scales.x(d[1])-scales.x(d[0]))
       .attr("height", ampliconHeight)
-      .style("fill", "lightgray")
-      .style("stroke", "none")
       .on("mouseout", handleMouseOut)
       .on("mousemove", handleAmpliconMove);
   }
@@ -73,8 +71,6 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hove
     .attr("y", calcYOfGene)
     .attr("width", (name) => scales.x(genes[name].end) - scales.x(genes[name].start))
     .attr("height", geneHeight)
-    .style("fill", "lightgray")
-    .style("stroke", "gray")
     .on("mouseout", handleMouseOut)
     .on("mousemove", handleGeneMove);
 
@@ -82,10 +78,11 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hove
   genesSel.append("text")
     .attr("x", (name) => scales.x(genes[name].start) + (scales.x(genes[name].end) - scales.x(genes[name].start))/2)
     .attr("y", calcYOfGene)
-    .attr("dy", "2px") /* positive values bump down text */
+    .attr("dy", "12px") /* positive values bump down text */
     .attr("text-anchor", "middle") /* centered horizontally */
-    .attr("font-size", "7px")
+    .attr("font-size", "12px")
+    .attr("font-weight", "600")
     .attr("alignment-baseline", "hanging") /* i.e. y value specifies top of text */
-    .style("fill", "black")
+    .attr("pointer-events", "none") /* don't capture mouse over */
     .text((name) => name.length > 10 ? "" : name);
 };
