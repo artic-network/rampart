@@ -82,7 +82,7 @@ class ReadsOverTime extends React.Component {
   componentDidMount() {
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
     const svg = select(this.DOMref);
-    const hoverWidth = parseInt(chartGeom.width * 4/5, 10);
+    const hoverWidth = parseInt(chartGeom.width * 1/2, 10);
     this.setState({chartGeom, svg, hoverWidth})
   }
   componentDidUpdate() {

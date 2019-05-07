@@ -6,6 +6,9 @@ import {select} from "d3-selection";
 import {consensusCoverage, okCoverage} from "../magics";
 import {heatColourScale} from "../utils/colours";
 
+/**
+ * the info row is both when collapsed and when open
+ */
 const InfoRow = ({sampleName, sampleData, handleClick, isExpanded, canExpand}) => {
   const summaryTitle = `${sampleName}`;
   const summaryText = `${sampleData.demuxedCount} reads demuxed, ${sampleData.mappedCount} mapped.`;
@@ -23,7 +26,7 @@ const InfoRow = ({sampleName, sampleData, handleClick, isExpanded, canExpand}) =
 };
 
 const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand}) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const coverageData = {};
   coverageData[sampleName] = sampleData;
   return (
@@ -44,6 +47,15 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
               reference={reference}
               viewOptions={viewOptions}
               fillIn={true}
+            />
+
+            <CoverageOverTime
+              title={"Coverage Progress"}
+              width="30%"
+              className="graphContainer"
+              temporalData={sampleData.temporal}
+              colour={sampleColour}
+              viewOptions={viewOptions}
             />
           </div>
         ) : null

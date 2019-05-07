@@ -38,7 +38,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
         <ReadsPerSample
           className="graphContainer"
           width="18%"
-          title="Mapped Reads per Sample"
+          title="Mapped Reads / Sample"
           data={data}
           viewOptions={viewOptions}
         />
@@ -60,11 +60,3 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
 }
 
 export default OverallSummary;
-
-/* <ReadsOverTime
-  style={{width: '22%', ...genericGraphContainerStyles}}
-  title={"Total reads over time"}
-  readsOverTime={this.props.readsOverTime}
-  version={this.props.version}
-  viewOptions={this.props.viewOptions}
-/> */

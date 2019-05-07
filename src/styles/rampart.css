@@ -308,6 +308,9 @@ th.rotate {
 text.axis {
   fill: var(--light-text); /* not color as it's SVG */
 }
+.legend > text {
+  fill: var(--light-text); /* not color as it's SVG */
+}
 
 
 /* -------------- BASECALLED DIR ---------------- */

@@ -22,11 +22,16 @@ const _addReadsToCoverage = (coverage, readPositions) => {
   }
 }
 
+
 /* adds temporal data to the temporalMap */
 const _addTemporalData = (temporalMap, mappedCount, coverage, timestamp) => {
+  const nGenomeSlices = coverage.length;
   const temporalDataPoint = {
     time: timestamp,
-    mappedCount
+    mappedCount,
+    over10x:   parseInt((coverage.reduce((acc, cv) => cv > 10   ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
+    over100x:  parseInt((coverage.reduce((acc, cv) => cv > 100  ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
+    over1000x: parseInt((coverage.reduce((acc, cv) => cv > 1000 ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
   };
   temporalMap[String(timestamp)] = temporalDataPoint; // this is ok if it overwrites
 }
@@ -34,6 +39,8 @@ const _addTemporalData = (temporalMap, mappedCount, coverage, timestamp) => {
 /* we have temporal info for each sample, but we need to summarise it for "all" 
  * this is a little tricky as the time entries for individual barcodes may be different
  * e.g. BC01 may have time=42, but BC02 may not, so we have to use the previous one for BC02!
+ *
+ * Note that this doesn't include coverage stats as they are only valid per-sample / per-barcode
  */
 const _summariseTemporalData = (data) => {
   /* what are the timestamps we've seen? */
