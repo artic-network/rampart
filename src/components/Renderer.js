@@ -132,11 +132,11 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 const Renderer = (props) => {
 
   // const [sidebarOpen, setState] = useState("report");
-  const [sidebarOpen, setState] = useState("config");
+  const [sidebarOpen, setSidebarOpenState] = useState("config");
 
 
   const sidebars = {
-    config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket}/>),
+    config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket} closeSidebar={() => setSidebarOpenState(undefined)}/>),
     vizSettings: (<ViewOptions viewOptions={props.viewOptions}/>),
     report: (<Report data={props.data} config={props.config}/>)
   };
@@ -148,7 +148,7 @@ const Renderer = (props) => {
         setViewOptions={props.setViewOptions}
         config={props.config}
         sidebarButtonNames={Object.keys(sidebars)}
-        sidebarOpenCB={setState}
+        sidebarOpenCB={setSidebarOpenState}
         data={props.data ? props.data.all : undefined}
       />
       {
@@ -159,7 +159,7 @@ const Renderer = (props) => {
             <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config}/>
       }
       <Footer/>
-      <Sidebar onChange={() => setState(undefined)}>
+      <Sidebar onChange={() => setSidebarOpenState(undefined)}>
         {sidebarOpen ? sidebars[sidebarOpen] : null}
       </Sidebar>
     </div>

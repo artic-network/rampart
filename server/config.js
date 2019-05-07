@@ -33,6 +33,14 @@ const getReferenceNames = (referencePanelPath) => {
     });
 }
 
+/* return format is array of {label: <label for display>, value: <path string>} */
+const scanExampleConfigs = () => {
+  const dir = path.join(__dirname, "..", "assets/includedConfigs");
+  return fs.readdirSync(dir)
+    .filter((p) => p.endsWith(".json"))
+    .map((p) => ({value: path.join(dir, p), label: p}));
+};
+
 /**
  * Create initial config file from command line arguments
  */
@@ -55,6 +63,7 @@ const getInitialConfig = (args) => {
     referencePanel: [],
     reference: undefined,
     relaxedDemuxing: args.relaxedDemuxing,
+    exampleConfigPaths: scanExampleConfigs()
   };
 
   /* most options _can_ be specified on the command line, but may also be specified in the client */
@@ -72,7 +81,6 @@ const getInitialConfig = (args) => {
   }
 
   if (args.basecalledDir) {
-    console.log("!!!!", args.basecalledDir)
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }
   if (args.demuxedDir) {
@@ -113,10 +121,6 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
     newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
     fs.writeFileSync(newConfig.referencePanelPath, refFasta);
     newConfig.referencePanel = getReferenceNames(newConfig.referencePanelPath);
-
-    /* try to start the mapper, which may not be running due to insufficent
-    config information. It will exit gracefully if required */
-    mapper();
   }
 
   /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
@@ -127,7 +131,7 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
 
     if (refJsonPath) {
       ensurePathExists(refJsonPath);
-      newConfig.referenceConfigPath = getAbsolutePath(refJsonPath);
+      newConfig.referenceConfigPath = refJsonPath;
     } else {
       newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
       fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
@@ -138,14 +142,15 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
 
     /* the python mapping script needs a FASTA of the main reference */
     newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
-
-    /* try to start the mapper, which may not be running due to insufficent
-    config information. It will exit gracefully if required */
-    mapper();
-
   }
 
   global.config = Object.assign({}, global.config, newConfig);
+
+  if (refFasta || refJsonPath || refJsonString) {
+    /* try to start the mapper, which may not be running due to insufficent
+    config information. It will exit gracefully if required */
+    mapper();
+  }
 }
 
 

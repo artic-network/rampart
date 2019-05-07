@@ -1,5 +1,29 @@
 import React, {useRef, useState} from 'react';
 import PropTypes from "prop-types";
+import Select from "react-select";
+
+/* not sure how to do the following in CSS, as the current webpack
+transforms mangle all the CSS classnames */
+const customReactSelectStyles = {
+  option: (provided) => ({
+    ...provided,
+    color: 'black',
+    fontWeight: 600
+  })
+};
+
+const ArticConfigSelection = ({items, setter, choice}) => (
+  <div className="selectDropdown">
+    <Select
+      placeholder="Select ARTIC premade config:"
+      options={[{label: "Remove selection", value: undefined}, ...items]}
+      styles={customReactSelectStyles}
+      value={choice}
+      onChange={(selection) => setter(selection)}
+    />
+  </div>
+);
+
 
 /**
  * Handler for dropped files (e.g. FASTA / JSON) to read and store as a string
@@ -28,13 +52,14 @@ const handleDroppedFile = (file, type, setter) => {
   reader.readAsText(file);
 }
 
-const Config = ({config, setConfig, socket}) => {
+const Config = ({config, setConfig, socket, closeSidebar}) => {
   const refPanelChooser = useRef();
   const [refPanelDropperHover, setRefPanelDropperHover] = useState(false);
   const [refPanelFileDropped, setRefPanelFileDropped] = useState(undefined);
   const refConfigChooser = useRef();
   const [refConfigDropperHover, setRefConfigDropperHover] = useState(false);
   const [refConfigFileDropped, setRefConfigFileDropped] = useState(undefined);
+  const [refConfigArticSelection, setRefConfigArticSelection] = useState(undefined);
 
   /* data checks to avoid trying to render things before it's appropriate */
   if (!Object.keys(config).length) {
@@ -49,7 +74,12 @@ const Config = ({config, setConfig, socket}) => {
     console.log("sending new config to server")
     setRefPanelFileDropped(false);
     setRefConfigFileDropped(false);
-    socket.emit('config', {config, refFasta: refPanelFileDropped, refJsonString: refConfigFileDropped});
+    const dataForServer = {config, refFasta: refPanelFileDropped, refJsonString: refConfigFileDropped};
+    if (refConfigArticSelection) {
+      dataForServer.refJsonPath = refConfigArticSelection.value;
+    }
+    socket.emit('config', dataForServer);
+    closeSidebar();
   }
 
   return (
@@ -74,32 +104,35 @@ const Config = ({config, setConfig, socket}) => {
         <div>{`Reference: ${config.reference.label}, ${config.reference.length}bp. This cannot be changed.`}</div>
       ) : refConfigFileDropped ? (
           <div>File loaded -- click submit!</div>
-        ) : (
-          <div>
-            <div
-              className={`fileDropZone ${refConfigDropperHover ? "dragging" : ""}`}
-              onDragEnterCapture={() => setRefConfigDropperHover(true)}
-              onDragOver={(e) => {e.preventDefault()}}
-              onDragExitCapture={() => setRefConfigDropperHover(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setRefPanelDropperHover(false);
-                handleDroppedFile(e.dataTransfer.files[0], "refFasta", setRefConfigFileDropped);
-              }}
-            >
-              drop JSON here
+        ) : (refConfigArticSelection && refConfigArticSelection.value) ? (
+          <ArticConfigSelection items={config.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
+          ) : (
+            <div>
+              <ArticConfigSelection items={config.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
+              <div
+                className={`fileDropZone ${refConfigDropperHover ? "dragging" : ""}`}
+                onDragEnterCapture={() => setRefConfigDropperHover(true)}
+                onDragOver={(e) => {e.preventDefault()}}
+                onDragExitCapture={() => setRefConfigDropperHover(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setRefPanelDropperHover(false);
+                  handleDroppedFile(e.dataTransfer.files[0], "refFasta", setRefConfigFileDropped);
+                }}
+              >
+                drop JSON here
+              </div>
+              <button className="modernButton" onClick={() => refConfigChooser.current.click()}>
+                choose file
+              </button>
+              <input
+                className="hidden"
+                type='file'
+                ref={refConfigChooser}
+                onChange={(e) => {handleDroppedFile(e.target.files[0], "refJSON", setRefConfigFileDropped);}}
+              />
             </div>
-            <button className="modernButton" onClick={() => refConfigChooser.current.click()}>
-              choose file
-            </button>
-            <input
-              className="hidden"
-              type='file'
-              ref={refConfigChooser}
-              onChange={(e) => {handleDroppedFile(e.target.files[0], "refJSON", setRefConfigFileDropped);}}
-            />
-          </div>
-        )
+          )
       }
 
       <h2>Reference Panel (FASTA)</h2>
@@ -171,3 +204,16 @@ Config.propTypes = {
 
 export default Config;
 
+
+
+// name="selectGenotype"
+// id="selectGenotype"
+// placeholder="gene…"
+// value={this.state.geneSelected}
+// options={gtGeneOptions}
+// clearable={false}
+// searchable={true}
+// multi={false}
+// onChange={(opt) => {
+//   this.setState({ geneSelected: opt.value });
+// }}
