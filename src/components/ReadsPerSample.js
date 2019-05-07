@@ -18,11 +18,15 @@ const calcChartGeom = (DOMRect) => ({
 const calculateBarWidth = (chartGeom, numSamples) =>
   ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numSamples);
 
-const getMaxCount = ({samples, data, resolution}) => {
+const getMaxCount = ({samples, data}) => {
   let maxCount = 0;
   for (const sampleName of samples) {
     if (data[sampleName].mappedCount && data[sampleName].mappedCount > maxCount) maxCount = data[sampleName].mappedCount;
   }
+  if (!maxCount) return 0;
+  const resolution = maxCount.mappedCount > 10000 ? 10000 :
+    maxCount.mappedCount > 1000 ? 1000 :
+      maxCount.mappedCount > 100 ? 100 : 10;
   return maxCount ? (parseInt(maxCount/resolution, 10)+1)*resolution : 0;
 }
 
@@ -99,7 +103,7 @@ class ReadsPerSample extends React.Component {
     const samples = Object.keys(this.props.data)
       .filter((name) => name!=="all"); // TODO -- order appropriately!
     const barWidth = calculateBarWidth(chartGeom, samples.length);
-    const yMax = getMaxCount({samples, data: this.props.data, resolution: 10000});
+    const yMax = getMaxCount({samples, data: this.props.data});
     if (!yMax) return;
     const scales = {
       x: calcXScale(chartGeom, barWidth, samples.length),

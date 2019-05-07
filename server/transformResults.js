@@ -75,19 +75,20 @@ const _summariseTemporalData = (data) => {
   Object.values(data).forEach((d) => {
     Object.keys(d.tmpTemporal).forEach((t) => times.add(t));
   });
-  times = [...times].sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
+  times = [...times].map((n) => parseInt(n, 10))
+    .sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
 
   const temporal = times.map((time) => ({time, mappedCount: 0}));
 
-  Object.values(data).forEach((sampleData) => {
+  Object.values(data).forEach((sampleData, idx) => {
     let lastSeen = 0; /* the last seen count */
     times.forEach((time, idx) => {
       const key = String(time);
       if (sampleData.tmpTemporal[key]) {
-        temporal[idx].mappedCount = sampleData.tmpTemporal[key].mappedCount;
+        temporal[idx].mappedCount += sampleData.tmpTemporal[key].mappedCount;
         lastSeen = sampleData.tmpTemporal[key].mappedCount;
       } else {
-        temporal[idx].mappedCount = lastSeen;
+        temporal[idx].mappedCount += lastSeen;
       }
     })
   });

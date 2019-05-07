@@ -37,7 +37,7 @@ const initialConnection = (socket) => {
 }
 
 const setUpIOListeners = (socket) => {
-  verbose("[setUpIOListeners]")
+  verbose("[setUpIOListeners] (socket for client - server communication)")
   socket.on('config', (newConfig) => {
     try {
       modifyConfig(newConfig);

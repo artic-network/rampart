@@ -19,7 +19,10 @@ const calcChartGeom = (DOMRect) => ({
 const getMaxsOfReadsOverTime = (readsOverTime) => {
   const finalPoint = readsOverTime.slice(-1)[0];
   const timeMax = (parseInt(finalPoint.time/30, 10) +1) * 30;
-  const readsMax = (parseInt(finalPoint.mappedCount/10000, 10) +1) * 10000;
+  const resolution = finalPoint.mappedCount > 10000 ? 10000 :
+    finalPoint.mappedCount > 1000 ? 1000 :
+      finalPoint.mappedCount > 100 ? 100 : 10;
+  const readsMax = (parseInt(finalPoint.mappedCount/resolution, 10) +1) * resolution;
   return [timeMax, readsMax]
 }
 
