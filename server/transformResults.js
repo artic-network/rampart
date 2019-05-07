@@ -22,6 +22,46 @@ const _addReadsToCoverage = (coverage, readPositions) => {
   }
 }
 
+/* adds temporal data to the temporalMap */
+const _addTemporalData = (temporalMap, mappedCount, coverage, timestamp) => {
+  const temporalDataPoint = {
+    time: timestamp,
+    mappedCount
+  };
+  temporalMap[String(timestamp)] = temporalDataPoint; // this is ok if it overwrites
+}
+
+/* we have temporal info for each sample, but we need to summarise it for "all" 
+ * this is a little tricky as the time entries for individual barcodes may be different
+ * e.g. BC01 may have time=42, but BC02 may not, so we have to use the previous one for BC02!
+ */
+const _summariseTemporalData = (data) => {
+  /* what are the timestamps we've seen? */
+  let times = new Set()
+  Object.values(data).forEach((d) => {
+    Object.keys(d.tmpTemporal).forEach((t) => times.add(t));
+  });
+  times = [...times].sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
+
+  const temporal = times.map((time) => ({time, mappedCount: 0}));
+
+  Object.values(data).forEach((sampleData) => {
+    let lastSeen = 0; /* the last seen count */
+    times.forEach((time, idx) => {
+      const key = String(time);
+      if (sampleData.tmpTemporal[key]) {
+        temporal[idx].mappedCount = sampleData.tmpTemporal[key].mappedCount;
+        lastSeen = sampleData.tmpTemporal[key].mappedCount;
+      } else {
+        temporal[idx].mappedCount = lastSeen;
+      }
+    })
+  });
+
+  return temporal;
+}
+
+
 /**
  * Transform the "raw" data in global.datastore
  * into a format the client wants.
@@ -30,6 +70,7 @@ const _addReadsToCoverage = (coverage, readPositions) => {
  * 
  * NOTE: properties of an individual `datapoint` -- `global.datastore[barcode] = [datapoint, datapoint, ...]`
  * Currently each `datapoint` is a FASTQ but we may change this to a time point or something
+ * `timestamp`
  * `mappedCount` {int}
  * `demuxedCount` {int}
  * `refMatches` {obj} keys: reference names, values: array of floats (fraction read match)
@@ -43,6 +84,7 @@ const _addReadsToCoverage = (coverage, readPositions) => {
  *    `refMatches` {object} may have no keys, else keys: ref names, values: floats (percentages)
  *    `coverage` {array} may be length 0. array of coverage at positions.
  *    `maxCoverage` {int}
+ *    `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
  */
 const getData = () => {
   const response = {data: {}, settings: {}}
@@ -57,9 +99,10 @@ const getData = () => {
       demuxedCount: 0,
       mappedCount: 0,
       refMatches: {},
-      coverage: mainReference ? _createEmptyCoverage(nGenomeSlices) : []
+      coverage: mainReference ? _createEmptyCoverage(nGenomeSlices) : [],
+      temporal: [],
+      tmpTemporal: {}, // will be removed before send
     };
-
     // eslint-disable-next-line no-loop-func
     dataPoints.forEach((d) => {
       sampleData.demuxedCount += d.demuxedCount;
@@ -73,6 +116,7 @@ const getData = () => {
       }
       if (mainReference && d.readPositions) {
         _addReadsToCoverage(sampleData.coverage, d.readPositions);
+        _addTemporalData(sampleData.tmpTemporal, sampleData.mappedCount, sampleData.coverage, d.timestamp);
       }
 
     });
@@ -91,19 +135,23 @@ const getData = () => {
     }
 
     sampleData.maxCoverage = sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0);
+    sampleData.temporal = Object.values(sampleData.tmpTemporal).map((d) => d)
+      .sort((a, b) => a.time>b.time ? 1 : -1);
   }
 
-  /* collect everything into response.all */
+  /* now that all barcodes have had each datapoint processed, summarise into `all` */
   const all = {
     demuxedCount: 0,
     mappedCount: 0,
     coverage: [],
     maxCoverage: 0,
-    refMatches: {}
+    refMatches: {},
+    temporal: _summariseTemporalData(response.data)
   }
   for (const [, sampleData] of Object.entries(response.data)) {
     all.demuxedCount += sampleData.demuxedCount;
     all.mappedCount += sampleData.mappedCount;
+    delete sampleData.tmpTemporal;
   }
   response.data.all = all;
   return response;

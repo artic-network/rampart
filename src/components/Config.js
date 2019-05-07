@@ -203,17 +203,3 @@ Config.propTypes = {
 
 
 export default Config;
-
-
-
-// name="selectGenotype"
-// id="selectGenotype"
-// placeholder="gene…"
-// value={this.state.geneSelected}
-// options={gtGeneOptions}
-// clearable={false}
-// searchable={true}
-// multi={false}
-// onChange={(opt) => {
-//   this.setState({ geneSelected: opt.value });
-// }}

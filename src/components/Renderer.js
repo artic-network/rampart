@@ -58,7 +58,7 @@ const container = css({
 //   />
 // )
 
-const RenderPanels = ({data, viewOptions, config}) => {
+const RenderPanels = ({data, viewOptions, config, openConfigSidebar}) => {
   if (!data) {
     return (
       <h1>????</h1>
@@ -85,6 +85,9 @@ const RenderPanels = ({data, viewOptions, config}) => {
         <h3 style={{maxWidth: "50vw"}}>
           {`Please specify mapping references via config panel, without these we cannot display nice things!`}
         </h3>
+        <button className="modernButton" onClick={openConfigSidebar}>
+          Open config panel
+        </button>
       </div>
     )
   }
@@ -130,9 +133,7 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 }
 
 const Renderer = (props) => {
-
-  // const [sidebarOpen, setState] = useState("report");
-  const [sidebarOpen, setSidebarOpenState] = useState("config");
+  const [sidebarOpen, setSidebarOpenState] = useState("undefined");
 
 
   const sidebars = {
@@ -156,7 +157,7 @@ const Renderer = (props) => {
           <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/> :
           props.mainPage === "loading" ?
             <h1>LOADING</h1> :
-            <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config}/>
+            <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config} openConfigSidebar={() => setSidebarOpenState("config")}/>
       }
       <Footer/>
       <Sidebar onChange={() => setSidebarOpenState(undefined)}>

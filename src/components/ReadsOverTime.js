@@ -1,9 +1,10 @@
 import React from 'react';
-import { select } from "d3-selection";
+import { select, mouse } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
-import {haveMaxesChanged, calcScales, drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
+import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
 import {foreground} from "../utils/colours";
+
+const timeFormatter = makeTimeFormatter();
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -17,23 +18,55 @@ const calcChartGeom = (DOMRect) => ({
 
 const getMaxsOfReadsOverTime = (readsOverTime) => {
   const finalPoint = readsOverTime.slice(-1)[0];
-  const timeMax = (parseInt(finalPoint[0]/30, 10) +1) * 30;
-  const readsMax = (parseInt(finalPoint[1]/10000, 10) +1) * 10000;
+  const timeMax = (parseInt(finalPoint.time/30, 10) +1) * 30;
+  const readsMax = (parseInt(finalPoint.mappedCount/10000, 10) +1) * 10000;
   return [timeMax, readsMax]
 }
 
-const drawLine = (svg, scales, data) => {
+const drawLine = (svg, scales, data, infoRef) => {
+  const lineGenerator = line()
+    .x((d) => scales.x(d.time))
+    .y((d) => scales.y(d.mappedCount))
+    .curve(curveBasis);
+
+  function handleMouseMove() {
+    const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
+    const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
+    const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
+    const nReads = parseInt(scales.y.invert(findLineYposGivenXpos(mouseX, path.node()))/10, 10)*10
+    select(infoRef)
+      .style("left", left)
+      .style("right", right)
+      .style("top", `${mouseY-35}px`)
+      .style("visibility", "visible")
+      .html(`
+        Time: ${timeFormatter(scales.x.invert(mouseX))}
+        <br/>
+        n(reads): ${nReads} (interpolated)
+      `);
+  }
+  function handleMouseOut() {
+    select(infoRef).style("visibility", "hidden");
+  }
+
   svg.selectAll(".readsLine").remove();
-  svg.append("path")
+  const path = svg.append("path")
     .attr("class", "readsLine")
     .attr("fill", "none")
     .attr("stroke", foreground)
     .attr("stroke-width", 5)
-    .attr('d', () => (line()
-        .x((d) => scales.x(d[0]))
-        .y((d) => scales.y(d[1]))
-        .curve(curveBasis))(data)
-    );
+    .attr('d', () => (lineGenerator(data)))
+  
+  /* append a div over the entire graph to catch onHover mouse events */
+  svg.append("rect")
+    .attr("x", `${scales.x.range()[0]}px`)
+    .attr("width", `${scales.x.range()[1] - scales.x.range()[0]}px`)
+    .attr("y", `${scales.y.range()[1]}px`)
+    .attr("height", `${scales.y.range()[0] - scales.y.range()[1]}px`)
+    .attr("fill", "rgba(0,0,0,0)")
+    .on("mouseout", handleMouseOut)
+    .on("mousemove", handleMouseMove);
+
 }
 
 class ReadsOverTime extends React.Component {
@@ -41,35 +74,27 @@ class ReadsOverTime extends React.Component {
     super(props);
     this.state = {chartGeom: {}};
   }
-  componentDidMount() {
-    const newState = {
-      SVG: select(this.DOMref),
-      chartGeom: calcChartGeom(this.boundingDOMref.getBoundingClientRect())
-    }
-    newState.scales = calcScales(newState.chartGeom, ...getMaxsOfReadsOverTime(this.props.readsOverTime));
-    drawAxes(newState.SVG, newState.chartGeom, newState.scales, {isTime: true})
-    drawLine(newState.SVG, newState.scales, this.props.readsOverTime)
-    this.setState(newState);
+  redraw() {
+    const scales = calcScales(this.state.chartGeom, ...getMaxsOfReadsOverTime(this.props.temporalData));
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {isTime: true, xTicks: 3})
+    drawLine(this.state.svg, scales, this.props.temporalData, this.infoRef)
   }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.version !== this.props.version) {
-      const newState = {
-        scales: this.state.scales
-      };
-      const timeMaxReadsMax = getMaxsOfReadsOverTime(this.props.readsOverTime);
-      if (haveMaxesChanged(this.state.scales, ...timeMaxReadsMax)) {
-        newState.scales = calcScales(this.state.chartGeom, ...timeMaxReadsMax);
-        drawAxes(this.state.SVG, this.state.chartGeom, newState.scales, {xTicks: 4, isTime: true})
-      }
-      drawLine(this.state.SVG, newState.scales, this.props.readsOverTime);
-      this.setState(newState)
-    }
+  componentDidMount() {
+    const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
+    const svg = select(this.DOMref);
+    const hoverWidth = parseInt(chartGeom.width * 4/5, 10);
+    this.setState({chartGeom, svg, hoverWidth})
+  }
+  componentDidUpdate() {
+    this.redraw();
   }
   render() {
     return (
-      <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
-        <div {...chartTitleCSS}>{this.props.title}</div>
+      <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
+        <div className="chartTitle">
+          {this.props.title}
+        </div>
+        <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
         <svg
           ref={(r) => {this.DOMref = r}}
           height={this.state.chartGeom.height || 0}

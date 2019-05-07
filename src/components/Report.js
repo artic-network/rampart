@@ -54,7 +54,7 @@ const ReadCounts = ({data, config}) => {
       <tbody>
         {names.map((name) => {
           return (
-            <tr>
+            <tr key={name}>
               <th>{name}</th>
               <td>{data[name].demuxedCount || 0}</td>
               <td>{data[name].mappedCount || 0}</td>

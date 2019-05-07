@@ -63,10 +63,9 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
  * @param {string} demuxedFastqPath 
  * @returns {Promise}
  */
-const addToDatastore = (demuxedFastqPath) => new Promise((resolve, reject) => {
+const addToDatastore = (demuxedFastqPath, timestamp) => new Promise((resolve, reject) => {
   // console.log(demuxedFastqPath)
   const getBarcodes = spawn('bash', ["./server/getBarcodesFromDemuxedFastq.sh", demuxedFastqPath]);
-  const timestamp = getReadTime(demuxedFastqPath);
   getBarcodes.stdout.on('data', (stdout) => {
     const data = String(stdout).split(/\s+/);
     const pointers = {}; /* the datastore index for each barcode */
@@ -104,8 +103,9 @@ const demuxer = async () => {
                 call_porechop(fileToDemux, fastqToWrite, global.config.relaxedDemuxing),
                 setReadTime(fileToDemux)
             ]);
-            const datastoreIdx = await addToDatastore(fastqToWrite);
-            verbose(`[demuxer] ${fileToDemuxBasename} demuxed. Read time: ${getReadTime(fileToDemuxBasename)}`);
+            const timestamp = getReadTime(fileToDemuxBasename);
+            const datastoreIdx = await addToDatastore(fastqToWrite, timestamp);
+            verbose(`[demuxer] ${fileToDemuxBasename} demuxed. Read time: ${timestamp}`);
             // datastoreUpdated(); // see note in mapper.js
             global.TMP_DATASTORE_UPDATED_FUNC();
             addToMappingQueue([datastoreIdx, fastqToWrite]);
