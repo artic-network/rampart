@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
-import Panel from "./Panel"
+import Panel from "./SamplePanel"
 import '../styles/rampart.css';
 import { css } from 'glamor'
 import OverallSummary from "./OverallSummary";

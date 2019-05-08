@@ -283,8 +283,8 @@ th.rotate {
   position: relative;
   width: 98%;
   margin: 10px 10px 10px 10px;
-  transition: height 0.5s ease-in;
-  -webkit-transition: height 0.5s ease-in;
+  transition: 0.5s ease-in;
+  -webkit-transition: 0.5s ease-in;
   border: 1px solid gray;
   border-radius: 5px;
   border-left: 5px solid gray;
@@ -293,9 +293,13 @@ th.rotate {
   height: 30px;
   min-height: 30px;
 }
-.panelContainer.expanded {
+.panelContainer.expanded.singleRow {
   height: 370px;
   min-height: 370px;
+}
+.panelContainer.expanded.multiRow {
+  height: 1000px;
+  min-height: 1000px;
 }
 .panelContainer > .infoRow {
   display: flex;
@@ -308,6 +312,7 @@ th.rotate {
   font-size: 1.3em;
 }
 .panelContainer > .infoRow > *:first-child {
+  padding-top: 2px;
   padding-left: 10px;
   flex-basis: 15%; /* it's a child of a flexbox */
   display: flex; /* to align the icon & text nicely */
@@ -323,6 +328,12 @@ th.rotate {
 .panelFlexRow {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  height: calc(100% - 26px);
+}
+.panelFlexColumn {
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
   height: calc(100% - 26px);
 }
