@@ -12,6 +12,7 @@ import Config from "./Config";
 import { hidden } from 'ansi-colors';
 import Report from "./Report";
 import ViewOptions from "./ViewOptions";
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 const container = css({
   display: "flex",
@@ -156,6 +157,9 @@ const Renderer = (props) => {
             <h1>LOADING</h1> :
             <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config} openConfigSidebar={() => setSidebarOpenState("config")}/>
       }
+
+      <div id="contextMenuPortal"/>
+
       <Footer/>
       <Sidebar onChange={() => setSidebarOpenState(undefined)}>
         {sidebarOpen ? sidebars[sidebarOpen] : null}

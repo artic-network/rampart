@@ -300,17 +300,24 @@ th.rotate {
 .panelContainer > .infoRow {
   display: flex;
   flex-direction: row;
-  cursor: pointer;
   justify-content: space-between;
 }
-.panelContainer > .infoRow > span {
+.panelContainer > .infoRow > span,
+.panelContainer > .infoRow > div {
   font-weight: bold;
   font-size: 1.3em;
 }
-.panelContainer > .infoRow > span:first-child {
-  padding-left: 20px;
+.panelContainer > .infoRow > *:first-child {
+  padding-left: 10px;
+  flex-basis: 15%; /* it's a child of a flexbox */
+  display: flex; /* to align the icon & text nicely */
+  align-items: center;
 }
-.panelContainer > .infoRow > span:last-child {
+.panelContainer > .infoRow > *:first-child > span {
+  padding-left: 5px; /* space between sample text & icon */
+}
+
+.panelContainer > .infoRow > *:last-child {
   padding-right: 10px;
 }
 .panelFlexRow {
@@ -410,4 +417,42 @@ rect.gene + text {
 .startUp > button {
   margin-top: 50px;
   margin-bottom: 100px;
+}
+
+
+
+/* -------------- RIGHT CLICK MENU ---------------------*/
+.react-contextmenu--visible > .react-contextmenu-item {
+  background-color: var(--dark-foreground);
+  border: 1px solid var(--artic-red);
+  color: var(--artic-red);
+  font-weight: 600;
+  padding: 2px 4px 2px 4px;
+  cursor: pointer;
+}
+.react-contextmenu-item:hover {
+  background-color: var(--artic-red);
+  color: var(--dark-foreground);
+}
+.react-contextmenu--visible > .react-contextmenu-item:first-of-type {
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+.react-contextmenu--visible > .react-contextmenu-item:last-of-type {
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+/* ------------------------ I C O N S --------------------- */
+.icon150 {
+  transform: scale(1.5);
+}
+.icon120 {
+  transform: scale(1.2);
+}
+.clickable {
+  cursor: pointer;
+}
+.iconCenterVertically {
+  height: 100%;
 }
