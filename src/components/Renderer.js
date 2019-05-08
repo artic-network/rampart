@@ -5,7 +5,7 @@ import Footer from "./Footer";
 import Panel from "./SamplePanel"
 import '../styles/rampart.css';
 import { css } from 'glamor'
-import OverallSummary from "./OverallSummary";
+import OverallSummary from "./overallSummary";
 import { sum } from "d3-array";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./Config";

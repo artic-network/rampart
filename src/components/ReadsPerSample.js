@@ -1,13 +1,12 @@
 import React from 'react';
 import { select, mouse } from "d3-selection";
 import {drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
 import {scaleLinear, scaleLog, scaleOrdinal} from "d3-scale";
 import { max } from "d3-array";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
-  width: DOMRect.width,
+  width: DOMRect.width > 500 ? 500 : DOMRect.width,
   height: DOMRect.height - 20, // title line
   spaceLeft: 60,
   spaceRight: 0,
@@ -54,13 +53,17 @@ const calcYScale = (chartGeom, maxReads, log) => {
 const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples, infoRef, data) => {
 
   function handleMouseMove(d, i) {
+    /* NOTE - we're using an ordinal scale so things are a little different here */
     const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
-    const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
-    const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
+    const _xRange = scales.x.range();
+    const rangeLeftRightPx = [_xRange[0] - barWidth/2, _xRange[_xRange.length-1] + barWidth/2];
+    const midPosPx = rangeLeftRightPx[0] + (rangeLeftRightPx[1] - rangeLeftRightPx[0])/2
+    const left  = mouseX > midPosPx ? "" : `${mouseX + 16}px`;
+    const right = mouseX > midPosPx ? `${rangeLeftRightPx[1] - mouseX}px` : "";
     select(infoRef)
       .style("left", left)
       .style("right", right)
-      .style("top", `${mouseY-35}px`)
+      .style("top", `${mouseY-20}px`)
       .style("visibility", "visible")
       .html(`
         Sample: ${samples[i]}
@@ -134,11 +137,14 @@ class ReadsPerSample extends React.Component {
           {this.props.title}
         </div>
         <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
-        <svg
-          ref={(r) => {this.DOMref = r}}
-          height={this.state.chartGeom.height || 0}
-          width={this.state.chartGeom.width || 0}
-        />
+        <div className="centerHorizontally">
+          <svg
+            ref={(r) => {this.DOMref = r}}
+            height={this.state.chartGeom.height || 0}
+            width={this.state.chartGeom.width || 0}
+          />
+        </div>
+        {this.props.renderProp ? this.props.renderProp : null}
       </div>
     )
   }

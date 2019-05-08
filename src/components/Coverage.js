@@ -113,6 +113,7 @@ class CoveragePlot extends React.Component {
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
+                {this.props.renderProp ? this.props.renderProp : null}
             </div>
         )
     }

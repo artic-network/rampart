@@ -79,7 +79,8 @@ class ReadsOverTime extends React.Component {
   }
   redraw() {
     const scales = calcScales(this.state.chartGeom, ...getMaxsOfReadsOverTime(this.props.temporalData));
-    drawAxes(this.state.svg, this.state.chartGeom, scales, {isTime: true, xTicks: 3})
+    const xTicks = this.state.chartGeom.width > 500 ? 5 : this.state.chartGeom.width > 300 ? 3 : 2;
+    drawAxes(this.state.svg, this.state.chartGeom, scales, {isTime: true, xTicks})
     drawLine(this.state.svg, scales, this.props.temporalData, this.infoRef)
   }
   componentDidMount() {
@@ -103,6 +104,7 @@ class ReadsOverTime extends React.Component {
           height={this.state.chartGeom.height || 0}
           width={this.state.chartGeom.width || 0}
         />
+        {this.props.renderProp ? this.props.renderProp : null}
       </div>
     )
   }

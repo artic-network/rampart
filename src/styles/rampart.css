@@ -273,7 +273,7 @@ th.rotate {
 #overallSummaryContainer {
   width: calc(100% - 30px);
   height: 350px;       /* adjusting will also adjust the graphs */
-  min-height: 350px;
+  min-height: 350px;   /* as they calculate via document selector query */
   margin: 10px 10px 10px 10px;
 }
 
@@ -349,6 +349,7 @@ th.rotate {
   font-weight: 600;
   font-size: 1.2em;
   color: var(--light-text);
+  padding-right: 25px; /* to stop icon overlap */
 }
 .hoverInfo {
   z-index: 20;
@@ -364,6 +365,13 @@ th.rotate {
   font-size: 14px;
   font-weight: 700;
   overflow-wrap: break-word;
+}
+.chartExpandContractIcon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  transform: scale(1.3);
 }
 
 /* --------------------- D3 --------------------- */

@@ -2,7 +2,6 @@ import React from 'react';
 import { select } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
 import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
 import {color as d3color} from "d3-color";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */

@@ -6,14 +6,20 @@ import {toolTipCSS} from "../utils/commonStyles";
 import {heatColourScale} from "../utils/colours";
 import {referenceDiscreteColours} from "../utils/colours";
 
+
+
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
     width: DOMRect.width,
     height: DOMRect.height, // title line
-    spaceLeft: 140, // space for the reference names
+    spaceLeft: DOMRect.width>600 ? 250 : // space for the reference names
+      DOMRect.width>400 ? 150 :
+        100,
     spaceRight: 0,
     spaceBottom: 60,
-    spaceTop: 10
+    spaceTop: 10,
+    legendPadding: 20, /* horizontal */
+    maxLegendWidth: 400
 });
 
 const calcCellDims = (chartGeom, numSamples, numReferences) => {
@@ -55,7 +61,16 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     // /* NOTE scales.x(0) returns the far left pixel value of the cells, not the labels */
 
     /* remove the previous renderings... */
+
     svg.selectAll("*").remove();
+
+    const charPx = 8; /* guesstimate of character pixel width */
+    const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
+    const textFn = (d) => {
+      console.log(d.name, d.name.length, allowedChars, chartGeom.spaceLeft)
+      if (d.name.length > allowedChars) return `${d.name.slice(0,allowedChars-2)}...`
+      return d.name;
+    }
 
     /* render the reference names (on the far left) */
     svg.selectAll(".refLabel")
@@ -63,7 +78,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .enter()
         .append("text")
         .attr("class", "refLabel axis")
-        .text((d) => d.name.length > 18 ? d.name.slice(0,17) + "..." : d.name) /* trim labels to 18 chars */
+        .text(textFn)
         .attr('y', (refName, refIdx) => scales.y(refIdx+1) + 0.5*cellDims.height)
         .attr('x', chartGeom.spaceLeft - 8 /* - cellDims.height */)
         .attr("text-anchor", "end")
@@ -128,24 +143,32 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .on("mousemove", handleMouseMove);
 
     /* render the legend (bottom) -- includes coloured cells & text */
-    const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-    const legendBoxWidth = (chartGeom.width - chartGeom.spaceRight) / (legendDataValues.length -1);
+    const legendDataValues = [0, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    let legendWidth = chartGeom.width - chartGeom.spaceRight - 2*chartGeom.legendPadding;
+    if (legendWidth > chartGeom.maxLegendWidth) legendWidth = chartGeom.maxLegendWidth;
+    const legendRightOffset = (chartGeom.width - legendWidth) / 2;
+    const legendBoxWidth = legendWidth / legendDataValues.length;
     const legendBoxHeight = 12;
     const legendRoof = chartGeom.height - chartGeom.spaceBottom + 10;
+    const legendTextFn = (d, i) => {
+      if (legendWidth === chartGeom.maxLegendWidth) return `${d}%`;
+      if (i%2) return `${d}%`
+      return "";
+    };
     const legend = svg.selectAll(".legend")
         .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
         .enter().append("g")
         .attr("class", "legend")
     legend.append("rect")
         .attr('y', legendRoof)
-        .attr("x", (d, i) => legendBoxWidth * i)
+        .attr("x", (d, i) => legendRightOffset + legendBoxWidth*(i+1))
         .attr("width", legendBoxWidth)
         .attr("height", legendBoxHeight)
         .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
     legend.append("text")
-        .text((d, i) => i%2 ? d+"%" : "")
+        .text(legendTextFn)
         .attr("class", "axis")
-        .attr('x', (d, i) => legendBoxWidth * i)
+        .attr('x', (d, i) => legendRightOffset + legendBoxWidth*(i+1))
         .attr('y', legendRoof + legendBoxHeight + 11)
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
@@ -202,6 +225,7 @@ class ReferenceHeatmap extends React.Component {
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
+                {this.props.renderProp ? this.props.renderProp : null}
             </div>
         )
     }
