@@ -27,7 +27,7 @@ const InfoRow = ({sampleName, sampleData, sampleColour, enableUserInteraction, m
   const summaryText = `${sampleData.demuxedCount} reads demuxed, ${sampleData.mappedCount} mapped.`;
 
   return (
-    <div className="infoRow">
+    <div className="infoRow" style={{color: sampleColour}}>
       <div>
           {enableUserInteraction ? (
             <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
@@ -41,7 +41,9 @@ const InfoRow = ({sampleName, sampleData, sampleColour, enableUserInteraction, m
       {isExpanded ? (
         <div>
           <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>
-            <MdReorder className="icon150 iconCenterVertically clickable"/>
+            <IconContext.Provider value={{color: sampleColour}}>
+              <MdReorder className="icon150 iconCenterVertically clickable" style={{paddingTop: "3px"}}/>
+            </IconContext.Provider>
           </ContextMenuTrigger>
           <Menu id={`panelRightClickMenu-${sampleName}`} items={menuItems}/>
         </div>

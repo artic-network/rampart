@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import Select from "react-select";
+import { IoIosSave } from "react-icons/io";
 
 /* not sure how to do the following in CSS, as the current webpack
 transforms mangle all the CSS classnames */
@@ -52,6 +53,13 @@ const handleDroppedFile = (file, type, setter) => {
   reader.readAsText(file);
 }
 
+const SaveConfig = ({handleClick}) => (
+  <button className="modernButton" onClick={handleClick}>
+    <div><IoIosSave/><span>save config</span></div>
+  </button>
+)
+
+
 const Config = ({config, setConfig, socket, closeSidebar}) => {
   const refPanelChooser = useRef();
   const [refPanelDropperHover, setRefPanelDropperHover] = useState(false);
@@ -86,9 +94,15 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
     <div onDrop={(e) => {e.preventDefault()}}>
 
       <h1>Set Config</h1>
+      <p style={{maxWidth: "600px"}}>
+        {`This panel allows you to modify settings related to how the data is processed and interpreted.
+        If you haven't set a mapping reference or panel these should be set now!
+        Barcodes detected from the demuxed reads will be displayed here and you can assign them sample names.
+        Assigning multiple barcodes the same sample name will collapse the reads from thos barcodes.`}
+      </p>
       <p>Click "save config" when you've made modifications</p>
 
-      <button className="modernButton" onClick={submit}>save config</button>
+      <SaveConfig handleClick={submit}/>
 
       <h2>Experiment Title</h2>
       <label>
@@ -189,7 +203,7 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
       })}
 
 
-      <button className="modernButton" onClick={submit}>save config</button>
+      <SaveConfig handleClick={submit}/>
 
     </div>
   )

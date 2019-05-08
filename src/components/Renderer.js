@@ -13,6 +13,7 @@ import { hidden } from 'ansi-colors';
 import Report from "./Report";
 import ViewOptions from "./ViewOptions";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import { IoMdSettings, IoIosOptions, IoMdToday, IoIosCloseCircle } from "react-icons/io";
 
 const container = css({
   display: "flex",
@@ -84,7 +85,7 @@ const RenderPanels = ({data, viewOptions, config, openConfigSidebar}) => {
           {`Please specify mapping references via config panel, without these we cannot display nice things!`}
         </h3>
         <button className="modernButton" onClick={openConfigSidebar}>
-          Open config panel
+          <div><IoMdSettings/><span>open config</span></div>
         </button>
       </div>
     )
@@ -122,7 +123,9 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
   return (
     <div className="sidebar open">
       <div className="inner">
-        <button className="modernButton" onClick={onChange}>close sidebar</button>
+        <button className="modernButton topRight" onClick={onChange}>
+          <div><IoIosCloseCircle/><span>close sidebar</span></div>
+        </button>
         {children}
         <div style={{minHeight: "50px"}}/>
       </div>
@@ -139,14 +142,19 @@ const Renderer = (props) => {
     vizSettings: (<ViewOptions viewOptions={props.viewOptions}/>),
     report: (<Report data={props.data} config={props.config}/>)
   };
-
+  const sidebarButtonNames = [
+    {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
+    {label: (<div><IoIosOptions/><span>settings</span></div>), value: "vizSettings"},
+    {label: (<div><IoMdToday/><span>report</span></div>), value: "report"}
+  ]
+  
   return (
     <div {...container}>
       <Header
         viewOptions={props.viewOptions}
         setViewOptions={props.setViewOptions}
         config={props.config}
-        sidebarButtonNames={Object.keys(sidebars)}
+        sidebarButtonNames={sidebarButtonNames}
         sidebarOpenCB={setSidebarOpenState}
         data={props.data ? props.data.all : undefined}
       />

@@ -20,10 +20,10 @@ class Header extends React.Component {
       document.addEventListener("keydown", this.handleKeyDown);
   }
   renderButtons() {
-    return this.props.sidebarButtonNames.map((name) => {
+    return this.props.sidebarButtonNames.map(({label, value}) => {
       return (
-        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(name)} key={name}>
-          {name}
+        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(value)} key={value}>
+          {label}
         </button>
       )
     })

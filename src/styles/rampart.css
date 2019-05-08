@@ -148,6 +148,11 @@ div.sidebar.open {
   height: 100%;
   overflow: scroll;
 }
+.sidebar .topRight {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
 
 /* ------------ CONFIG SIDEBAR -------------------- */
 .sidebar div.fileDropZone {
@@ -186,14 +191,16 @@ div.header .logo {
 div.header .buttons {
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
+  padding: 20px 10px 20px 0;
 }
 
 
 /* ----------------- MODERN BUTTONS --------------------- */
 button.modernButton {
   display: block;
-  background: var(--dark-foreground);
-  color: var(--artic-red);
+  background: var(--artic-red);
+  color: var(--dark-foreground);
   border: 1px solid var(--dark-foreground);
   border-radius: 3px;
   text-decoration: none;
@@ -207,10 +214,22 @@ button.modernButton {
   margin: 5px;
 }
 button.modernButton:hover {
-  background: var(--artic-red);
-  color: var(--dark-foreground);
+  border: 1px solid var(--dark-foreground);
+  background: var(--dark-foreground);
+  color: var(--artic-red);
 }
-
+button.modernButton > div {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+button.modernButton > div > svg {
+  transform: scale(1.4);
+  padding: 0px 5px 0px 5px;
+}
+button.modernButton > div > span {
+  padding-right: 5px;
+}
 
 /* -------------------   UNKNOWN --------------------- */
 
