@@ -67,7 +67,6 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const charPx = 8; /* guesstimate of character pixel width */
     const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
     const textFn = (d) => {
-      console.log(d.name, d.name.length, allowedChars, chartGeom.spaceLeft)
       if (d.name.length > allowedChars) return `${d.name.slice(0,allowedChars-2)}...`
       return d.name;
     }

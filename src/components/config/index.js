@@ -76,8 +76,6 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
     );
   }
 
-  const barcodesSeen = []; // TODO
-
   const submit = () => {
     console.log("sending new config to server")
     setRefPanelFileDropped(false);
@@ -183,23 +181,26 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
       }
 
       <h2>Barcodes</h2>
-      {config.barcodes.map((bc) => {
-        return (
-          <label key={bc}>
-            <div className={"bcLabel"}>
-              {`${bc} (${barcodesSeen.includes(bc) ? "seen" : "unseen"})`}
-            </div>
-            <input
-              type="text"
-              value={config.barcodeToName[bc]}
-              onChange={(event) => {
-                const barcodeToName = config.barcodeToName;
-                barcodeToName[bc] = event.target.value;
-                setConfig(Object.assign({}, config, {barcodeToName}));
-              }}
-            />
-          </label>
-        );
+      {Object.keys(config.barcodeToName)
+        .sort((a, b) => config.barcodeToName[a].order > config.barcodeToName[b].order ? 1 : -1)
+        .map((barcodeName) => {
+          return (
+            <label key={barcodeName}>
+              <div className={"bcLabel"}>
+                {`${barcodeName}`}
+              </div>
+              <input
+                type="text"
+                value={config.barcodeToName[barcodeName].name}
+                onChange={(event) => {
+                  const barcodeToName = config.barcodeToName;
+                  barcodeToName[barcodeName].name = event.target.value;
+                  setConfig(Object.assign({}, config, {barcodeToName}));
+                }}
+              />
+              {/* TODO -- add ordering box / dragger here */}
+            </label>
+          );
       })}
 
 

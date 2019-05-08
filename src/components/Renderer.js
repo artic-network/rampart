@@ -8,7 +8,7 @@ import { css } from 'glamor'
 import OverallSummary from "./overallSummary";
 import { sum } from "d3-array";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
-import Config from "./Config";
+import Config from "./config";
 import { hidden } from 'ansi-colors';
 import Report from "./Report";
 import ViewOptions from "./ViewOptions";

@@ -127,9 +127,14 @@ const getData = () => {
   response.settings.genomeResolution = magics.genomeResolution;
   const mainReference = !!global.config.reference;
   let nGenomeSlices = mainReference ? Math.ceil(global.config.reference.length / magics.genomeResolution) : undefined;
-
+  let newBarcodesSeen = false;
   for (const [barcode, dataPoints] of Object.entries(global.datastore)) {
-    const name = global.config.barcodeToName[barcode] ? global.config.barcodeToName[barcode] : barcode;
+    if (!global.barcodesObserved.has(barcode)) {
+      global.barcodesObserved.add(barcode);
+      newBarcodesSeen = true
+    }
+    const name = global.config.barcodeToName[barcode] && global.config.barcodeToName[barcode].name ?
+      global.config.barcodeToName[barcode].name : barcode;
     /* name may already be in `response` if there are >1 barcodes with the same "name" */
     const sampleData = response.data[name] ? response.data[name] : {
       demuxedCount: 0,
@@ -193,7 +198,7 @@ const getData = () => {
     delete sampleData.tmpTemporal;
   }
   response.data.all = all;
-  return response;
+  return {newBarcodesSeen, response};
 }
 
 module.exports = {getData};

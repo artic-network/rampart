@@ -1,5 +1,5 @@
 const fs = require('fs')
-const modifyConfig = require("./config").modifyConfig;
+const { modifyConfig, updateConfigWithNewBarcodes} = require("./config");
 const { verbose, log, warn } = require("./utils");
 const { timerStart, timerEnd } = require('./timers');
 const { getData } = require("./transformResults");
@@ -12,8 +12,13 @@ const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 const sendData = () => {
   timerStart("sendData");
   verbose("[sendData]")
-  global.io.emit('data', getData());
+  const {response, newBarcodesSeen} = getData();
+  global.io.emit('data', response);
   timerEnd("sendData");
+  if (newBarcodesSeen) {
+    updateConfigWithNewBarcodes();
+    sendConfig();
+  }
 }
 
 /**

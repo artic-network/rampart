@@ -9,6 +9,7 @@ const args = parser.parseArgs();
 args.emptyDemuxed = true; // TODO!
 if (args.verbose) global.VERBOSE = true;
 if (args.mockFailures) global.MOCK_FAILURES = true;
+global.barcodesObserved = new Set();
 global.config = getInitialConfig(args)
 global.datastore = {};
 global.barcodesSeen = new Set();

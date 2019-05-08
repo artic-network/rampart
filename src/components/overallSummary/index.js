@@ -111,7 +111,6 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
   }
 
   /* ----------------- R E N D E R ---------------- */
-  console.log("(((((((((((", chartToDisplay)
   return (
     <div id="overallSummaryContainer">
       <div className="panelFlexRow">

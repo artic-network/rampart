@@ -42,18 +42,18 @@ const scanExampleConfigs = () => {
 };
 
 /**
- * Create initial config file from command line arguments
+ * Create initial config file from command line arguments - Note that
+ * No data has been processed at this point.
  */
 const getInitialConfig = (args) => {
 
-  const barcodes = [
-    "BC01", "BC02", "BC03", "BC04", "BC05", "BC06", "BC07", "BC08", "BC09", "BC10", "BC11", "BC12"
-  ];
+  // const barcodes = [
+  //   "BC01", "BC02", "BC03", "BC04", "BC05", "BC06", "BC07", "BC08", "BC09", "BC10", "BC11", "BC12"
+  // ];
 
   const config = {
     title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
     barcodeToName: {},
-    barcodes,
     rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
     basecalledPath: "",
     demuxedPath: "",
@@ -67,16 +67,10 @@ const getInitialConfig = (args) => {
   };
 
   /* most options _can_ be specified on the command line, but may also be specified in the client */
-  barcodes.forEach((bc) => {
-    config.barcodeToName[bc] = undefined;
-  })
   if (args.barcodeNames) {
-    args.barcodeNames.forEach((raw) => {
+    args.barcodeNames.forEach((raw, idx) => {
       const [bc, name] = raw.split('=');
-      if (!barcodes.includes(bc)) {
-        throw new Error(`Invalid barcode ${bc}`)
-      }
-      config.barcodeToName[bc] = name;
+      config.barcodeToName[bc] = {name, order: idx}
     });
   }
 
@@ -97,13 +91,10 @@ const getInitialConfig = (args) => {
   if (args.referenceConfigPath) {
     ensurePathExists(args.referenceConfigPath);
     config.referenceConfigPath = getAbsolutePath(args.referenceConfigPath, {relativeTo: process.cwd()});
-
     /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
     const reference = JSON.parse(fs.readFileSync(config.referenceConfigPath)).reference;
     config.reference = reference;
-
   }
-  
 
   return config;
 };
@@ -153,8 +144,22 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
   }
 }
 
+const updateConfigWithNewBarcodes = () => {
+  verbose("[updateConfigWithNewBarcodes]")
+  const newBarcodes = [...global.barcodesObserved]
+    .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
+  newBarcodes.forEach((bc) => {
+    global.config.barcodeToName[bc] = {name: undefined, order: 0}
+  })
+  console.log("NEW BCS OBSERVED")
+  console.log(newBarcodes)
+  console.log(global.barcodesObserved)
+  console.log(global.config.barcodeToName)
+}
+
 
 module.exports = {
     getInitialConfig,
-    modifyConfig
+    modifyConfig,
+    updateConfigWithNewBarcodes
 };

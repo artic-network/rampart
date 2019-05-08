@@ -142,7 +142,7 @@ div.sidebar.open {
 }
 .sidebar .bcLabel {
   display: inline-block;
-  min-width: 130px;
+  min-width: 100px;
 }
 .sidebar .inner {
   height: 100%;
