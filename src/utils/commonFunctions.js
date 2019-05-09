@@ -47,16 +47,18 @@ export const drawXAxis = (svg, chartGeom, scales, numTicks, isTime, suffix) => {
     tickFormatter = (val) => `${val}${suffix}`;
   }
 
+  const axisFn = typeof scales.x.invert === "function" ? /* ordinal scales don't have this */
+    axisBottom(scales.x).ticks(numTicks).tickFormat(tickFormatter) :
+    numTicks === 0 ? 
+      axisBottom(scales.x).tickValues([]) :
+      axisBottom(scales.x);
+
   svg.append("g")
     .attr("class", "x axis")
     .attr("transform", `translate(0,${chartGeom.height - chartGeom.spaceBottom})`)
     .style("font-family", dataFont)
     .style("font-size", "12px")
-    .call(
-      axisBottom(scales.x)
-        .ticks(numTicks)
-        .tickFormat(tickFormatter)
-    );
+    .call(axisFn);
 }
 
 export const drawYAxis = (svg, chartGeom, scales, numTicks, suffix) => {

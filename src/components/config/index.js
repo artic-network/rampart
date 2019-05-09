@@ -89,7 +89,7 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
   }
 
   return (
-    <div onDrop={(e) => {e.preventDefault()}}>
+    <div className="config" onDrop={(e) => {e.preventDefault()}}>
 
       <h1>Set Config</h1>
       <p style={{maxWidth: "600px"}}>
@@ -106,6 +106,7 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
       <label>
         <input
           type="text"
+          className="wide"
           value={config.title}
           onChange={(event) => {setConfig(Object.assign({}, config, {title: event.target.value}))}}
         />

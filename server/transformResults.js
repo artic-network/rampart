@@ -123,8 +123,9 @@ const _summariseTemporalData = (data) => {
  *    `readLengths` {Object} keys: `xyValues`, array of [int, int]
  */
 const getData = () => {
-  const response = {data: {}, settings: {}}
-  response.settings.genomeResolution = magics.genomeResolution;
+  const data = {};
+  const viewOptions = {};
+  viewOptions.genomeResolution = magics.genomeResolution;
   const mainReference = !!global.config.reference;
   let nGenomeSlices = mainReference ? Math.ceil(global.config.reference.length / magics.genomeResolution) : undefined;
   let newBarcodesSeen = false;
@@ -136,7 +137,7 @@ const getData = () => {
     const name = global.config.barcodeToName[barcode] && global.config.barcodeToName[barcode].name ?
       global.config.barcodeToName[barcode].name : barcode;
     /* name may already be in `response` if there are >1 barcodes with the same "name" */
-    const sampleData = response.data[name] ? response.data[name] : {
+    const sampleData = data[name] ? data[name] : {
       demuxedCount: 0,
       mappedCount: 0,
       refMatches: {},
@@ -164,11 +165,13 @@ const getData = () => {
 
     });
 
-    response.data[name] = sampleData;
+
+
+    data[name] = sampleData;
   }
 
   /* now that all barcodes have had each datapoint processed, run post calcs */
-  for (const [, sampleData] of Object.entries(response.data)) {
+  for (const [, sampleData] of Object.entries(data)) {
     /* data.refMatches needs to be percentages, but curretnly its a list of number of hits per datapoint */
     if (sampleData.refMatches) {
       const tot = Object.values(sampleData.refMatches).reduce((pv, cv) => cv+pv, 0);
@@ -189,16 +192,19 @@ const getData = () => {
     coverage: [],
     maxCoverage: 0,
     refMatches: {},
-    temporal: _summariseTemporalData(response.data),
+    temporal: _summariseTemporalData(data),
     readLengths: {xyValues: []}
   }
-  for (const [, sampleData] of Object.entries(response.data)) {
+  for (const [, sampleData] of Object.entries(data)) {
     all.demuxedCount += sampleData.demuxedCount;
     all.mappedCount += sampleData.mappedCount;
     delete sampleData.tmpTemporal;
   }
-  response.data.all = all;
-  return {newBarcodesSeen, response};
+  data.all = all;
+  if (data.all.demuxedCount === 0) {
+    return {newBarcodesSeen: false, data: false, viewOptions: false}
+  }
+  return {newBarcodesSeen, data, viewOptions};
 }
 
 module.exports = {getData};

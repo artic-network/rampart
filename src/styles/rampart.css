@@ -52,29 +52,68 @@ div {
 
 
 /* ------------- TOGGLE  SWITCH ---------------*/
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
+div.toggle {
+  margin: 0 auto;
+  /* width: 50%; */
+}
+div.toggle > label { /* the box around the slider */
   display: inline-block;
+  position: relative;
   width: 30px;
   height: 18px;
   top: 3px;
 }
-/* Hide default HTML checkbox */
-.switch input {display:none;}
-/* The slider */
-.slider {
+div.toggle > :first-child {
+  padding-right: 10px;
+  font-size: 1em;
+}
+div.toggle > :last-child {
+  padding-left: 10px;
+  font-size: 1em;
+}
+div.toggle > label > input { /* Hide default HTML checkbox */
+  display: none;
+}
+div.toggle > label > span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 18px;
+  border-radius: 18px;
+}
+div.toggle > label > span.background {
+  width: 34px;
+  background-color: var(--light-text);
+  cursor: pointer;
+}
+div.toggle > label > span.slider {
+  width: 18px;
+  right: 0px;
+  background-color: var(--artic-red);
+  -webkit-transition: .4s;
+  transition: .4s;
+  cursor: pointer;
+}
+div.toggle > label > input:checked + span.slider {
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
+}
+
+/* div.toggle > label > span.slider.unchecked {
   position: absolute;
   cursor: pointer;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc; /* blue is #2196F3; */
+  background-color: #ccc;
   -webkit-transition: .4s;
   transition: .4s;
-}
-.slider:before {
+  border-radius: 16px;
+} */
+/* div.toggle > label > span.slider {
   position: absolute;
   content: "";
   height: 16px;
@@ -84,22 +123,19 @@ div {
   background-color: white;
   -webkit-transition: .4s;
   transition: .4s;
-}
-input:focus + .slider {
+  border-radius: 50%;
+} */
+
+
+/* div.toggle > label > input:focus + .slider {
   box-shadow: 0 0 1px #2196F3;
-}
-input:checked + .slider:before {
+} */
+/* div.toggle > label > span.checked {
   -webkit-transform: translateX(12px);
   -ms-transform: translateX(12px);
   transform: translateX(12px);
-}
-/* Rounded sliders */
-.slider.round {
-  border-radius: 16px;
-}
-.slider.round:before {
-  border-radius: 50%;
-}
+} */
+
 
 
 
@@ -123,26 +159,8 @@ div.sidebar.closed {
 div.sidebar.open {
   right: 5px;
 }
-.sidebar label {
-  display: block;
-  padding: 5px;
-}
 .sidebar input.hidden {
   display: none;
-}
-.sidebar input {
-  border-radius: 3px;
-  border: 2px solid var(--artic-red);
-  background-color: var(--dark-foreground);
-  color: var(--artic-red);
-  font-size: 16px;
-  margin-left: 10px;
-  height: 22px;
-  padding: 4px;
-}
-.sidebar .bcLabel {
-  display: inline-block;
-  min-width: 100px;
 }
 .sidebar .inner {
   height: 100%;
@@ -171,7 +189,57 @@ div.sidebar.open {
 .sidebar div + button {
   display: inline-block;
 }
+.sidebar .config input {
+  border-radius: 3px;
+  border: 2px solid var(--artic-red);
+  background-color: var(--dark-foreground);
+  color: var(--artic-red);
+  font-size: 16px;
+  margin-left: 10px;
+  height: 22px;
+  padding: 4px;
+}
+.sidebar .config label {
+  display: block;
+  padding: 5px;
+}
+.sidebar .config .bcLabel {
+  display: inline-block;
+  min-width: 100px;
+}
+.sidebar .config input.wide {
+  width: 90%;
+}
 
+/* ------------------ VIEW OPTIONS SIDEBAR ------------ */
+.swatches-picker > div > div {
+  background: inherit !important; /* override the inline styles provided by the component */
+  box-shadow: none !important;
+}
+.colorPickerContainer {
+  padding-top: 50px;
+}
+.viewOptions {
+  width: 400px;
+  min-width: 400px;
+}
+.viewOptions > div.colourSwatch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 3px;
+}
+.viewOptions > div.colourSwatch > div:nth-child(1) {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+.viewOptions > div.colourSwatch > div:nth-child(2) {
+  /* display: inline-block; */
+  padding-left: 10px;
+  font-size: 1.2em;
+  font-weight: 400;
+}
 
 /* -------------------- HEADER --------------------- */
 div.header {
@@ -434,7 +502,7 @@ rect.gene + text {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  width: 100%;
 }
 .startUp > label {
   display: block;

@@ -12,8 +12,10 @@ const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 const sendData = () => {
   timerStart("sendData");
   verbose("[sendData]")
-  const {response, newBarcodesSeen} = getData();
-  global.io.emit('data', response);
+  const {newBarcodesSeen, data, viewOptions} = getData();
+  if (data) {
+    global.io.emit('data', {data, viewOptions});
+  }
   timerEnd("sendData");
   if (newBarcodesSeen) {
     updateConfigWithNewBarcodes();

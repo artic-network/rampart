@@ -11,7 +11,7 @@ import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./config";
 import { hidden } from 'ansi-colors';
 import Report from "./Report";
-import ViewOptions from "./ViewOptions";
+import ViewOptions from "./viewOptions";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import { IoMdSettings, IoIosOptions, IoMdToday, IoIosCloseCircle } from "react-icons/io";
 
@@ -134,17 +134,17 @@ const Sidebar = ({title, open, onChange, children, idx}) => {
 }
 
 const Renderer = (props) => {
-  const [sidebarOpen, setSidebarOpenState] = useState("undefined");
+  const [sidebarOpen, setSidebarOpenState] = useState(false);
 
 
   const sidebars = {
     config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket} closeSidebar={() => setSidebarOpenState(undefined)}/>),
-    vizSettings: (<ViewOptions viewOptions={props.viewOptions}/>),
+    viewOptions: (<ViewOptions viewOptions={props.viewOptions} setViewOptions={props.setViewOptions}/>),
     report: (<Report data={props.data} config={props.config}/>)
   };
   const sidebarButtonNames = [
     {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
-    {label: (<div><IoIosOptions/><span>settings</span></div>), value: "vizSettings"},
+    {label: (<div><IoIosOptions/><span>settings</span></div>), value: "viewOptions"},
     {label: (<div><IoMdToday/><span>report</span></div>), value: "report"}
   ]
   

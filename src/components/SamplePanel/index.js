@@ -86,7 +86,9 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
     )
   };
 
-
+  if (sampleName === "abc") {
+    console.log(sampleName, sampleColour, sampleData)
+  }
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
   const renderCharts = () => {
     if (!expanded) return null;

@@ -36,32 +36,49 @@ class App extends Component {
       this.setState({mainPage: "chooseBasecalledDirectory"});
     });
     socket.on("data", (response) => {
-      console.log("DATA:", response);
-      const newViewOptions = Object.assign({}, this.state.viewOptions, response.settings);
-      if (Object.keys(newViewOptions.sampleColours).length !== Object.keys(response.data)) {
-        const names = Object.keys(response.data);
-        const colours = createSampleColours(names.length);
-        newViewOptions.sampleColours = {};
-        names.forEach((n, i) => {newViewOptions.sampleColours[n]=colours[i]});
+      console.log("App got new data", response);
+
+      /* if new sample names have been seen, then we need to create colours for them without destroying already-set colours */
+      const newViewOptions = Object.assign({}, this.state.viewOptions, response.viewOptions);
+      const samplesInData = Object.keys(response.data);
+      const currentSamples = Object.keys(this.state.viewOptions.sampleColours);
+      const newSamples = samplesInData.filter((name) => !currentSamples.includes(name));
+      const newColours = createSampleColours(currentSamples.length + newSamples.length)
+        .slice(currentSamples.length);
+      newViewOptions.sampleColours = {};
+      currentSamples.filter((name) => samplesInData.includes(name)).forEach((name) => {
+        newViewOptions.sampleColours[name] = this.state.viewOptions.sampleColours[name];
+      })
+      newSamples.forEach((name, idx) => {
+        newViewOptions.sampleColours[name] = newColours[idx];
+      })
+      if (newSamples.includes("noBarcode")) {
+        newViewOptions.sampleColours.noBarcode = "#979797";
       }
-      console.log("newViewOptions ->", newViewOptions)
-      this.setState({viewOptions: newViewOptions, data: response.data, mainPage: "viz"});
+
+      this.setState({
+        viewOptions: newViewOptions,
+        data: response.data,
+        mainPage: "viz"
+      });
     })
-    socket.on("config", (config) => {
-      /* recompute reference colours */
-      
-      const newViewOptions = Object.assign({}, this.state.viewOptions);
-      if (config.referencePanel) {
-        const colours = createReferenceColours(config.referencePanel.length);
-        console.log(colours)
+    socket.on("config", (newConfig) => {
+      console.log("App got new config:", newConfig);
+      /* certain changes to the config may necessitate an updating of viewOptions */
+      const newViewOptions = {};
+      /* the first time we see the reference panel create the colours */
+      if (!this.state.config.referencePanel && newConfig.referencePanel) {
+        const colours = createReferenceColours(newConfig.referencePanel.length);
         newViewOptions.referenceColours = {};
-        config.referencePanel.forEach((ref, idx) => {
+        newConfig.referencePanel.forEach((ref, idx) => {
           newViewOptions.referenceColours[ref.name] = colours[idx];
         })
       }
-  
-      this.setState({config, viewOptions: newViewOptions});
-      console.log("CONFIG:", config);
+      const newState = {config: newConfig};
+      if (Object.keys(newViewOptions)) {
+        newState.viewOptions = Object.assign({}, this.state.viewOptions, newViewOptions);
+      }
+      this.setState(newState);
     })
   }
 

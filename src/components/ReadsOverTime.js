@@ -2,7 +2,7 @@ import React from 'react';
 import { select, mouse } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
 import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
-import {foreground} from "../utils/colours";
+import {defaultLineColour} from "../utils/colours";
 
 const timeFormatter = makeTimeFormatter();
 
@@ -56,7 +56,7 @@ const drawLine = (svg, scales, data, infoRef) => {
   const path = svg.append("path")
     .attr("class", "readsLine")
     .attr("fill", "none")
-    .attr("stroke", foreground)
+    .attr("stroke", defaultLineColour)
     .attr("stroke-width", 5)
     .attr('d', () => (lineGenerator(data)))
   

@@ -112,7 +112,7 @@ class ReadsPerSample extends React.Component {
       x: calcXScale(chartGeom, barWidth, samples.length),
       y: calcYScale(chartGeom, yMax, this.props.viewOptions.logYAxis)
     };
-    drawAxes(this.state.svg, chartGeom, scales);
+    drawAxes(this.state.svg, chartGeom, scales, {xTicks: 0});
     const counts = [];
     const colours = [];
     samples.forEach((name) => {

@@ -151,10 +151,6 @@ const updateConfigWithNewBarcodes = () => {
   newBarcodes.forEach((bc) => {
     global.config.barcodeToName[bc] = {name: undefined, order: 0}
   })
-  console.log("NEW BCS OBSERVED")
-  console.log(newBarcodes)
-  console.log(global.barcodesObserved)
-  console.log(global.config.barcodeToName)
 }
 
 
