@@ -22,6 +22,61 @@ const _addReadsToCoverage = (coverage, readPositions) => {
   }
 }
 
+const _initialiseRefMatchesAcrossGenome = (nGenomeSlices) =>
+  global.config.referencePanel.map(() => 
+    Array.from(new Array(nGenomeSlices), () => 0)
+  );
+
+const _makeReferenceArray = () => global.config.referencePanel.map((obj) => obj.name);
+
+/* WHAT IS A SERIES?
+  this is the data structure demanded by d3 for a stream graph.
+  it is often produced by the d3.stack function - see https://github.com/d3/d3-shape/blob/master/README.md#_stack
+
+  THIS IS THE STRUCTURE:
+    [x1, x2, ... xn] where n is the number of references
+      xi = [y1, y2, ..., ym] where m is the number of pivots (i.e. x points)
+        yi = [z1, z2]: the (y0, y1) values of the reference at that pivot point.
+  
+  As a first pass, we let yi = INT, the counts (That's this function)
+  After all the reads have been tallied, yi will be turned into [z1, z2]
+*/
+const _addReferenceMatchCounts = (refMatchesAcrossGenome, readPositions, readTopRefHits) => {
+  const refNameToIdx = {};
+  global.config.referencePanel.forEach((obj, idx) => {
+    refNameToIdx[obj.name] = idx;
+  })
+
+  readPositions.forEach((pos, idx) => {
+    const [a, b] = pos[0]<pos[1] ? pos : [pos[1], pos[0]];
+    const refIdx = refNameToIdx[readTopRefHits[idx]];
+    // get coverage indexes relative to genome resolutions
+    const aIdx = Math.floor(a / magics.genomeResolution);
+    const bIdx = Math.ceil(b / magics.genomeResolution);
+    for (let i=aIdx; i<=bIdx && i<refMatchesAcrossGenome[refIdx].length; i++) {
+      refMatchesAcrossGenome[refIdx][i]++
+    }
+  })
+}
+
+/* turn the series structure described above from yi = COUNT to yi = [z1, z2] */
+const _makeReferenceMatchStream = (refMatchesAcrossGenome, nGenomeSlices) => {
+  const nReferences = global.config.referencePanel.length;
+  for (let xIdx=0; xIdx<nGenomeSlices; xIdx++) {
+    let totalReadsHere = 0;
+    for (let refIdx=0; refIdx<nReferences; refIdx++) {
+      totalReadsHere += refMatchesAcrossGenome[refIdx][xIdx];
+    }
+    let yPosition = 0;
+    for (let refIdx=0; refIdx<nReferences; refIdx++) {
+      /* require >10 reads to calc stream */
+      const percHere = totalReadsHere > 10 ? refMatchesAcrossGenome[refIdx][xIdx] / totalReadsHere : 0
+      refMatchesAcrossGenome[refIdx][xIdx] = [yPosition, yPosition+percHere];
+      yPosition += +percHere;
+    }
+  }
+}
+
 const _addReadLengths = (store, readLengths) => {
   /* store them in `tmp` as key-value pairs so we can only keep the xvalues where we have data */
   readLengths.forEach((n) => {
@@ -121,6 +176,8 @@ const _summariseTemporalData = (data) => {
  *    `maxCoverage` {int}
  *    `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
  *    `readLengths` {Object} keys: `xyValues`, array of [int, int]
+ *    `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}
+ *    `referencePanelNames` {Array of strings} same order as `refMatchesAcrossGenome`
  */
 const getData = () => {
   const data = {};
@@ -144,7 +201,9 @@ const getData = () => {
       coverage: mainReference ? _createEmptyCoverage(nGenomeSlices) : [],
       temporal: [],
       tmpTemporal: {}, // will be removed before send
-      readLengths: {xyValues: [], tmp: {}} // tmp will be removed before send
+      readLengths: {xyValues: [], tmp: {}}, // tmp will be removed before send
+      refMatchesAcrossGenome: mainReference ? _initialiseRefMatchesAcrossGenome(nGenomeSlices) : [],
+      referencePanelNames: mainReference ? _makeReferenceArray() : [],
     };
     // eslint-disable-next-line no-loop-func
     dataPoints.forEach((d) => {
@@ -153,14 +212,16 @@ const getData = () => {
       if (d.refMatches) {
         for (const [ref, values] of Object.entries(d.refMatches)) {
           if (!sampleData.refMatches[ref]) {
-            sampleData.refMatches[ref] = values.length; /* currently the number of hits, not the percentage */
+            sampleData.refMatches[ref] = 0;
           }
+          sampleData.refMatches[ref] += values.length; /* currently the number of hits, not the percentage */
         }
       }
       if (mainReference && d.readPositions) {
         _addReadsToCoverage(sampleData.coverage, d.readPositions);
         _addTemporalData(sampleData.tmpTemporal, sampleData.mappedCount, sampleData.coverage, d.timestamp);
         _addReadLengths(sampleData.readLengths, d.readLengths);
+        _addReferenceMatchCounts(sampleData.refMatchesAcrossGenome, d.readPositions, d.readTopRefHits);
       }
 
     });
@@ -176,13 +237,14 @@ const getData = () => {
     if (sampleData.refMatches) {
       const tot = Object.values(sampleData.refMatches).reduce((pv, cv) => cv+pv, 0);
       for (const ref of Object.keys(sampleData.refMatches)) {
-        sampleData.refMatches[ref] = parseInt(sampleData.refMatches[ref] / tot * 100, 10);
+        sampleData.refMatches[ref] = sampleData.refMatches[ref] / tot * 100;
       }
     }
     _postProcessReadLengths(sampleData.readLengths)
     sampleData.maxCoverage = sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0);
     sampleData.temporal = Object.values(sampleData.tmpTemporal).map((d) => d)
       .sort((a, b) => a.time>b.time ? 1 : -1);
+    _makeReferenceMatchStream(sampleData.refMatchesAcrossGenome, nGenomeSlices)
   }
 
   /* now that all barcodes have had each datapoint processed, summarise into `all` */

@@ -41,8 +41,8 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
       <CoveragePlot
         className="graphContainer"
         width={chartToDisplay === "coverage" ? "85%" : "35%"}
-        showReferenceMatches={false}
-        data={data}
+        canShowReferenceMatches={false}
+        coverage={data}
         reference={reference}
         viewOptions={viewOptions}
         key="cov"

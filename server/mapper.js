@@ -55,6 +55,7 @@ const addToDatastore = (datastorePointers, results) => {
     global.datastore[bc][idx].mappedCount = 0;
     global.datastore[bc][idx].readPositions = [];
     global.datastore[bc][idx].readLengths = [];
+    global.datastore[bc][idx].readTopRefHits = [];
     global.datastore[bc][idx].refMatches = {};
   }
 
@@ -66,6 +67,7 @@ const addToDatastore = (datastorePointers, results) => {
     }
     global.datastore[bc][idx].mappedCount++;
     global.datastore[bc][idx].readPositions.push([d[2], d[3]]);
+    global.datastore[bc][idx].readTopRefHits.push(d[1]);
     global.datastore[bc][idx].readLengths.push(Math.abs(d[3]-d[2]));
     if (global.datastore[bc][idx].refMatches[d[1]]) {
       global.datastore[bc][idx].refMatches[d[1]].push(d[4]);

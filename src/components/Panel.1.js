@@ -164,7 +164,7 @@ class Panel extends React.Component {
       return (
         <CoveragePlot
           style={{width: '45%', margin: 'auto', height: "100%", position: "relative"}}
-          showReferenceMatches={true}
+          canShowReferenceMatches={true}
           coverage={[this.props.coverage]}
           references={this.props.references}
           referenceMatchAcrossGenome={this.props.referenceMatchAcrossGenome}

@@ -54,8 +54,10 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
       <CoveragePlot
         className="graphContainer"
         width={(showSinglePanel === "coverage" || !singleRow) ? "100%" : "40%"}
-        showReferenceMatches={true}
-        data={coverageData}
+        canShowReferenceMatches={true}
+        coverage={coverageData}
+        referenceStream={sampleData.refMatchesAcrossGenome}
+        referencePanelNames={sampleData.referencePanelNames}
         reference={reference}
         viewOptions={viewOptions}
         fillIn={true}

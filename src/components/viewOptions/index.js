@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { SwatchesPicker } from 'react-color';
 import { IoIosCloseCircle, IoMdColorFill } from "react-icons/io";
 import { availableColours } from "../../utils/colours";
-import Toggle from "./toggle";
+import Toggle from "../toggle";
 
 const ColourPicker = ({currentColour, name, onChange, onCancel}) => {
   return (

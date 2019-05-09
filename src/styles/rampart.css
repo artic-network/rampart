@@ -90,7 +90,7 @@ div.toggle > label > span.background {
 div.toggle > label > span.slider {
   width: 18px;
   right: 0px;
-  background-color: var(--artic-red);
+  background-color: var(--header);
   -webkit-transition: .4s;
   transition: .4s;
   cursor: pointer;
@@ -100,43 +100,6 @@ div.toggle > label > input:checked + span.slider {
   -ms-transform: translateX(16px);
   transform: translateX(16px);
 }
-
-/* div.toggle > label > span.slider.unchecked {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 16px;
-} */
-/* div.toggle > label > span.slider {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 1px;
-  bottom: 1px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 50%;
-} */
-
-
-/* div.toggle > label > input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-} */
-/* div.toggle > label > span.checked {
-  -webkit-transform: translateX(12px);
-  -ms-transform: translateX(12px);
-  transform: translateX(12px);
-} */
-
-
 
 
 /* --------------- SIDEBARS --------------- */
@@ -240,6 +203,7 @@ div.sidebar.open {
   font-size: 1.2em;
   font-weight: 400;
 }
+
 
 /* -------------------- HEADER --------------------- */
 div.header {
@@ -484,6 +448,16 @@ rect.gene + text {
   stroke: var(--light-text);
   stroke-width: 1;
   shape-rendering: auto;
+}
+
+/* used in the reference stream graph hover box */
+span.hoverColourSquare {
+  display: inline-block;
+  width: 30px;
+  height: 15px;
+}
+span.hoverColourSquare + span {
+  display: inline-block;
 }
 
 

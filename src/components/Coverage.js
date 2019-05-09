@@ -4,7 +4,8 @@ import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
 import { max } from "d3-array";
 import { drawSteps } from "../d3/drawSteps";
 import { drawGenomeAnnotation } from "../d3/genomeAnnotation";
-import { calculateSeries, drawStream } from "../d3/stream";
+import { drawStream } from "../d3/stream";
+import Toggle from "./toggle";
 
 const Title = ({showReferences, onToggle}) => {
     if (!showReferences) {
@@ -52,29 +53,28 @@ class CoveragePlot extends React.Component {
         const xScale = calcXScale(this.state.chartGeom, this.props.reference.length);
         const yScale = this.state.showReferenceMatches ?
             calcYScale(this.state.chartGeom, 100) :
-            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.data), {log: this.props.viewOptions.logYAxis});
+            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.props.viewOptions.logYAxis});
         const scales = {x: xScale, y: yScale};
         /* draw the axes & genome annotation*/
         const ySuffix = this.state.showReferenceMatches ? "%" : "x";
         drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", ySuffix});
         drawGenomeAnnotation(this.state.svg, this.state.chartGeom, scales, this.props.reference, this.state.hoverSelection);
         if (this.state.showReferenceMatches) {
-            console.log("TO DO")
-            // const series = calculateSeries(this.props.referenceMatchAcrossGenome, this.props.references)
-            // drawStream(
-            //   this.state.svg,
-            //   scales,
-            //   series,
-            //   this.props.references,
-            //   this.props.referenceColours,
-            //   this.infoRef
-            // );
+          drawStream({
+            svg: this.state.svg,
+            scales,
+            stream: this.props.referenceStream,
+            referencePanelNames: this.props.referencePanelNames,
+            referenceColours: this.props.viewOptions.referenceColours,
+            hoverSelection: this.state.hoverSelection,
+            genomeResolution: this.props.viewOptions.genomeResolution
+          }); 
         } else {
-            const coverageData = Object.keys(this.props.data)
+            const data = Object.keys(this.props.coverage)
                 .filter((name) => name!=="all")
                 .map((name) => ({
                     name,
-                    xyValues: this.props.data[name].coverage.map((cov, idx) => [idx*this.props.viewOptions.genomeResolution, cov]),
+                    xyValues: this.props.coverage[name].coverage.map((cov, idx) => [idx*this.props.viewOptions.genomeResolution, cov]),
                     colour: this.props.viewOptions.sampleColours[name]
                 }));
             const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${yValue}x`);
@@ -83,7 +83,7 @@ class CoveragePlot extends React.Component {
                 svg: this.state.svg,
                 chartGeom: this.state.chartGeom,
                 scales,
-                data: coverageData,
+                data,
                 fillBelowLine: !!this.props.fillIn,
                 hoverSelection: this.state.hoverSelection,
                 hoverDisplayFunc
@@ -93,7 +93,7 @@ class CoveragePlot extends React.Component {
     componentDidMount() {
         const svg = select(this.DOMref);
         const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-        const hoverWidth = parseInt(chartGeom.width * 1/2, 10);
+        const hoverWidth = parseInt(chartGeom.width * 2/3, 10);
         const hoverSelection = select(this.infoRef);
         this.setState({svg, chartGeom, hoverWidth, hoverSelection});
     }
@@ -105,8 +105,20 @@ class CoveragePlot extends React.Component {
     render() {
         return (
             <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
-                <Title showReferences={this.props.showReferenceMatches} onToggle={this.toggleReadDepthVsReferenceMatches} />
-
+                { !this.props.canShowReferenceMatches ? (
+                    <div className="chartTitle">
+                        Read Depth
+                    </div>
+                ) : (
+                    <div className="centerHorizontally">
+                        <Toggle
+                            labelLeft="depth"
+                            labelRight="references"
+                            handleToggle={this.toggleReadDepthVsReferenceMatches}
+                            toggleOn={false}
+                        />
+                    </div>
+                )}
                 <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth || 0}} ref={(r) => {this.infoRef = r}}/>
                 <svg
                     ref={(r) => {this.DOMref = r}}
