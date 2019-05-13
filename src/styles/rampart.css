@@ -29,7 +29,7 @@ body {
   color: var(--dark-foreground);
 }
 
-/* ----------- BASIC ELEMENTS --------------*/
+/* ----------- BASIC ELEMENTS  &  CLASSES--------------*/
 a {
   text-decoration: none;
   color: #5097BA;
@@ -48,6 +48,14 @@ h1 {
 div {
   font-weight: normal;
   font-size: 1em;
+}
+.clickable {
+  cursor: pointer;
+}
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
 
@@ -170,7 +178,7 @@ div.sidebar.open {
   display: inline-block;
   min-width: 100px;
 }
-.sidebar .config input.wide {
+input.wide {
   width: 90%;
 }
 
@@ -227,6 +235,16 @@ div.header .buttons {
   padding: 20px 10px 20px 0;
 }
 
+/* ---------------- FOOTER ---------------------------- */
+.footer {
+  width: 80%;
+  margin: auto;
+  font-size: 18px;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-weight: 300;
+}
 
 /* ----------------- MODERN BUTTONS --------------------- */
 button.modernButton {
@@ -530,9 +548,49 @@ span.hoverColourSquare + span {
 .icon120 {
   transform: scale(1.2);
 }
-.clickable {
-  cursor: pointer;
-}
 .iconCenterVertically {
   height: 100%;
+}
+
+
+/* ------------------------- MODAL ----------------------------- */
+.modal-background {
+  position: fixed;
+  left: 0px;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+.modal-foreground {
+  min-width: 40vw;
+  max-width: 60vw;
+  min-height: 20vh;
+  max-height: 60vh;
+  background: var(--light-text);
+  border-radius: 10px;
+  color: var(--dark-background);
+  position: relative;
+  padding: 10px;
+  overflow-x: scroll;
+}
+.modal-foreground > button.close-modal {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.not-clickable {
+  cursor: auto;
+}
+.modal-foreground.warning {
+  background: var(--artic-red);
+  color: var(--light-text);
+}
+
+/* ----------------- MODAL CONTENTS --------------------- */
+.save-reads-refereences-containter {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }

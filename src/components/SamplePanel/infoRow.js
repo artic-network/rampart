@@ -38,18 +38,14 @@ const InfoRow = ({sampleName, sampleData, sampleColour, enableUserInteraction, m
 
       <span>{summaryText}</span>
 
-      {isExpanded ? (
-        <div>
-          <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>
-            <IconContext.Provider value={{color: sampleColour}}>
-              <MdReorder className="icon150 iconCenterVertically clickable" style={{paddingTop: "3px"}}/>
-            </IconContext.Provider>
-          </ContextMenuTrigger>
-          <Menu id={`panelRightClickMenu-${sampleName}`} items={menuItems}/>
-        </div>
-      ) : (
-        <div/>
-      )}
+      <div>
+        <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>
+          <IconContext.Provider value={{color: sampleColour}}>
+            <MdReorder className="icon150 iconCenterVertically clickable" style={{paddingTop: "3px"}}/>
+          </IconContext.Provider>
+        </ContextMenuTrigger>
+        <Menu id={`panelRightClickMenu-${sampleName}`} items={menuItems}/>
+      </div>
 
     </div>
   );

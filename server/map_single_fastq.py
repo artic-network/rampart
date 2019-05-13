@@ -45,8 +45,9 @@ def mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel
     unmatched = {} # counts of unmatched reads, based on barcode (index)
     mapping_results = []
     first_read_time_stamp = None
-
+    fastqPosition = -1 # read number in FASTQ. zero-based.
     for name, seq, qual, comment in mp.fastx_read(fastq_path, read_comment=True): # read one sequence
+        fastqPosition += 1
         # parse the header
         header = re.search(r'barcode=([^\s]+)', comment)
         if header:
@@ -84,9 +85,8 @@ def mapper(coordinate_aligner, coordinate_reference_length, panel_aligner, panel
         # print(name, barcode, panel.ctg, panel_names.index(panel.ctg), coord.r_st, coord.r_en, panel.mlen / panel.blen)
         mapping_results.append(
             # barcode, reference panel match (idx),   start pos,  end pos, reference length,   identity
-            [barcode, panel.ctg, start, end, panel.mlen / panel.blen]
+            [fastqPosition, barcode, panel.ctg, start, end, panel.mlen / panel.blen]
         )
-
     return (first_read_time_stamp, unmatched, mapping_results)
 
 
@@ -112,4 +112,5 @@ if __name__ == '__main__':
     #     "readData": mapping_results
     # }
     print(json.dumps(mapping_results))
+    # print(json.dumps(mapping_results, indent=2)) # nicer for debugging
     sys.exit(0)

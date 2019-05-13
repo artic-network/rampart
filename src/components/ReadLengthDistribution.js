@@ -1,10 +1,8 @@
 import React from 'react';
 import { select } from "d3-selection";
 import {calcScales, drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
 import {drawSteps} from "../d3/drawSteps";
 import { max } from "d3-array";
-import { readLengthResolution } from "../magics";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({

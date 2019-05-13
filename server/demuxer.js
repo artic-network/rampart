@@ -88,7 +88,7 @@ const demuxer = async () => {
             ]);
             const timestamp = getReadTime(fileToDemuxBasename);
             const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
-            const datastoreAddress = global.datastore.addDemuxedFastq(barcodeDemuxCounts, timestamp);
+            const datastoreAddress = global.datastore.addDemuxedFastq(fileToDemuxBasename, barcodeDemuxCounts, timestamp);
             verbose(`[demuxer] ${fileToDemuxBasename} demuxed. Read time: ${timestamp}`);
             addToMappingQueue([datastoreAddress, fastqToWrite]);
         } catch (err) {

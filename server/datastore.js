@@ -20,8 +20,8 @@ const Datastore = function() {
  * Add newly demuxed data to the datastore.
  * Creates anew datapoint & modifies the processedData accordingly.
  */
-Datastore.prototype.addDemuxedFastq = function(barcodeDemuxCounts, timestamp) {
-  const datapoint = new Datapoint(barcodeDemuxCounts, timestamp);
+Datastore.prototype.addDemuxedFastq = function(fileToDemux, barcodeDemuxCounts, timestamp) {
+  const datapoint = new Datapoint(fileToDemux, barcodeDemuxCounts, timestamp);
   this.datapoints.push(datapoint);
   const datapointAddress = this.datapoints.length-1;
   this.processNewlyDemuxedDatapoint(datapoint)
@@ -205,6 +205,28 @@ Datastore.prototype.getDataForClient = function() {
   const dataPerSample = this.summarisedData;
   const combinedData = this.summariseDataForAllSamples();
   return {dataPerSample, combinedData, viewOptions: this.viewOptions};
+}
+
+
+Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
+  const barcodes = [];
+  Object.keys(global.config.barcodeToName).forEach((key) => {
+    if (key === sampleName) barcodes.push(key);
+    if (global.config.barcodeToName[key].name === sampleName) barcodes.push(key);
+  })
+
+  const matches = [];
+
+  this.datapoints.forEach((datapoint) => {
+    barcodes.forEach((barcode) => {
+      const result = datapoint.getFastqPositionsMatchingFilters(barcode, minReadLen, maxReadLen);
+      if (result) {
+        matches.push(result);
+      }
+    })
+  })
+
+  return matches;
 }
 
 /**

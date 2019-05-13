@@ -2,21 +2,15 @@ import React, {useState} from 'react';
 import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
-import Panel from "./SamplePanel"
+import Panel from "./samplePanel"
 import '../styles/rampart.css';
-import { css } from 'glamor'
 import OverallSummary from "./overallSummary";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./config";
 import Report from "./Report";
 import ViewOptions from "./viewOptions";
 import { IoMdSettings, IoIosOptions, IoMdToday, IoIosCloseCircle } from "react-icons/io";
-
-const container = css({
-  display: "flex",
-  'flexDirection': 'column',
-  overflowX: "hidden"
-})
+import Modal from "./modal";
 
 const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openConfigSidebar, socket}) => {
   if (!dataPerSample || !combinedData) {
@@ -66,6 +60,7 @@ const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openCon
         reference={config.reference}
         canExpand={mappingDataAvailable}
         socket={socket}
+        config={config}
       />
     );
   })
@@ -111,7 +106,7 @@ const Renderer = (props) => {
   ]
   
   return (
-    <div {...container}>
+    <div className="mainContainer">
       <Header
         viewOptions={props.viewOptions}
         setViewOptions={props.setViewOptions}
@@ -119,6 +114,7 @@ const Renderer = (props) => {
         sidebarButtonNames={sidebarButtonNames}
         sidebarOpenCB={setSidebarOpenState}
         combinedData={props.combinedData}
+        socket={props.socket}
       />
       {
         props.mainPage === "chooseBasecalledDirectory" ?
@@ -134,6 +130,14 @@ const Renderer = (props) => {
       <Sidebar onChange={() => setSidebarOpenState(undefined)}>
         {sidebarOpen ? sidebars[sidebarOpen] : null}
       </Sidebar>
+
+      {props.warningMessage ? (
+        <Modal className="warning" dismissModal={props.clearWarningMessage}>
+          <h2>ERROR</h2>
+          <p>{props.warningMessage}</p>
+        </Modal> 
+      ) : null}
+
 
       <div id="modalPortal"/>
     </div>

@@ -7,12 +7,12 @@ import SaveDemuxedReads from "./saveDemuxedReadsModal";
 
 /**
  * Why are we using this transition / setTimeout stuff?
- *    The charts, upon initial rendering, calculate the SVG dimentions etc.
+ *    The charts, upon initial rendering, calculate the SVG dimentions from the DOM they're in.
  *    Therefore we can't render them until after the CSS transitions have happened.
  *    It also helps when we change the size of them (e.g. expand) them to simply get
  *    them to reinitialise with new dimensions
  */
-const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand, socket}) => {
+const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, canExpand, socket}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [expanded, setExpanded] = useState(false);
@@ -36,20 +36,24 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
 
   /* ------------- MENU OPTIONS -------------------- */
   const menuItems = [];
-  if (singleRow) {
-    if (showSinglePanel === false) {
-      menuItems.push({label: "Expand Coverage", callback: () => {transitionStarted(0); setShowSinglePanel("coverage")}});
-      menuItems.push({label: "Expand Read Lengths", callback: () => {transitionStarted(0); setShowSinglePanel("readLength")}});
-      menuItems.push({label: "Expand Coverage vs Time", callback: () => {transitionStarted(0); setShowSinglePanel("coverageOverTime")}});
-    } else {
-      menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(0); setShowSinglePanel(false)}});
-    }
-    menuItems.push({label: "Show All (vertically)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(false);}});
+  if (!expanded) {
+    menuItems.push({label: "Expand panel", callback: toggleExpanded})
   } else {
-    menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
+    menuItems.push({label: "Contract panel", callback: toggleExpanded})
+    if (singleRow) {
+      if (showSinglePanel === false) {
+        menuItems.push({label: "Expand Coverage", callback: () => {transitionStarted(0); setShowSinglePanel("coverage")}});
+        menuItems.push({label: "Expand Read Lengths", callback: () => {transitionStarted(0); setShowSinglePanel("readLength")}});
+        menuItems.push({label: "Expand Coverage vs Time", callback: () => {transitionStarted(0); setShowSinglePanel("coverageOverTime")}});
+      } else {
+        menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(0); setShowSinglePanel(false)}});
+      }
+      menuItems.push({label: "Show All (vertically)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(false);}});
+    } else {
+      menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
+    }
+    menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
   }
-
-  menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
 
 
   /* ----------------- C H A R T S ----------------------- */
@@ -133,6 +137,7 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
           referenceNames={sampleData.referencePanelNames}
           dismissModal={() => setShowModal(false)}
           socket={socket}
+          config={config}
         />
       )
     }

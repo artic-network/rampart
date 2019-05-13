@@ -1,8 +1,6 @@
 import React from 'react';
 import {mouse, select} from "d3-selection";
 import {calcScales} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
-import {toolTipCSS} from "../utils/commonStyles";
 import {heatColourScale} from "../utils/colours";
 import {referenceDiscreteColours} from "../utils/colours";
 
@@ -231,7 +229,3 @@ class ReferenceHeatmap extends React.Component {
 }
 
 export default ReferenceHeatmap;
-
-
-// {...toolTipCSS}
-// style={{maxWidth: this.state.chartGeom.width/2 || 0}}

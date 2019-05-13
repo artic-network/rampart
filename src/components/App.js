@@ -9,6 +9,7 @@ class App extends Component {
     this.intervalRefInitialData = undefined;
     this.state = {
       mainPage: "loading",
+      warningMessage: "",
       viewOptions: {
         logYAxis: false,
         sampleColours: {},
@@ -23,6 +24,9 @@ class App extends Component {
     }
     this.state.setConfig = (newConfig) => {
       this.setState({config: newConfig});
+    }
+    this.state.clearWarningMessage = () => {
+      this.setState({warningMessage: ""})
     }
     /* since this component's state contains most of the data used throughout the client,
     it is the main point to receive & store data sent from the server */
@@ -81,6 +85,8 @@ class App extends Component {
       }
       this.setState(newState);
     })
+
+    socket.on("showWarningMessage", (warningMessage) => this.setState({warningMessage}));
   }
 
   render() {
