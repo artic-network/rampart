@@ -3,6 +3,7 @@ import CoveragePlot from "../Coverage";
 import ReadLengthDistribution from "../ReadLengthDistribution";
 import CoverageOverTime from "../CoverageOverTime";
 import InfoRow from "./infoRow";
+import SaveDemuxedReads from "./saveDemuxedReadsModal";
 
 /**
  * Why are we using this transition / setTimeout stuff?
@@ -11,13 +12,14 @@ import InfoRow from "./infoRow";
  *    It also helps when we change the size of them (e.g. expand) them to simply get
  *    them to reinitialise with new dimensions
  */
-const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand}) => {
+const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, canExpand, socket}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [expanded, setExpanded] = useState(false);
   const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const transitionStarted = (duration=600) => { /* CSS transition is 0.5s */
     setTransitionInProgress(true);
     setTimeout(() => setTransitionInProgress(false), duration);
@@ -46,6 +48,8 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
   } else {
     menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
   }
+
+  menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
 
 
   /* ----------------- C H A R T S ----------------------- */
@@ -120,6 +124,21 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
     );
   }
 
+  /* -------------- DO WE WANT TO RENDER A MODAL? -------------- */
+  const renderModal = () => {
+    if (showModal === "saveReads") {
+      return (
+        <SaveDemuxedReads
+          sampleName={sampleName}
+          referenceNames={sampleData.referencePanelNames}
+          dismissModal={() => setShowModal(false)}
+          socket={socket}
+        />
+      )
+    }
+    return null
+  }
+
   /* ----------------- R E N D E R ---------------- */
   return (
     <div
@@ -135,6 +154,7 @@ const Panel = ({sampleName, sampleData, sampleColour, viewOptions, reference, ca
         handleClick={toggleExpanded}
         isExpanded={expanded}
       />
+      {renderModal()}
       {transitionInProgress ? null : renderCharts()}
     </div>
   );

@@ -44,7 +44,7 @@ class Header extends React.Component {
     //   )
     // }
 
-    const readsMsg = this.props.data ? `${this.props.data.demuxedCount} reads demuxed, ${this.props.data.mappedCount} reads mapped.` : "No data yet";
+    const readsMsg = this.props.combinedData ? `${this.props.combinedData.demuxedCount} reads demuxed, ${this.props.combinedData.mappedCount} reads mapped.` : "No data yet";
     return (
       <div>
         <h2 style={{margin: "2px"}}>{this.props.config.title}</h2>
@@ -88,7 +88,7 @@ Header.propTypes = {
   sidebarButtonNames: PropTypes.array.isRequired,
   sidebarOpenCB: PropTypes.func.isRequired,
   config: PropTypes.object,
-  data: PropTypes.object
+  combinedData: PropTypes.object
 };
 
 Header.defaultProps = {

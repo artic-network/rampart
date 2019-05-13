@@ -6,13 +6,10 @@ import Panel from "./SamplePanel"
 import '../styles/rampart.css';
 import { css } from 'glamor'
 import OverallSummary from "./overallSummary";
-import { sum } from "d3-array";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Config from "./config";
-import { hidden } from 'ansi-colors';
 import Report from "./Report";
 import ViewOptions from "./viewOptions";
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import { IoMdSettings, IoIosOptions, IoMdToday, IoIosCloseCircle } from "react-icons/io";
 
 const container = css({
@@ -21,44 +18,8 @@ const container = css({
   overflowX: "hidden"
 })
 
-// const renderOverallSummary = (props) => (
-//   <OverallSummary
-//     samples={props.samples}
-//     readsOverTime={props.readsOverTime}
-//     annotation={props.annotation}
-//     references={props.references}
-//     coveragePerSample={props.coveragePerSample}
-//     readCountPerSample={props.readCountPerSample}
-//     refMatchPerSample={props.refMatchPerSample}
-//     version={props.dataVersion}
-//     sampleColours={props.sampleColours}
-//     viewOptions={props.viewOptions}
-//   />
-// )
-
-// const renderPanel = (props, sampleName, sampleIdx) => (
-//   <Panel
-//     key={sampleName}
-//     readCount={props.readCountPerSample[sampleIdx]}
-//     version={props.dataVersion}
-//     annotation={props.annotation}
-//     coverage={props.coveragePerSample[sampleIdx]}
-//     readLength={props.readLengthPerSample[sampleIdx]}
-//     references={props.references}
-//     refMatchCounts={props.refMatchPerSample[sampleIdx]}
-//     referenceMatchAcrossGenome={props.referenceMatchAcrossGenome[sampleIdx]}
-//     name={sampleName}
-//     sampleIdx={sampleIdx}
-//     numSamples={props.samples.length}
-//     coverageOverTime={props.coverageOverTime[sampleIdx]}
-//     colour={props.sampleColours[sampleIdx]}
-//     referenceColours={props.referenceColours}
-//     viewOptions={props.viewOptions}
-//   />
-// )
-
-const RenderPanels = ({data, viewOptions, config, openConfigSidebar}) => {
-  if (!data) {
+const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openConfigSidebar, socket}) => {
+  if (!dataPerSample || !combinedData) {
     return (
       <h1>????</h1>
     );
@@ -72,7 +33,8 @@ const RenderPanels = ({data, viewOptions, config, openConfigSidebar}) => {
     elements.push(
       <OverallSummary
         viewOptions={viewOptions}
-        data={data}
+        combinedData={combinedData}
+        dataPerSample={dataPerSample}
         reference={config.reference}
         referencePanel={config.referencePanel}
         key={"overall"}
@@ -93,17 +55,17 @@ const RenderPanels = ({data, viewOptions, config, openConfigSidebar}) => {
 
 
   /* For each sample name we want to render a panel */
-  Object.keys(data).forEach((name) => {
-    if (name === "all") return;
+  Object.keys(dataPerSample).forEach((name) => {
     elements.push(
       <Panel
         sampleName={name}
-        sampleData={data[name]}
+        sampleData={dataPerSample[name]}
         sampleColour={viewOptions.sampleColours[name]}
         key={name}
         viewOptions={viewOptions}
         reference={config.reference}
         canExpand={mappingDataAvailable}
+        socket={socket}
       />
     );
   })
@@ -140,7 +102,7 @@ const Renderer = (props) => {
   const sidebars = {
     config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket} closeSidebar={() => setSidebarOpenState(undefined)}/>),
     viewOptions: (<ViewOptions viewOptions={props.viewOptions} setViewOptions={props.setViewOptions}/>),
-    report: (<Report data={props.data} config={props.config}/>)
+    report: (<Report dataPerSample={props.dataPerSample} combinedData={props.combinedData} config={props.config}/>)
   };
   const sidebarButtonNames = [
     {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
@@ -156,14 +118,14 @@ const Renderer = (props) => {
         config={props.config}
         sidebarButtonNames={sidebarButtonNames}
         sidebarOpenCB={setSidebarOpenState}
-        data={props.data ? props.data.all : undefined}
+        combinedData={props.combinedData}
       />
       {
         props.mainPage === "chooseBasecalledDirectory" ?
           <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/> :
           props.mainPage === "loading" ?
             <h1>LOADING</h1> :
-            <RenderPanels data={props.data} viewOptions={props.viewOptions} config={props.config} openConfigSidebar={() => setSidebarOpenState("config")}/>
+            <RenderPanels dataPerSample={props.dataPerSample} combinedData={props.combinedData} viewOptions={props.viewOptions} config={props.config} openConfigSidebar={() => setSidebarOpenState("config")} socket={props.socket}/>
       }
 
       <div id="contextMenuPortal"/>
@@ -172,13 +134,16 @@ const Renderer = (props) => {
       <Sidebar onChange={() => setSidebarOpenState(undefined)}>
         {sidebarOpen ? sidebars[sidebarOpen] : null}
       </Sidebar>
+
+      <div id="modalPortal"/>
     </div>
   )
 }
 
 
 Renderer.propTypes = {
-  data: PropTypes.object,
+  dataPerSample: PropTypes.object,
+  combinedData: PropTypes.object,
   config: PropTypes.object,
   setConfig: PropTypes.func.isRequired,
   socket: PropTypes.object.isRequired

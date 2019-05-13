@@ -37,10 +37,10 @@ class App extends Component {
     });
     socket.on("data", (response) => {
       console.log("App got new data", response);
-
+      const { dataPerSample, combinedData, viewOptions} = response;
       /* if new sample names have been seen, then we need to create colours for them without destroying already-set colours */
-      const newViewOptions = Object.assign({}, this.state.viewOptions, response.viewOptions);
-      const samplesInData = Object.keys(response.data);
+      const newViewOptions = Object.assign({}, this.state.viewOptions, viewOptions);
+      const samplesInData = Object.keys(dataPerSample);
       const currentSamples = Object.keys(this.state.viewOptions.sampleColours);
       const newSamples = samplesInData.filter((name) => !currentSamples.includes(name));
       const newColours = createSampleColours(currentSamples.length + newSamples.length)
@@ -58,7 +58,8 @@ class App extends Component {
 
       this.setState({
         viewOptions: newViewOptions,
-        data: response.data,
+        dataPerSample,
+        combinedData,
         mainPage: "viz"
       });
     })

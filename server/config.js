@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { getAbsolutePath, verbose, log, warn } = require("./utils");
+const { getAbsolutePath, verbose, log } = require("./utils");
 const { mapper, save_coordinate_reference_as_fasta } = require("./mapper");
 
 const ensurePathExists = (p, {make=false}={}) => {
@@ -144,13 +144,18 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
   }
 }
 
+/**
+ * The config only knows about the barcodes seen by the data so far.
+ * As we observe new ones, we must call this function
+ */
 const updateConfigWithNewBarcodes = () => {
   verbose("[updateConfigWithNewBarcodes]")
-  const newBarcodes = [...global.barcodesObserved]
+  const newBarcodes = global.datastore.getBarcodesSeen()
     .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
   newBarcodes.forEach((bc) => {
     global.config.barcodeToName[bc] = {name: undefined, order: 0}
   })
+  global.CONFIG_UPDATED();
 }
 
 

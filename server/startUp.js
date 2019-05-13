@@ -68,7 +68,7 @@ const startUp = async ({emptyDemuxed=false}={}) => {
     .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
     .forEach((f) => {
       addToMappingQueue(f);
-      global.haveBeenSeen.add(path.basename(f));
+      global.fastqsSeen.add(path.basename(f));
     })
 
   const demuxedBasenames = unsortedDemuxedFastqs.map((name) => path.basename(name))
@@ -77,7 +77,7 @@ const startUp = async ({emptyDemuxed=false}={}) => {
     .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
     .forEach((f) => {
       addToDemuxQueue(f);
-      global.haveBeenSeen.add(path.basename(f))
+      global.fastqsSeen.add(path.basename(f))
     });
 
   log`RAMPART start up FINISHED\n`;

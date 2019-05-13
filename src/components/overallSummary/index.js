@@ -23,7 +23,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
+const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel, viewOptions}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -42,7 +42,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
         className="graphContainer"
         width={chartToDisplay === "coverage" ? "85%" : "35%"}
         canShowReferenceMatches={false}
-        coverage={data}
+        coverage={dataPerSample}
         reference={reference}
         viewOptions={viewOptions}
         key="cov"
@@ -57,7 +57,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
         className="graphContainer"
         width={chartToDisplay === "readsOverTime" ? "85%" : "22%"}
         title={"Mapped reads over time"}
-        temporalData={data.all.temporal}
+        temporalData={combinedData.temporal}
         viewOptions={viewOptions}
         key="readsOverTime"
         renderProp={ chartToDisplay === "readsOverTime" ? 
@@ -71,7 +71,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
         className="graphContainer"
         width={chartToDisplay === "readsPerSample" ? "85%" : "18%"}
         title="Mapped Reads / Sample"
-        data={data}
+        data={dataPerSample}
         viewOptions={viewOptions}
         key="readsPerSample"
         renderProp={ chartToDisplay === "readsPerSample" ? 
@@ -85,7 +85,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
         className="graphContainer"
         width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
         title="Reference Matches"
-        data={data}
+        data={dataPerSample}
         referencePanel={referencePanel}
         key="refHeatmap"
         renderProp={ chartToDisplay === "referenceHeatmap" ? 
@@ -104,7 +104,7 @@ const OverallSummary = ({data, reference, referencePanel, viewOptions}) => {
     }
     const els = [];
     if (reference) els.push(charts.coverage);
-    if (data.all.temporal.length > 1) els.push(charts.readsOverTime);
+    if (combinedData.temporal.length > 1) els.push(charts.readsOverTime);
     els.push(charts.readsPerSample);
     if (referencePanel) els.push(charts.referenceHeatmap);
     return els;

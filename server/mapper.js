@@ -3,13 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const Deque = require("collections/deque");
 const { getReadTime } = require('./readTimes');
-const { prettyPath, log, warn, verbose } = require('./utils');
-// const { timerStart, timerEnd } = require('./timers');
-
-// TODO -- cannot import datastoreUpdated due to circular dependency, but I can't find it!
-// we get around this by using global.TMP_DATASTORE_UPDATED_FUNC
-// const { datastoreUpdated } = require("./socket"); 
-
+const { prettyPath, warn, verbose } = require('./utils');
 
 /**
  * This file defines the global.mappingQueue handler, which processes demuxed
@@ -39,47 +33,6 @@ const save_coordinate_reference_as_fasta = (refSeq, dir) => {
   return filePath;
 }
 
-/**
- * When mapping is successful we want to insert the data into the datastore
- * @param {int} datastorePointer dict of BC name ("BC01", not user supplied) -> idx
- * such that datastore[bc][idx] is the relevent data point for this read
- * @param {obj} results from mapper. Array of Arrays. Each array of length 5
- * [0] {str} barcode, [1] {str} best reference, [2] {int} mapping start pos
- * [3] {int} mapping end pos (note: may be "less than" [2])
- * [4] {float} mapping match frac
- */
-const addToDatastore = (datastorePointers, results) => {
-  // timerStart("mapping->datastore");
-
-  for (const [bc, idx] of Object.entries(datastorePointers)) {
-    global.datastore[bc][idx].mappedCount = 0;
-    global.datastore[bc][idx].readPositions = [];
-    global.datastore[bc][idx].readLengths = [];
-    global.datastore[bc][idx].readTopRefHits = [];
-    global.datastore[bc][idx].refMatches = {};
-  }
-
-  results.forEach((d) => {
-    const bc = d[0] === "none" ? "noBarcode" : d[0];
-    const idx = datastorePointers[bc];
-    if (idx === undefined) {
-      throw new Error(`Mapping barcode of ${bc} not one of the demuxed barcodes`)
-    }
-    global.datastore[bc][idx].mappedCount++;
-    global.datastore[bc][idx].readPositions.push([d[2], d[3]]);
-    global.datastore[bc][idx].readTopRefHits.push(d[1]);
-    global.datastore[bc][idx].readLengths.push(Math.abs(d[3]-d[2]));
-    if (global.datastore[bc][idx].refMatches[d[1]]) {
-      global.datastore[bc][idx].refMatches[d[1]].push(d[4]);
-    } else {
-      global.datastore[bc][idx].refMatches[d[1]] = [d[4]];
-    }
-  })
-  // timerEnd("mapping->datastore")
-  global.TMP_DATASTORE_UPDATED_FUNC();
-};
-
-
 const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
     const pyprog = spawn('python3', [
         "./server/map_single_fastq.py",
@@ -100,6 +53,7 @@ const call_python_mapper = (fastq) => new Promise((resolve, reject) => {
     pyprog.on('close', (code) => {
         // console.log(`Python script finished. Exit code ${code}`);
         if (code === 0) {
+            if (stderr) console.log(stderr);
             resolve(JSON.parse(stdout));
         } else {
             reject(stderr)
@@ -117,7 +71,6 @@ const mapper = async () => {
     return;
   }
 
-
   if (isRunning) {
     verbose("[mapper] called but already running");
     return;
@@ -126,14 +79,14 @@ const mapper = async () => {
   if (mappingQueue.length) {
     isRunning = true;
     let results;
-    const [datastorePointers, fileToMap] = mappingQueue.shift();
+    const [datastoreAddress, fileToMap] = mappingQueue.shift();
     try {
       verbose(`[mapper] queue length: ${mappingQueue.length+1}. Mapping ${prettyPath(fileToMap)}`);
       results = await call_python_mapper(fileToMap);
-      addToDatastore(datastorePointers, results);
+      global.datastore.addMappedFastq(datastoreAddress, results);
       verbose(`[mapper] Mapped ${prettyPath(fileToMap)}. Read time: ${getReadTime(fileToMap)}.`);
-
     } catch (err) {
+      console.trace(err);
       warn(`Mapping ${fileToMap.split("/").slice(-1)[0]}: ${err}`);
     }
     isRunning = false;

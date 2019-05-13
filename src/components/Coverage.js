@@ -7,24 +7,6 @@ import { drawGenomeAnnotation } from "../d3/genomeAnnotation";
 import { drawStream } from "../d3/stream";
 import Toggle from "./toggle";
 
-const Title = ({showReferences, onToggle}) => {
-    if (!showReferences) {
-        return (
-            <div className="chartTitle">Read Depth</div>
-        );
-    }
-    return (
-        <div style={{margin: "0 auto", width: "50%"}}>
-            <span style={{paddingRight: "10px"}}>Depth</span>
-            <label className="switch">
-                <input type="checkbox" onClick={onToggle}/>
-                <span className="slider round"/>
-            </label>
-            <span style={{paddingLeft: "10px"}}>References</span>
-        </div>
-    );
-}
-
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
     width: DOMRect.width,
@@ -93,7 +75,7 @@ class CoveragePlot extends React.Component {
     componentDidMount() {
         const svg = select(this.DOMref);
         const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
-        const hoverWidth = parseInt(chartGeom.width * 2/3, 10);
+        const hoverWidth = parseInt(chartGeom.width * 3/4, 10);
         const hoverSelection = select(this.infoRef);
         this.setState({svg, chartGeom, hoverWidth, hoverSelection});
     }

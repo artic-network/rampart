@@ -8,12 +8,12 @@ const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
   try {
     const basename = path.basename(newfile)
-    if (global.haveBeenSeen.has(basename)) {
+    if (global.fastqsSeen.has(basename)) {
       return;
     }
     verbose(`[fastq watcher] new basecalled file => adding "${basename}" to demux queue.`);
     addToDemuxQueue(newfile);
-    global.haveBeenSeen.add(basename);
+    global.fastqsSeen.add(basename);
 
   } catch (err) {
     console.log(err);
@@ -37,7 +37,7 @@ const startBasecalledFilesWatcher = async () => {
 
   /* overview:
    * we've already scanned the file for pre-existing fastqs and pushed them onto the deque
-   * global.haveBeenSeen contains the names of all of these (mainly for debugging purposes)
+   * global.fastqsSeen contains the names of all of these (mainly for debugging purposes)
    * dogfish writes fastqs into this directory in sequential order, i.e.
    * when fastq_<n>.fastq appears, fastq_<n-1>.fastq can be processed
    * We watch for file creation then add the previous fastq to the deque

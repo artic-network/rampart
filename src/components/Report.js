@@ -149,10 +149,9 @@ const ReadCounts = ({data, config}) => {
     </table>
   );
 }
+const Report = ({dataPerSample, combinedData, config}) => {
 
-const Report = ({data, config}) => {
-
-  if (!config || !data) {
+  if (!config || !dataPerSample) {
     return (
       <div className="report">
         <h2>loading</h2>
@@ -162,10 +161,10 @@ const Report = ({data, config}) => {
 
   return (
     <div className="report">
-      <TimeInfo data={data}/>
-      <ReadCounts data={data} config={config}/>
-      <ReferenceMatches data={data} config={config}/>
-      <CurrentCoverageStats data={data} config={config}/>
+      <TimeInfo data={dataPerSample}/>
+      <ReadCounts data={dataPerSample} config={config}/>
+      <ReferenceMatches data={dataPerSample} config={config}/>
+      <CurrentCoverageStats data={dataPerSample} config={config}/>
 
     </div>
   )

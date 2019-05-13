@@ -2,7 +2,6 @@ const { spawn } = require('child_process');
 const path = require('path');
 const Deque = require("collections/deque");
 const { setReadTime, getReadTime } = require("./readTimes");
-// const { datastoreUpdated } = require("./socket");
 const { verbose, warn } = require("./utils");
 const { addToMappingQueue } = require("./mapper");
 
@@ -15,12 +14,7 @@ const { addToMappingQueue } = require("./mapper");
  */
 const demuxQueue = new Deque();
 demuxQueue.observeRangeChange(() => {demuxer();});
-
-
 const addToDemuxQueue = (thing) => demuxQueue.push(thing);
-
-
-let isRunning = false; // only want one porechop thread at a time!
 
 const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resolve, reject) => {
     let spawnArgs = [
@@ -57,31 +51,19 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
 
 /**
  * When demuxing is successful we have "some" data -- the barcode counts
- * so we can add this to the datastore. We return (resolve) the pointers to the dataStore
- * locations so that the mapping result can add in further information to the
- * appropriate place
  * @param {string} demuxedFastqPath 
- * @returns {Promise}
+ * @returns {Promise} resolves with an object of barcode {str} -> demuxed counts {int}
  */
-const addToDatastore = (demuxedFastqPath, timestamp) => new Promise((resolve, reject) => {
+const getBarcodeDemuxCounts = (demuxedFastqPath) => new Promise((resolve, reject) => {
   // console.log(demuxedFastqPath)
   const getBarcodes = spawn('bash', ["./server/getBarcodesFromDemuxedFastq.sh", demuxedFastqPath]);
   getBarcodes.stdout.on('data', (stdout) => {
     const data = String(stdout).split(/\s+/);
-    const pointers = {}; /* the datastore index for each barcode */
+    const barcodeDemuxCounts = {};
     for (let i = 1; i < data.length; i+=2) {
-      let bc = data[i];
-      if (bc === "none") bc = "noBarcode";
-      if (!global.datastore[bc]) {
-        global.datastore[bc] = [];
-      }
-      global.datastore[bc].push({
-        demuxedCount: parseInt(data[i-1], 10),
-        timestamp
-      });
-      pointers[bc] = global.datastore[bc].length-1;
+      barcodeDemuxCounts[data[i]] = parseInt(data[i-1], 10);
     }
-    resolve(pointers);
+    resolve(barcodeDemuxCounts);
   });
   getBarcodes.on('close', (code) => {
     reject(code);
@@ -89,6 +71,7 @@ const addToDatastore = (demuxedFastqPath, timestamp) => new Promise((resolve, re
 });
 
 
+let isRunning = false; // only want one porechop thread at a time!
 const demuxer = async () => {
     // console.log("demuxer watching deque with ", demuxQueue.length, "files")
     // waiting for >= 2 files here, as guppy continuously writes to files
@@ -104,12 +87,12 @@ const demuxer = async () => {
                 setReadTime(fileToDemux)
             ]);
             const timestamp = getReadTime(fileToDemuxBasename);
-            const datastoreIdx = await addToDatastore(fastqToWrite, timestamp);
+            const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
+            const datastoreAddress = global.datastore.addDemuxedFastq(barcodeDemuxCounts, timestamp);
             verbose(`[demuxer] ${fileToDemuxBasename} demuxed. Read time: ${timestamp}`);
-            // datastoreUpdated(); // see note in mapper.js
-            global.TMP_DATASTORE_UPDATED_FUNC();
-            addToMappingQueue([datastoreIdx, fastqToWrite]);
+            addToMappingQueue([datastoreAddress, fastqToWrite]);
         } catch (err) {
+          console.trace(err);
           warn(`Demuxing / extracting time of ${fileToDemuxBasename}: ${err}`);
         }
         isRunning = false;

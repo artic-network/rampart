@@ -1,27 +1,21 @@
 const fs = require('fs')
-const { modifyConfig, updateConfigWithNewBarcodes} = require("./config");
-const { verbose, log, warn } = require("./utils");
-const { timerStart, timerEnd } = require('./timers');
-const { getData } = require("./transformResults");
+const { modifyConfig } = require("./config");
+const { verbose, warn } = require("./utils");
 const { startUp } = require("./startUp");
 const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 
 /**
- * Collect all data (from global.datastore) and send to client
+ * Collect data (from global.datastore) and send to client
  */
 const sendData = () => {
-  timerStart("sendData");
   verbose("[sendData]")
-  const {newBarcodesSeen, data, viewOptions} = getData();
-  if (data) {
-    global.io.emit('data', {data, viewOptions});
-  }
-  timerEnd("sendData");
-  if (newBarcodesSeen) {
-    updateConfigWithNewBarcodes();
-    sendConfig();
-  }
+  const data = global.datastore.getDataForClient();
+  if (data === false) return;
+  const {dataPerSample, combinedData, viewOptions} = data;
+  global.io.emit('data', {dataPerSample, combinedData, viewOptions});
 }
+
+global.DATA_UPDATED = () => sendData();
 
 /**
  * Send config over the socket
@@ -30,6 +24,9 @@ const sendConfig = () => {
   verbose("[sendConfig]")
   global.io.emit("config", global.config);
 }
+
+global.CONFIG_UPDATED = () => sendConfig();
+
 
 /**
  * client has just connected
@@ -48,6 +45,7 @@ const setUpIOListeners = (socket) => {
   socket.on('config', (newConfig) => {
     try {
       modifyConfig(newConfig);
+      global.datastore.reprocessAllDatapoints();
     } catch (err) {
       console.log(err.message);
       warn("setting of new config FAILED")
@@ -79,14 +77,7 @@ const setUpIOListeners = (socket) => {
   });
 }
 
-const datastoreUpdated = () => {
-  verbose("[datastoreUpdated]");
-  sendData();
-}
-global.TMP_DATASTORE_UPDATED_FUNC = datastoreUpdated;
-
 module.exports = {
   initialConnection,
-  setUpIOListeners,
-  datastoreUpdated
+  setUpIOListeners
 };
