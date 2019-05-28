@@ -3,7 +3,7 @@
   --dark-background: #02292e;
   --dark-foreground: #fffcf2;
   --artic-red: #e06962;
-  --header: #255a66;
+  --header: #005c68;
   --light-text: #F6EECA;
 }
 
@@ -223,15 +223,18 @@ div.header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  height:165px;
 }
 div.header .logo {
   float: left;
-  margin: 10px;
+  margin: 5px;
+  margin-right: 20px;
 }
 div.header .buttons {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  margin-left: auto;
   padding: 20px 10px 20px 0;
 }
 

@@ -73,11 +73,10 @@ class Header extends React.Component {
         <div>
           <h2 style={{marginTop: "0px", marginBottom: "8px"}}>
             <span style={{fontSize: "1.8em"}}>RAMPART</span>
-            <span>Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
+            <span> Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
           </h2>
           {this.renderInfo()}
         </div>
-
 
         <div className="buttons">
           {this.renderButtons()}

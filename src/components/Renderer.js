@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
-import Panel from "./samplePanel"
+import Panel from "./SamplePanel"
 import '../styles/rampart.css';
 import OverallSummary from "./overallSummary";
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
