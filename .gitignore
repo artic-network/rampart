@@ -28,3 +28,7 @@ coordinate_reference.fasta
 
 #don't commit demuxed reads...
 demuxed/
+RAMPART.code-workspace
+RAMPART.iml
+RAMPART.iws
+RAMPART.ipr

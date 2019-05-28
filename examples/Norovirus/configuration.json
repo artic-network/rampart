@@ -1,0 +1,21 @@
+{
+  "genes": {
+    "ORF1": {
+      "start": 1,
+      "end": 150,
+      "strand": 1
+    },
+    "VP1": {
+      "start": 151,
+      "end": 350,
+      "strand": 1
+    }
+  },
+  "amplicons": [
+    [1, 150],
+    [151, 350]
+  ],
+  "genome": {
+    "length": 350
+  }
+}
