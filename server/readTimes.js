@@ -26,7 +26,8 @@ const getTimeViaSequencingSummary = async (fastq) => {
 const getTimeViaFastq = async (fastq) => {
   let data = (await readFile(fastq, 'utf8'))
     .split("\n")
-    .filter((line) =>  line.startsWith('@'))
+    .filter((line) => line.startsWith('@'))
+    .filter((check) => check.includes('start_time'))
     .map((header) => header.match(/start_time=([\w:-]*)/)[1], 10)
     .map((timestamp) => (new Date(timestamp)).getTime());
   const tRaw = parseInt(mean(data), 10);

@@ -56,7 +56,7 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
  */
 const getBarcodeDemuxCounts = (demuxedFastqPath) => new Promise((resolve, reject) => {
   // console.log(demuxedFastqPath)
-  const getBarcodes = spawn('bash', ["./server/getBarcodesFromDemuxedFastq.sh", demuxedFastqPath]);
+  const getBarcodes = spawn('./server/getBarcodesFromDemuxedFastq.py', [demuxedFastqPath]);
   getBarcodes.stdout.on('data', (stdout) => {
     const data = String(stdout).split(/\s+/);
     const barcodeDemuxCounts = {};
