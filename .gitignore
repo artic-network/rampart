@@ -28,7 +28,12 @@ coordinate_reference.fasta
 
 #don't commit demuxed reads...
 demuxed/
+
+# editor configs etc
 RAMPART.code-workspace
 RAMPART.iml
 RAMPART.iws
 RAMPART.ipr
+
+# folder with temporary run-specific data
+/tmp/

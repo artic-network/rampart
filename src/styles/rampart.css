@@ -1,0 +1,596 @@
+
+:root {
+  --dark-background: #02292e;
+  --dark-foreground: #fffcf2;
+  --artic-red: #e06962;
+  --header: #255a66;
+  --light-text: #F6EECA;
+}
+
+/* ------------ FONTS --------------------- */
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Light'), url(./LatoLatin-Light.woff) format('woff');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Hairline'), url(./LatoLatin-Hairline.woff) format('woff');
+  font-weight: normal;
+}
+
+
+/* ----------- GLOBALS (BODY) --------------*/
+body {
+  overflow-x: hidden;
+  font-family: "Lato";
+  background: var(--dark-background);
+  color: var(--dark-foreground);
+}
+
+/* ----------- BASIC ELEMENTS  &  CLASSES--------------*/
+a {
+  text-decoration: none;
+  color: #5097BA;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 94%;
+}
+h1 {
+  font-weight: 600;
+  font-size: 2em;
+}
+h1 {
+  font-weight: 600;
+  font-size: 1.5em;
+}
+div {
+  font-weight: normal;
+  font-size: 1em;
+}
+.clickable {
+  cursor: pointer;
+}
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+
+/* ------------- TOGGLE  SWITCH ---------------*/
+div.toggle {
+  margin: 0 auto;
+  /* width: 50%; */
+}
+div.toggle > label { /* the box around the slider */
+  display: inline-block;
+  position: relative;
+  width: 30px;
+  height: 18px;
+  top: 3px;
+}
+div.toggle > :first-child {
+  padding-right: 10px;
+  font-size: 1em;
+}
+div.toggle > :last-child {
+  padding-left: 10px;
+  font-size: 1em;
+}
+div.toggle > label > input { /* Hide default HTML checkbox */
+  display: none;
+}
+div.toggle > label > span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 18px;
+  border-radius: 18px;
+}
+div.toggle > label > span.background {
+  width: 34px;
+  background-color: var(--light-text);
+  cursor: pointer;
+}
+div.toggle > label > span.slider {
+  width: 18px;
+  right: 0px;
+  background-color: var(--header);
+  -webkit-transition: .4s;
+  transition: .4s;
+  cursor: pointer;
+}
+div.toggle > label > input:checked + span.slider {
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
+}
+
+
+/* --------------- SIDEBARS --------------- */
+div.sidebar {
+  position: absolute;
+  max-width: 85%;
+  overflow-x: scroll;
+  height: 95%;
+  color: #fffcf2;
+  background-color: var(--dark-background);
+  padding: 10px;
+  border: 3px solid var(--artic-red);
+  border-radius: 10px;
+  transition: 0.5s ease-out;
+  -webkit-transition: 0.5s ease-out;
+}
+div.sidebar.closed {
+  right: -500px;
+}
+div.sidebar.open {
+  right: 5px;
+}
+.sidebar input.hidden {
+  display: none;
+}
+.sidebar .inner {
+  height: 100%;
+  overflow: scroll;
+}
+.sidebar .topRight {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+/* ------------ CONFIG SIDEBAR -------------------- */
+.sidebar div.fileDropZone {
+  width: 200px;
+  height: 24px;
+  border: 1px dashed var(--dark-foreground);
+  display: inline-block;
+  margin-right: 20px;
+  text-align: center;
+  padding-top: 4px;
+  font-weight: 600;
+}
+.sidebar div.fileDropZone.dragging {
+  background-color: var(--artic-red);
+}
+.sidebar div + button {
+  display: inline-block;
+}
+.sidebar .config input {
+  border-radius: 3px;
+  border: 2px solid var(--artic-red);
+  background-color: var(--dark-foreground);
+  color: var(--artic-red);
+  font-size: 16px;
+  margin-left: 10px;
+  height: 22px;
+  padding: 4px;
+}
+.sidebar .config label {
+  display: block;
+  padding: 5px;
+}
+.sidebar .config .bcLabel {
+  display: inline-block;
+  min-width: 100px;
+}
+input.wide {
+  width: 90%;
+}
+
+/* ------------------ VIEW OPTIONS SIDEBAR ------------ */
+.swatches-picker > div > div {
+  background: inherit !important; /* override the inline styles provided by the component */
+  box-shadow: none !important;
+}
+.colorPickerContainer {
+  padding-top: 50px;
+}
+.viewOptions {
+  width: 400px;
+  min-width: 400px;
+}
+.viewOptions > div.colourSwatch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 3px;
+}
+.viewOptions > div.colourSwatch > div:nth-child(1) {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+.viewOptions > div.colourSwatch > div:nth-child(2) {
+  /* display: inline-block; */
+  padding-left: 10px;
+  font-size: 1.2em;
+  font-weight: 400;
+}
+
+
+/* -------------------- HEADER --------------------- */
+div.header {
+  width: 100%;
+  margin: auto;
+  background-color: var(--header);
+  color: var(--light-text);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+div.header .logo {
+  float: left;
+  margin: 10px;
+}
+div.header .buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 20px 10px 20px 0;
+}
+
+/* ---------------- FOOTER ---------------------------- */
+.footer {
+  width: 80%;
+  margin: auto;
+  font-size: 18px;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-weight: 300;
+}
+
+/* ----------------- MODERN BUTTONS --------------------- */
+button.modernButton {
+  display: block;
+  background: var(--artic-red);
+  color: var(--dark-foreground);
+  border: 1px solid var(--dark-foreground);
+  border-radius: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 0.3s, color 0.3s;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2em;
+  padding: 5px;
+  margin: 5px;
+}
+button.modernButton:hover {
+  border: 1px solid var(--dark-foreground);
+  background: var(--dark-foreground);
+  color: var(--artic-red);
+}
+button.modernButton > div {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+button.modernButton > div > svg {
+  transform: scale(1.4);
+  padding: 0px 5px 0px 5px;
+}
+button.modernButton > div > span {
+  padding-right: 5px;
+}
+
+/* -------------------   UNKNOWN --------------------- */
+
+/* config stuff */
+div.sidebar {
+  position: absolute;
+  right: 0px;
+}
+
+/* -------------------- REPORT -------------------------- */
+.report {
+  min-width: 70vw; /* sidebar's max width */
+}
+.report caption {
+  padding-top: 40px;
+  text-align: left;
+}
+.report table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.report td {
+  border-top: 1px solid var(--dark-foreground);
+  border-bottom: 1px solid var(--dark-foreground);
+}
+.report th {
+  border: none;
+  padding: 2px 3px 2px 3px;
+}
+.report td {
+  padding: 2px 4px 2px 4px;
+}
+.report .spaceLeft {
+  padding-left: 50px
+}
+.report div.caption,
+.report caption {
+  color: var(--artic-red);
+  font-size: 1.5em;
+  font-weight: 600;
+}
+th.rotate > div {
+  /* see https://css-tricks.com/rotated-table-column-headers/ */
+  transform: translate(27px, -16px) rotate(315deg); /* magic numbers */
+  width: 45px;
+}
+th.rotate > div > span {
+  /* the underlining of rotated labels */
+  padding: 0px 0px 10px 0px;
+  border-bottom: 0.5px dashed var(--dark-foreground);
+  font-weight: 600;
+}
+th.rotate {
+  padding-top: 135px; /* must calculate */
+  border: none
+}
+
+
+/* -----------S U M M A R Y   P A N E L ---------- */
+#overallSummaryContainer {
+  width: calc(100% - 30px);
+  height: 350px;       /* adjusting will also adjust the graphs */
+  min-height: 350px;   /* as they calculate via document selector query */
+  margin: 10px 10px 10px 10px;
+}
+
+
+/* ---------------  P A N E L S  ----------------- */
+.panelContainer {
+  position: relative;
+  width: 98%;
+  margin: 10px 10px 10px 10px;
+  transition: 0.5s ease-in;
+  -webkit-transition: 0.5s ease-in;
+  border: 1px solid gray;
+  border-radius: 5px;
+  border-left: 5px solid gray;
+}
+.panelContainer.collapsed {
+  height: 30px;
+  min-height: 30px;
+}
+.panelContainer.expanded.singleRow {
+  height: 370px;
+  min-height: 370px;
+}
+.panelContainer.expanded.multiRow {
+  height: 1000px;
+  min-height: 1000px;
+}
+.panelContainer > .infoRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.panelContainer > .infoRow > span,
+.panelContainer > .infoRow > div {
+  font-weight: bold;
+  font-size: 1.3em;
+}
+.panelContainer > .infoRow > *:first-child {
+  padding-top: 2px;
+  padding-left: 10px;
+  flex-basis: 15%; /* it's a child of a flexbox */
+  display: flex; /* to align the icon & text nicely */
+  align-items: center;
+}
+.panelContainer > .infoRow > *:first-child > span {
+  padding-left: 5px; /* space between sample text & icon */
+}
+
+.panelContainer > .infoRow > *:last-child {
+  padding-right: 10px;
+}
+.panelFlexRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: calc(100% - 26px);
+}
+.panelFlexColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100% - 26px);
+}
+
+/* ---------------  C H A R T S ----------------- */
+.graphContainer {
+  margin: auto;
+  height: 100%;
+  position: relative;
+}
+.chartTitle {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2em;
+  color: var(--light-text);
+  padding-right: 25px; /* to stop icon overlap */
+}
+.hoverInfo {
+  z-index: 20;
+  position: absolute;
+  border-radius: 5px;
+  padding: 5px;
+  margin: auto;
+  /* background-color: hsla(0,0%,0%,.8); */
+  background-color: var(--artic-red);
+  color: var(--light-text);
+  pointer-events: none;
+  visibility: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+.chartExpandContractIcon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  transform: scale(1.3);
+}
+
+/* --------------------- D3 --------------------- */
+.axis text,
+text.axis {
+  fill: var(--light-text); /* not color as it's SVG */
+  font-size: '12px';
+}
+.legend > text {
+  fill: var(--light-text); /* not color as it's SVG */
+}
+rect.amplicon,
+rect.gene {
+  stroke: none;
+  fill: var(--light-text);
+}
+rect.gene + text {
+  fill: var(--dark-background);
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: var(--light-text);
+  stroke-width: 1;
+  shape-rendering: auto;
+}
+
+/* used in the reference stream graph hover box */
+span.hoverColourSquare {
+  display: inline-block;
+  width: 30px;
+  height: 15px;
+}
+span.hoverColourSquare + span {
+  display: inline-block;
+}
+
+
+
+
+/* -------------- BASECALLED DIR ---------------- */
+.centerVertically {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.centerHorizontally {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.startUp > label {
+  display: block;
+  padding: 5px;
+}
+.startUp input {
+  border-radius: 3px;
+  border: 2px solid var(--artic-red);
+  background-color: var(--dark-foreground);
+  color: var(--artic-red);
+  font-size: 16px;
+  margin-left: 10px;
+  height: 22px;
+  padding: 4px;
+  width: 80vw;
+  max-width: 800px;
+}
+.startUp > button {
+  margin-top: 50px;
+  margin-bottom: 100px;
+}
+
+
+
+/* -------------- RIGHT CLICK MENU ---------------------*/
+.react-contextmenu--visible > .react-contextmenu-item {
+  background-color: var(--dark-foreground);
+  border: 1px solid var(--artic-red);
+  color: var(--artic-red);
+  font-weight: 600;
+  padding: 2px 4px 2px 4px;
+  cursor: pointer;
+}
+.react-contextmenu-item:hover {
+  background-color: var(--artic-red);
+  color: var(--dark-foreground);
+}
+.react-contextmenu--visible > .react-contextmenu-item:first-of-type {
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+.react-contextmenu--visible > .react-contextmenu-item:last-of-type {
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+/* ------------------------ I C O N S --------------------- */
+.icon150 {
+  transform: scale(1.5);
+}
+.icon120 {
+  transform: scale(1.2);
+}
+.iconCenterVertically {
+  height: 100%;
+}
+
+
+/* ------------------------- MODAL ----------------------------- */
+.modal-background {
+  position: fixed;
+  left: 0px;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+.modal-foreground {
+  min-width: 40vw;
+  max-width: 60vw;
+  min-height: 20vh;
+  max-height: 60vh;
+  background: var(--light-text);
+  border-radius: 10px;
+  color: var(--dark-background);
+  position: relative;
+  padding: 10px;
+  overflow-x: scroll;
+}
+.modal-foreground > button.close-modal {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.not-clickable {
+  cursor: auto;
+}
+.modal-foreground.warning {
+  background: var(--artic-red);
+  color: var(--light-text);
+}
+
+/* ----------------- MODAL CONTENTS --------------------- */
+.save-reads-refereences-containter {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}

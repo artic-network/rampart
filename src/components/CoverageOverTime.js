@@ -2,7 +2,6 @@ import React from 'react';
 import { select } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
 import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
-import {chartTitleCSS} from "../utils/commonStyles";
 import {color as d3color} from "d3-color";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
@@ -27,17 +26,17 @@ const strokeDashFunction = (i) => { /* i = 0, 1 or 2 */
 const drawLines = (svg, scales, data, colour) => {
   svg.selectAll(".coverageLine").remove();
   svg.selectAll(".coverageLine")
-    .data([1, 2, 3]) /* indexes of coverage value we want for each line */
+    .data(["over1000x", "over100x", "over10x"])
     .enter().append("path")
       .attr("class", "coverageLine")
       .attr("fill", "none")
       .attr("stroke", colour)
       .attr("stroke-width", 5)
       .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
-      .attr('d', (covIdx) => {
+      .attr('d', (coverageKey) => {
         const generator = line()
-          .x((d) => scales.x(d[0]))
-          .y((d) => scales.y(d[covIdx]))
+          .x((d) => scales.x(d.time)) // d here is the individual time point, {time: ..., over100x: ...}
+          .y((d) => scales.y(d[coverageKey]))
           .curve(curveBasis);
         return generator(data)
       });
@@ -82,16 +81,19 @@ class CoverageOverTime extends React.Component {
     this.setState({svg, chartGeom, yScale, colour});
   }
   componentDidUpdate(prevProps) {
-    const finalDataPt = this.props.coverageOverTime[this.props.coverageOverTime.length-1];
-    const timeMax = (parseInt(finalDataPt[0]/30, 10) +1) * 30;
+    if (!this.props.temporalData.length) return;
+    const finalDataPt = this.props.temporalData[this.props.temporalData.length-1];
+    const timeMax = (parseInt(finalDataPt.time/30, 10) +1) * 30;
     const scales = {x: calcXScale(this.state.chartGeom, timeMax), y: this.state.yScale};
     drawAxes(this.state.svg, this.state.chartGeom, scales, {xTicks: 4, yTicks:5, isTime: true, ySuffix: "%"});
-    drawLines(this.state.svg, scales, this.props.coverageOverTime, this.state.colour);
+    drawLines(this.state.svg, scales, this.props.temporalData, this.state.colour);
   }
   render() {
     return (
-      <div style={{...this.props.style}} ref={(r) => {this.boundingDOMref = r}}>
-        <div {...chartTitleCSS}>{this.props.title}</div>
+      <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
+      <div className="chartTitle">
+        {this.props.title}
+      </div>
         <svg
           ref={(r) => {this.DOMref = r}}
           height={this.state.chartGeom.height || 0}
