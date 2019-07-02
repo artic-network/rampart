@@ -54,6 +54,7 @@ const getInitialConfig = (args) => {
   const config = {
     title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
     barcodeToName: {},
+      demuxOption: "--native_barcodes",
     rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
     basecalledPath: "",
     demuxedPath: "",
@@ -74,6 +75,9 @@ const getInitialConfig = (args) => {
     });
   }
 
+  if (args.rapidBarcodes) {
+      config.demuxOption = "--rapid_barcodes"
+  }
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }

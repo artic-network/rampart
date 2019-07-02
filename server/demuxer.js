@@ -26,7 +26,7 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
             '--threads', '2', // '--check_reads', '10000',
             '--barcode_diff', '5',
             '--barcode_labels',
-            '--native_barcodes'
+            global.config.demuxOption
         ];
     if (!relaxedDemuxing) {
         spawnArgs.push('--require_two_barcodes');
