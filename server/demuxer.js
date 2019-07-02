@@ -21,7 +21,6 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
         '--verbosity', '0',
             '-i', fastqIn,
             '-o', fastqOut,
-            '--discard_middle',
             '--barcode_threshold', '80',
             '--threads', '2', // '--check_reads', '10000',
             '--barcode_diff', '5',
