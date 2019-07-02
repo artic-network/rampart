@@ -55,7 +55,7 @@ const getInitialConfig = (args) => {
     title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
     barcodeToName: {},
       demuxOption: "--native_barcodes",
-      discardUnassigned: args.'porechop',
+      discardUnassigned: args.discardUnassigned,
     rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
     basecalledPath: "",
     demuxedPath: "",
