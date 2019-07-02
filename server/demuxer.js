@@ -22,12 +22,13 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
             '-i', fastqIn,
             '-o', fastqOut,
             '--discard_middle',
+            `${global.config.discardUnassigned ? '--discard_unassigned' : ''}`,
             '--barcode_threshold', '80',
             '--threads', '2', // '--check_reads', '10000',
             '--barcode_diff', '5',
             '--barcode_labels',
             global.config.demuxOption
-        ];
+        ];                                                                                                          
     if (!relaxedDemuxing) {
         spawnArgs.push('--require_two_barcodes');
     }
