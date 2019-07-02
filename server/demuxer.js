@@ -30,6 +30,13 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
     if (!relaxedDemuxing) {
         spawnArgs.push('--require_two_barcodes');
     }
+    if (global.config.discardMiddle) {
+        // either look for and discard barcodes in the middle of reads
+        spawnArgs.push('--discard_middle');
+    } else {
+        // or don't (much faster) - this tells porechop not to look for middle adapters
+        spawnArgs.push('--no_split');
+    }
     if (global.config.discardUnassigned) {
         spawnArgs.push('--discard_unassigned');
     }

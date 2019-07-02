@@ -22,6 +22,7 @@ config.addArgument('--barcodeNames', {nargs: '+', help: "barcode=name, e.g. BC01
 config.addArgument('--nativeBarcodes', {action: "storeTrue", help: "Demultiplex with native barcodes."})
 config.addArgument('--rapidBarcodes', {action: "storeTrue", help: "Demultiplex with rapid/PCR barcodes."})
 config.addArgument('--discardUnassigned', {action: "storeTrue", help: "Don't include un-barcoded reads."})
+config.addArgument('--discardMiddle', {action: "storeTrue", help: "Look for barcodes in the middle of reads and discard them."})
 
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});
