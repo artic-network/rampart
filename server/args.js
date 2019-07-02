@@ -21,7 +21,7 @@ config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
 config.addArgument('--barcodeNames', {nargs: '+', help: "barcode=name, e.g. BC01=kikwit. Can have more than one."})
 config.addArgument('--nativeBarcodes', {action: "storeTrue", help: "Demultiplex with native barcodes."})
 config.addArgument('--rapidBarcodes', {action: "storeTrue", help: "Demultiplex with rapid/PCR barcodes."})
-config.addArgument('--discardUnassigned', {action: "storeFalse", help: "Don't include un-barcoded reads."})
+config.addArgument('--discardUnassigned', {action: "storeTrue", help: "Don't include un-barcoded reads."})
 
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});
