@@ -1,16 +1,22 @@
+# Installing RAMPART
+
+There are currently two ways of installing RAMPART:
+* [Installing on a GPU-accelerated laptop](#installing-on-a-gpu-accelerated-laptop)
+* [Installing on MinIT](#installing-on-minit)
+
+Both currently require you to be comfortable using the command line but we're working on improving this.
 
 
-## Prerequisites
+## Installing on a GPU-accelerated laptop
 
-1. **MinKNOW, dogfish**
+### Prerequisites:
+* MinKNOW must be installed.
+See the [Oxford Nanopore downloads page](https://community.nanoporetech.com/downloads) for instructions.
+* Conda should be installed -- see [instructions here](https://conda.io/docs/user-guide/install/index.html).
+Conda is a popular environment manager which makes it trivial to install dependencies & software in a fashion that won't break other software you may have installed. While you can run rampart without conda, it requires you to maintain local installations of nodejs and other dependencies.
 
-See [this page](sequencing.md) for instructions on MinKNOW and dogfish set up.
-Note that this isn't needed to run the pre-basecalled example datasets.
+### Install RAMPART
 
-2. **Install conda** -- [Instructions here](https://conda.io/docs/user-guide/install/index.html)
-
-
-## Installing RAMPART
 1. **Clone the github repo & move into rampart directory**
 ```bash
 git clone https://github.com/artic-network/rampart.git
@@ -21,6 +27,11 @@ cd rampart
 ```bash
 conda env create -f environment.yml
 source activate artic-rampart
+```
+Whenever you run RAMPART you must be in the "artic-rampart" conda environment. You can enter / leave this environment via
+```
+source activate artic-rampart # some systems use `conda activate artic-rampart`
+conda deactivate artic-rampart
 ```
 
 3. Install Node / JavaScript dependencies
@@ -38,38 +49,101 @@ npm run build
 node rampart.js -h
 ```
 
+### Install Porechop (used for demuxing reads)
+_Make sure you are still in the "artic-rampart" conda environment -- you can run `conda env list` to check_
 
-## Installing porechop
-Make sure you're in the artic-rampart conda environment (see above), but not in the rampart directory
-```
+```bash
+cd .. # leave the RAMPART directory
 git clone https://github.com/rambaut/Porechop.git
 cd Porechop/
 python setup.py install
+cd ..
 ```
-Check `porechop` is available on the command line by running `porechop -h` (inside the "artic-rampart" conda environment).
+Check `porechop` is available on the command line by running `porechop -h`.
 
 
-## Developing the client
-This runs a little slower, but the client will update automatically as you modify the source code.
-* Start the daemon/server as above (`node rampart.js ...`)
-* Run `npm run start` in a second terminal window
-* Open [localhost:3000](http://localhost:3000) in a browser (not 3001)
+### Run example datasets
+We're done 🎉
+Why not [run some example datasets](examples.md) to get familiar with RAMPART and make sure everything's working.
+
+---
 
 
+## Installing on MinIT
+
+> Note that these instructions are rather old & you should expect to do some debugging!
 
 
-## Publicly available datasets & config files
+Install RAMPART
+```bash
+git clone https://github.com/artic-network/rampart.git
+```
 
-* There is one (very small) dataset included in this repo. The config file for this is `./examples/EBOV/configuration.json`.
-  * Note that you may need to run `mkdir ./examples/EBOV/data/demuxed` the first time!
+There is no miniconda for ARM8 so everything needs to be hand installed.
 
-* Guppy-basecalled EBOV dataset
-  * Make the (gitignored) `./datasets` directory if it doesn't exist.
-  * Download [ZEBOV_3Samples_NB_MinIT_guppy.tgz](https://artic.s3.climb.ac.uk/ZEBOV_3Samples_NB_MinIT_guppy.tgz)
- and unzip into the `./datasets` directory.
-  * `mkdir ./datasets/ZEBOV_3Samples_NB/demuxed`
-  * Use this config file: `./examples/EBOV/ZEBOV_3Samples_NB_config.json`
+Install python 3 & pip:
+```bash
+sudo apt install python3-pip
+```
 
-* The ZIKV & noro datasets are currently private.
+Install v10 of nodejs:
+```bash
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+Install custom version of Porechop:
+```bash
+git clone https://github.com/rambaut/Porechop.git
+cd Porechop
+sudo python3 setup.py install
+```
+
+Install and compile minimap2:
+```bash
+https://github.com/lh3/minimap2.git
+cd minimap2
+make arm_neon=1 aarch64=1
+```
+
+Compile and install mappy (minmap2's python wrapper):
+```
+# setup doesn't compile mappy on ARM (possibly above make settings needed)
+# sudo python3 setup.py install
+
+# but pip installs it fine...
+pip3 install mappy
+```
+
+Install and run yarn:
+```bash
+cd rampart
+sudo npm install yarn -g
+yarn
+```
+
+Build the rampart code:
+```bash
+npm run build
+```
+
+We're done 🎉
+Why not [run some example datasets](examples.md) to get familiar with RAMPART and make sure everything's working.
+
+
+Testing porechop:
+```bash
+porechop --verbosity 1 -i /data/reads/<experiment>/fastq/pass/<fastq_file>.fastq -o /data/reads/<experiment>/porechop/demuxed.fastq --discard_middle --require_two_barcodes --barcode_threshold 80 --threads 2 --check_reads 10000 --barcode_diff 5 --barcode_labels
+```
+
+Testing minimap2 python script:
+```bash
+python3 server/map_single_fastq.py -p ./EBOV/reference-genomes.fasta -c ./coordinate_reference.fasta -f /data/reads/<experiment>/porechop/demuxed.fastq 
+```
+
+Running Guppy manually (on MinIT's GPU):
+```bash
+guppy_basecaller --device cuda:0 --flowcell FLO-MIN106 --kit SQK-LSK108 --recursive -i /data/reads/<experiment>/fast5/ -s ./basecalled
+```
 
 

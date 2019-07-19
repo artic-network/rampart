@@ -184,3 +184,4 @@ Reboot and start MinKNOW:
 You should now have a simulated MinION called 'X1' which can be used to run bulk files.
 
 Run the bulk file as usual.
+
