@@ -1,0 +1,20 @@
+
+##### Config file #####
+
+configfile: "config.yaml"
+
+##### Pipeline variables #####
+
+demuxedPath = str(config["demuxedPath"])
+referencePanelPath = str(config["referencePanelPath"])
+#bedPath = str(config["bedPath"])
+
+##### Target rules #####
+rule all:
+    input:
+        expand(demuxedPath + "/annotated_reads/{file_stem}.fastq", file_stem=config["file_stem"])
+
+##### Modules #####
+include: "rules/demultiplex.smk"
+include: "rules/map.smk"
+

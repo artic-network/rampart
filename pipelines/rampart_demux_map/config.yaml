@@ -1,0 +1,14 @@
+file_stem: test_read_file #the stem of the fastq file you wish to run through the pipeline
+demuxedPath: path/to/output/ #where rampart will put the data
+referencePanelPath: references.fasta
+bedPath: scheme.bed # this is optional
+
+#The following are all porechop options
+
+require_two_barcodes: --require_two_barcodes
+discard_middle: --discard_middle
+no_split: --no_split
+discard_unassigned: --discard_unassigned
+demuxOption: --native_barcodes
+
+# Should hopefully be able to integrate this with the rampart config creation
