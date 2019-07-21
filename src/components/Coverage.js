@@ -46,8 +46,7 @@ class CoveragePlot extends React.Component {
             svg: this.state.svg,
             scales,
             stream: this.props.referenceStream,
-            referencePanelNames: this.props.referencePanelNames,
-            referenceColours: this.props.viewOptions.referenceColours,
+            referencePanel: this.props.referencePanel,
             hoverSelection: this.state.hoverSelection,
             genomeResolution: this.props.viewOptions.genomeResolution
           }); 

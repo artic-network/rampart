@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { getAbsolutePath, verbose, log } = require("./utils");
 const { mapper, save_coordinate_reference_as_fasta } = require("./mapper");
+const { getInitialReferenceColours } = require("./colours");
 
 const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
@@ -15,7 +16,7 @@ const ensurePathExists = (p, {make=false}={}) => {
 }
 
 const parseReferenceInfo = (referencePanelPath) => {
-  return fs.readFileSync(referencePanelPath, "utf8")
+  const info = fs.readFileSync(referencePanelPath, "utf8")
     .split("\n")
     .filter((l) => l.startsWith(">"))
     .map((n) => {
@@ -33,6 +34,9 @@ const parseReferenceInfo = (referencePanelPath) => {
         };
       }
     });
+    const colours = getInitialReferenceColours(info.length);
+    info.forEach((d, i) => {d.colour = colours[i]});
+    return info;
 }
 
 /* return format is array of {label: <label for display>, value: <path string>} */
