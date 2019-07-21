@@ -24,7 +24,10 @@ def get_hits(paf):
     with open(str(paf),"r") as f:
         for l in f:
             tokens=l.rstrip('\n').split()
-            hit_dict[tokens[0]]=(tokens[5],int(tokens[9]),int(tokens[10]))
+            if tokens[5]=='*': #output by minimap2 if read doesn't map
+                hit_dict[tokens[0]]=("none",0,0)
+            else:
+                hit_dict[tokens[0]]=(tokens[5],int(tokens[9]),int(tokens[10]))
     return hit_dict
 
 def get_barcodes(barcoding_report):
@@ -65,7 +68,7 @@ def bed_to_amplicons(bed_file):
 
             primer_name = tokens[3]
             coords = (int(tokens[1]), int(tokens[2]))
-            pool = tokens[4]
+            # pool = tokens[4]
 
             if primer_name.endswith("LEFT"):
                 start = coords[0]

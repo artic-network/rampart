@@ -5,7 +5,7 @@ rule minimap2:
     output:
         demuxedPath + "/mapped/{file_stem}.paf"
     shell:
-        "minimap2 -x map-ont --secondary=no {input.ref} {input.fastq} > {output}"
+        "minimap2 -x map-ont --secondary=no --paf-no-hit {input.ref} {input.fastq} > {output}"
 
 rule parse_mapping:
     input:

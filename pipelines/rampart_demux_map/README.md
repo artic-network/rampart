@@ -4,6 +4,10 @@ A snakemake pipeline that takes in basecalled fastq files, demultiplexes them us
 
 In cases of amplicon-based sequencing, the pipeline can also accept a bed file, which is used to infer which amplicon each read is likely to be. It then can either append the amplicon information to the header of the read and/or include it in the report.
 
+### Dependencies
+
+In addition to the ``RAMPART`` dependencies, this snakemake pipeline also requires ``snakemake=5.4.3``. 
+
 ### Usage
 
 To start the pipeline running for one fastq file:
