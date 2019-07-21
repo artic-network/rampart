@@ -65,7 +65,7 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchesAcrossGenome}
-        referencePanelNames={sampleData.referencePanelNames}
+        referencePanelNames={config.referencePanel.map((obj) => obj.name)}
         reference={reference}
         viewOptions={viewOptions}
         fillIn={true}

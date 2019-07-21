@@ -162,8 +162,7 @@ Datastore.prototype.reprocessAllDatapoints = function() {
  *            `maxCoverage` {int}
  *            `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
  *            `readLengths` {Object} keys: `xyValues`, array of [int, int]
- *            `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}
- *            `referencePanelNames` {Array of strings} same order as `refMatchesAcrossGenome`
+ *            `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}. Order matches global.config.referencePanel
  *    [1] {object} summarise the overall run (i.e. all samples/barcodes combined)
  *        properties:
  *        `demuxedCount` {int}
@@ -183,10 +182,11 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
       temporal: summariseTemporalData(sampleData.temporalMap),
       readLengths: summariseReadLengths(sampleData.readLengthCounts, viewOptions.readLengthResolution),
-      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, viewOptions.genomeResolution),
-      referencePanelNames: global.config.referencePanel.map((obj) => obj.name)
+      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, viewOptions.genomeResolution)
     }
   }
+
+  // console.log("refMatchesAcrossGenome", refMatchesAcrossGenome)
 
   const combinedData = {
     demuxedCount: Object.values((processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
@@ -287,10 +287,9 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
   const nReferences = referencePanel.length;
 
   for (let xIdx=0; xIdx<nGenomeSlices; xIdx++) {
-    let totalReadsHere = 0;
-    for (let refIdx=0; refIdx<nReferences; refIdx++) {
-      totalReadsHere += refMatchCountsAcrossGenome[refIdx][xIdx];
-    }
+    const totalReadsHere = refMatchCountsAcrossGenome
+      .map((gSlices) => gSlices[xIdx])
+      .reduce((a, b) => a+b)
     let yPosition = 0;
     for (let refIdx=0; refIdx<nReferences; refIdx++) {
       /* require >10 reads to calc stream */
