@@ -95,8 +95,8 @@ const Renderer = (props) => {
 
 
   const sidebars = {
-    config: (<Config config={props.config} setConfig={props.setConfig} socket={props.socket} closeSidebar={() => setSidebarOpenState(undefined)}/>),
-    viewOptions: (<ViewOptions viewOptions={props.viewOptions} setViewOptions={props.setViewOptions}/>),
+    config: (<Config config={props.config} setConfig={props.setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
+    viewOptions: (<ViewOptions config={props.config} setConfig={props.setConfig} viewOptions={props.viewOptions} setViewOptions={props.setViewOptions}/>),
     report: (<Report dataPerSample={props.dataPerSample} combinedData={props.combinedData} config={props.config}/>)
   };
   const sidebarButtonNames = [

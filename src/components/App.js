@@ -13,7 +13,6 @@ class App extends Component {
       viewOptions: {
         logYAxis: false,
         sampleColours: {},
-        referenceColours: {}
       },
       config: {},
       changePage: (page) => this.setState({mainPage: page})
@@ -22,8 +21,8 @@ class App extends Component {
     this.state.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     }
-    this.state.setConfig = (newConfig) => {
-      this.setState({config: newConfig});
+    this.state.setConfig = ({config, refFasta, refJsonPath, refJsonString}) => {
+      this.state.socket.emit('config', {config, refFasta, refJsonPath, refJsonString});
     }
     this.state.clearWarningMessage = () => {
       this.setState({warningMessage: ""})
@@ -71,14 +70,6 @@ class App extends Component {
       console.log("App got new config:", newConfig);
       /* certain changes to the config may necessitate an updating of viewOptions */
       const newViewOptions = {};
-      /* the first time we see the reference panel create the colours */
-      if (!this.state.config.referencePanel && newConfig.referencePanel) {
-        const colours = createReferenceColours(newConfig.referencePanel.length);
-        newViewOptions.referenceColours = {};
-        newConfig.referencePanel.forEach((ref, idx) => {
-          newViewOptions.referenceColours[ref.name] = colours[idx];
-        })
-      }
       const newState = {config: newConfig};
       if (Object.keys(newViewOptions)) {
         newState.viewOptions = Object.assign({}, this.state.viewOptions, newViewOptions);

@@ -41,8 +41,6 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
     }
     spawnArgs.push(global.config.demuxOption);
 
-    console.log('porechop: ' + spawnArgs);
-
     const porechop = spawn('porechop', spawnArgs);
 
     // stochastically mock failure
