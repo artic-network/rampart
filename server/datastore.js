@@ -1,6 +1,6 @@
 const Datapoint = require("./datapoint").default;
 const { timerStart, timerEnd } = require('./timers');
-const { updateConfigWithNewBarcodes} = require("./config");
+const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed } = require("./config");
 
 /**
  * The main store of all demuxed & mapped data
@@ -149,6 +149,30 @@ Datastore.prototype.reprocessAllDatapoints = function() {
   global.NOTIFY_CLIENT_DATA_UPDATED();
 }
 
+
+const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
+  /* we only want to report references over a threshold
+  TODO: make this threshold / number taken definable by the client */
+  const refMatches = {};
+  const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
+  for (const [sampleName, sampleData] of Object.entries(processedData)) {
+    /* summarise ref matches for _all_ references */
+    refMatches[sampleName] = summariseRefMatches(sampleData.refMatchCounts);
+    for (const [refName, perc] of Object.entries(refMatches[sampleName])) {
+      if (perc > threshold) {
+        if (refsAboveThres[refName] === undefined) refsAboveThres[refName]=0;
+        refsAboveThres[refName]++;
+      }
+    }
+  }
+  const refsToDisplay = Object.keys(refsAboveThres)
+    .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+    .slice(0, maxNum);
+
+  updateWhichReferencesAreDisplayed(refsToDisplay);
+  return refMatches;
+}
+
 /**
  * Creates a summary of data (similar to `this.processedData`) to deliver to the client.
  * @returns {Array}
@@ -171,13 +195,16 @@ Datastore.prototype.reprocessAllDatapoints = function() {
  */
 const collectSampleDataForClient = function(processedData, viewOptions) {
   timerStart("collectSampleDataForClient");
-  const summarisedData = {};
+
+  const refMatchesAcrossSamples = whichReferencesToDisplay(processedData);
+
   /* for each sample in this.processedData, summarise the information */
+  const summarisedData = {};
   for (const [sampleName, sampleData] of Object.entries(processedData)) {
     summarisedData[sampleName] = {
       demuxedCount: sampleData.demuxedCount,
       mappedCount: sampleData.mappedCount,
-      refMatches: summariseRefMatches(sampleData.refMatchCounts),
+      refMatches: refMatchesAcrossSamples[sampleName],
       coverage: sampleData.coverage,
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
       temporal: summariseTemporalData(sampleData.temporalMap),

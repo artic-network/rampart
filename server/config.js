@@ -14,7 +14,7 @@ const ensurePathExists = (p, {make=false}={}) => {
     }
 }
 
-const getReferenceNames = (referencePanelPath) => {
+const parseReferenceInfo = (referencePanelPath) => {
   return fs.readFileSync(referencePanelPath, "utf8")
     .split("\n")
     .filter((l) => l.startsWith(">"))
@@ -22,12 +22,14 @@ const getReferenceNames = (referencePanelPath) => {
       if (n.indexOf(" ") > 0) {
         return {
           "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
-          "description": n.substring(n.indexOf(" ")) // fasta description is the rest
+          "description": n.substring(n.indexOf(" ")), // fasta description is the rest
+          "display": false // display in client?
         };
       } else {
         return {
           "name": n.substring(1),
-          "description": ""
+          "description": "",
+          "display": false // display in client?
         };
       }
     });
@@ -63,7 +65,7 @@ const getInitialConfig = (args) => {
     referenceConfigPath: "",
     referencePanelPath: "",  // supplied to the mapper
     coordinateReferencePath: "", // supplied to the mapper
-    referencePanel: [],
+    referencePanel: [], // all references in FASTA
     reference: undefined,
     relaxedDemuxing: args.relaxedDemuxing,
     exampleConfigPaths: scanExampleConfigs()
@@ -91,7 +93,7 @@ const getInitialConfig = (args) => {
   if (args.referencePanelPath) {
     ensurePathExists(args.referencePanelPath);
     config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
-    config.referencePanel = getReferenceNames(config.referencePanelPath);
+    config.referencePanel = parseReferenceInfo(config.referencePanelPath);
   }
 
   if (args.referenceConfigPath) {
@@ -117,7 +119,7 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
     }
     newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
     fs.writeFileSync(newConfig.referencePanelPath, refFasta);
-    newConfig.referencePanel = getReferenceNames(newConfig.referencePanelPath);
+    newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
   }
 
   /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
@@ -164,9 +166,27 @@ const updateConfigWithNewBarcodes = () => {
   global.CONFIG_UPDATED();
 }
 
+const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
+  let changed = false;
+  global.config.referencePanel.forEach((info) => {
+    if (info.display && !refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = false;
+    }
+    if (!info.display && refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = true;
+    }
+  });
+  if (changed) {
+    global.CONFIG_UPDATED();
+  }
+}
+
 
 module.exports = {
     getInitialConfig,
     modifyConfig,
-    updateConfigWithNewBarcodes
+    updateConfigWithNewBarcodes,
+    updateWhichReferencesAreDisplayed
 };
