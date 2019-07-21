@@ -22,8 +22,8 @@ class App extends Component {
     this.state.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     }
-    this.state.setConfig = (newConfig) => {
-      this.setState({config: newConfig});
+    this.state.setConfig = ({config, refFasta, refJsonPath, refJsonString}) => {
+      this.state.socket.emit('config', {config, refFasta, refJsonPath, refJsonString});
     }
     this.state.clearWarningMessage = () => {
       this.setState({warningMessage: ""})
