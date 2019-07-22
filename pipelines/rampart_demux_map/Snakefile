@@ -5,8 +5,10 @@ configfile: "config.yaml"
 
 ##### Pipeline variables #####
 
-demuxedPath = str(config["demuxedPath"])
+demuxedPath = str(config["demuxedPath"]).rstrip('/')
 referencePanelPath = str(config["referencePanelPath"])
+referenceConfigPath = str(config["referenceConfigPath"])
+
 #bedPath = str(config["bedPath"])
 
 ##### Target rules #####

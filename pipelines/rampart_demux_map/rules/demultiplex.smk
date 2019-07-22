@@ -2,7 +2,7 @@
 
 rule demultiplex_porechop:
     input:
-        "../examples/norovirus/data/basecalled/{file_stem}.fastq"
+        demuxedPath + "/basecalled/{file_stem}.fastq"
     params:
         require_two_barcodes=config["require_two_barcodes"],
         discard_middle=config["discard_middle"],

@@ -1,6 +1,7 @@
 file_stem: test_read_file #the stem of the fastq file you wish to run through the pipeline
-demuxedPath: path/to/output/ #where rampart will put the data
+demuxedPath: ./path/to/data #where rampart will put the data
 referencePanelPath: references.fasta
+referenceConfigPath: coordinate_reference.fasta
 bedPath: scheme.bed # this is optional
 
 #The following are all porechop options

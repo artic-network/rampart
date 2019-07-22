@@ -4,15 +4,34 @@ from collections import defaultdict
 
 parser = argparse.ArgumentParser(description='Parse mappings, add to headings and create report.')
 parser.add_argument("--paf_file", action="store", type=str, dest="paf_file")
+parser.add_argument("--coordinate_paf_file", action="store", type=str, dest="coordinate_paf_file")
+
 parser.add_argument("--report", action="store", type=str, dest="report")
 parser.add_argument("--reads", action="store", type=str, dest="reads")
+
 parser.add_argument("--bed_file", action="store", type=str, dest="bed_file")
+parser.add_argument("--coord_ref", action="store", type=str, dest="coord_ref")
+parser.add_argument("--references", action="store", type=str, dest="references")
+
+
 parser.add_argument("--reads_out", action="store", type=str, dest="reads_out")
 parser.add_argument("--barcoding_report", action="store", type=str, dest="barcoding_report")
 parser.add_argument("--dont_write_reads", action='store_true')
 
 
 args = parser.parse_args()
+
+#make a read_length dictionary-needed for coordinate references
+
+def get_ref_len(coord_ref,panel_ref):
+    # Get length information for the coordinate reference and also for the panel of references
+
+    len_dict = {}
+    for record in SeqIO.parse(str(panel_ref),"fasta"):
+        len_dict[record.id] = len(record)
+    for record in SeqIO.parse(str(coord_ref),"fasta"):
+        len_dict["coordinate"]= len(record) # maybe parse this from the json in the future
+    return len_dict
 
 def get_hits(paf):
     #This function parses the input paf file and returns a dictionary
@@ -101,6 +120,7 @@ def which_amp_overlaps(ref,amp_dict,hit_dict,record):
 
 unknown=False
 unmapped_count=0
+coord_unmapped = 0
 record_count=0
 
 #The following code parses through the input files 
@@ -113,6 +133,8 @@ record_count=0
 # rather than writing the annotated reads
 
 with open(str(args.reads_out),"w") as fw: #file to write reads
+
+    len_dict = get_ref_len(args.coord_ref,args.references)
 
     if args.bed_file:
         amp_dict=bed_to_amplicons(args.bed_file)
@@ -129,12 +151,36 @@ with open(str(args.reads_out),"w") as fw: #file to write reads
 
     if args.paf_file:
         hit_dict=get_hits(args.paf_file) #key= read_id, value = (ref,start_on_ref,end_on_ref)
+    
+    if args.coordinate_paf_file:
+        coordinate_hit_dict = get_hits(args.coordinate_paf_file)
 
     records = []
     for record in SeqIO.parse(str(args.reads),"fastq"):
 
         record_count+=1
         header = str(record.description)
+
+        if args.coordinate_paf_file:
+            try:
+                coords=coordinate_hit_dict[record.id][1:]
+                header += " coords={}:{}".format(coords[0],coords[1])
+            except:
+                if args.paf_file: 
+                    try:
+                        ref_length = len_dict[hit_dict[record.id][0]]
+                        length = len_dict["coordinate"]
+                        start,end=hit_dict[record.id][1:]
+                        start_coord = int(length*(float(start)/ref_length))
+                        end_coord = int(length*(float(end)/ref_length))
+                        header += " coords={}:{}".format(start_coord,end_coord)
+
+                        coordinate_hit_dict[record.id]=("inferred",start_coord,end_coord)
+
+                    except:
+                        coord_unmapped+=1
+                        header += " coords={}:{}".format(0,0)
+                        coordinate_hit_dict[record.id]=("none",0,0)
 
         if args.paf_file: 
             try:
@@ -159,7 +205,7 @@ with open(str(args.reads_out),"w") as fw: #file to write reads
             except:
                 barcode="Unknown"
                 unknown=True
-            read_coords = "{}-{}".format(hit_dict[record.id][1],hit_dict[record.id][2])
+            read_coords = "{}-{}".format(coordinate_hit_dict[record.id][1],coordinate_hit_dict[record.id][2])
 
             if args.bed_file:
                 freport.write("{},{},{},{},{},{},{}\n".format(record.id,len(record),barcode,ref,read_coords,amp,span))
@@ -172,7 +218,7 @@ with open(str(args.reads_out),"w") as fw: #file to write reads
         SeqIO.write(records, fw, "fastq")
 
 prop_unmapped = unmapped_count/record_count
-
+print("Number of misisng reads for coordinate mapping is {}".format(coord_unmapped))
 if prop_unmapped >0.95:
     print("\nWarning: Very few reads have mapped (less than 5%).\n")
 elif prop_unmapped > 0.5:
