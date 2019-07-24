@@ -86,6 +86,9 @@ const getInitialConfig = (args) => {
   if (args.rapidBarcodes) {
       config.demuxOption = "--rapid_barcodes"
   }
+  if (args.limitBarcodesTo) {
+    config.limitBarcodesTo = args.limitBarcodesTo
+  }
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }

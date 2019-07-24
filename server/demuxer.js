@@ -18,7 +18,7 @@ const addToDemuxQueue = (thing) => demuxQueue.push(thing);
 
 const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resolve, reject) => {
     let spawnArgs = [
-        '--verbosity', '0',
+        '--verbosity', '1',
             '-i', fastqIn,
             '-o', fastqOut,
             '--barcode_threshold', '80',
@@ -40,6 +40,12 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
         spawnArgs.push('--discard_unassigned');
     }
     spawnArgs.push(global.config.demuxOption);
+    if (global.config.limitBarcodesTo) {
+        spawnArgs.push('--limit_barcodes_to');
+        global.config.limitBarcodesTo.forEach((i) => spawnArgs.push(i))
+    }
+
+    console.log("Running porechop with: ", spawnArgs)
 
     const porechop = spawn('porechop', spawnArgs);
 

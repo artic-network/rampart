@@ -18,9 +18,10 @@ config.addArgument('--demuxedDir', {help: "demuxed directory"});
 config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--referencePanelPath', {help: "FASTA reference panel"});
 config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
-config.addArgument('--barcodeNames', {nargs: '+', help: "barcode=name, e.g. BC01=kikwit. Can have more than one."})
+config.addArgument('--barcodeNames', {nargs: '+', metavar: 'barcode=name', help: "e.g. BC01=kikwit. Can have more than one."})
 config.addArgument('--nativeBarcodes', {action: "storeTrue", help: "Demultiplex with native barcodes."})
 config.addArgument('--rapidBarcodes', {action: "storeTrue", help: "Demultiplex with rapid/PCR barcodes."})
+config.addArgument('--limitBarcodesTo', {nargs: "+", metavar: 'barcode_number', help: "Specify a list of barcode numbers to limit demuxing to."})
 config.addArgument('--discardUnassigned', {action: "storeTrue", help: "Don't include un-barcoded reads."})
 config.addArgument('--discardMiddle', {action: "storeTrue", help: "Look for barcodes in the middle of reads and discard them."})
 
