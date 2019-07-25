@@ -4,15 +4,15 @@ import {calcScales} from "../utils/commonFunctions";
 import {heatColourScale} from "../utils/colours";
 import {referenceDiscreteColours} from "../utils/colours";
 
-
+const EMPTY_CELL_COLOUR = "rgba(256, 256, 256, 0.15)"
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
     width: DOMRect.width,
     height: DOMRect.height, // title line
     spaceLeft: DOMRect.width>600 ? 250 : // space for the reference names
-      DOMRect.width>400 ? 150 :
-        100,
+        DOMRect.width>400 ? 150 :
+            100,
     spaceRight: 0,
     spaceBottom: 60,
     spaceTop: 10,
@@ -65,8 +65,8 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const charPx = 8; /* guesstimate of character pixel width */
     const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
     const textFn = (d) => {
-      if (d.name.length > allowedChars) return `${d.name.slice(0,allowedChars-2)}...`
-      return d.name;
+        if (d.name.length > allowedChars) return `${d.name.slice(0,allowedChars-2)}...`
+        return d.name;
     }
 
     /* render the reference names (on the far left) */
@@ -135,12 +135,12 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr('height', cellDims.height)
         .attr("x", d => scales.x(d[0]) + cellDims.padding)
         .attr("y", d => scales.y(d[1]+1) + cellDims.padding)
-        .attr("fill", d => d[2] === 0 ? "rgba(256, 256, 256, 0.15)" : heatColourScale(d[2]))
+        .attr("fill", d => d[2] === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d[2]))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
     /* render the legend (bottom) -- includes coloured cells & text */
-    const legendDataValues = [0, 1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
     let legendWidth = chartGeom.width - chartGeom.spaceRight - 2*chartGeom.legendPadding;
     if (legendWidth > chartGeom.maxLegendWidth) legendWidth = chartGeom.maxLegendWidth;
     const legendRightOffset = (chartGeom.width - legendWidth) / 2;
@@ -148,20 +148,23 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const legendBoxHeight = 12;
     const legendRoof = chartGeom.height - chartGeom.spaceBottom + 10;
     const legendTextFn = (d, i) => {
-      if (legendWidth === chartGeom.maxLegendWidth) return `${d}%`;
-      if (i%2) return `${d}%`
-      return "";
+        if (legendWidth === chartGeom.maxLegendWidth) return `${d}%`;
+        if (i%2) return `${d}%`;
+        return "";
     };
     const legend = svg.selectAll(".legend")
-        .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
+        .data(legendDataValues)
+        // .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
         .enter().append("g")
-        .attr("class", "legend")
+        .attr("class", "legend");
     legend.append("rect")
         .attr('y', legendRoof)
         .attr("x", (d, i) => legendRightOffset + legendBoxWidth*(i+1))
         .attr("width", legendBoxWidth)
         .attr("height", legendBoxHeight)
-        .style("fill", (d) => d === 0 ? "#ccc" : heatColourScale(d));
+        .style("fill", (d) => {
+            return d === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d);
+        });
     legend.append("text")
         .text(legendTextFn)
         .attr("class", "axis")
@@ -170,7 +173,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("alignment-baseline", "hanging")
-}
+};
 
 class ReferenceHeatmap extends React.Component {
     constructor(props) {

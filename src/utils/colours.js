@@ -6,7 +6,7 @@ import { color as d3color } from "d3-color";
  * Heatmap scale over 0-100 (i.e. percentage)
  */
 export const heatColourScale = scaleSequential(chromatic.interpolateYlOrRd)
-  .domain([0, 100])
+  .domain([100, 0])
 
 export const defaultLineColour = "#F6EECA";
 
