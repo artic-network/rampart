@@ -101,7 +101,7 @@ const getInitialConfig = (args) => {
       }
     }
     if (limitBarcodesTo.length > 0) {
-      config.limitBarcodesTo = limitBarcodesTo.join(" ");
+      config.limitBarcodesTo = [...limitBarcodesTo];
     }
   }
   if (args.basecalledDir) {
