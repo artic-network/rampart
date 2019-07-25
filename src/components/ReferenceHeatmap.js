@@ -50,12 +50,12 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
             const count = data[names[sampleIdx]].refMatches[referencePanel[refIdx].name] || 0;
             const percent = (100.0 * count) / data[names[sampleIdx]].refMatches['total'] || 0;
-            d3data[dataIdx] = [
+            d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
                 count,
                 percent
-            ]
+            };
             // console.log(names[sampleIdx] + " vs. " + referencePanel[refIdx].name + ": " + data[names[sampleIdx]].refMatches[referencePanel[refIdx].name] + " / " + data[names[sampleIdx]].refMatches['total'])
             dataIdx++;
         }
@@ -120,9 +120,9 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             .style("top", `${mouseY}px`)
             .style("visibility", "visible")
             .html(`
-                Sample: ${names[d[0]]}
+                Sample: ${names[d.sampleIdx]}
                 <br/>
-               ${parseInt(d[2])} (${parseFloat(d[3]).toFixed(2)}%) of reads map to ${referencePanel[d[1]].name}
+               ${parseInt(d.count)} (${parseFloat(d.percent).toFixed(2)}%) of reads map to ${referencePanel[d.refIdx].name}
             `);
     }
     function handleMouseOut() {
@@ -137,9 +137,9 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr("class", "heatCell")
         .attr('width', cellDims.width)
         .attr('height', cellDims.height)
-        .attr("x", d => scales.x(d[0]) + cellDims.padding)
-        .attr("y", d => scales.y(d[1]+1) + cellDims.padding)
-        .attr("fill", d => d[3] === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d[3]))
+        .attr("x", d => scales.x(d.sampleIdx) + cellDims.padding)
+        .attr("y", d => scales.y(d.refIdx+1) + cellDims.padding)
+        .attr("fill", d => d[3] === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d.percent))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
