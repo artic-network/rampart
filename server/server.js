@@ -13,8 +13,10 @@ const { log } = require("./utils");
  * process communication is socket-like)
  */
 const run = ({devClient}) => {
-  const serverPort = process.env.PORT || 3001;
-  const socketPort = process.env.SOCKET || 3002;
+  // if a base port number has been specified on the command line, use this (+1 for the server, +2 for the socket)
+  // otherwise use some defaults
+  const serverPort = global.serverPort || process.env.PORT || 3001;
+  const socketPort = global.socketPort || process.env.SOCKET || 3002;
 
   const app = express()
   app.set('port', serverPort);

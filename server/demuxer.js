@@ -45,7 +45,7 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
         global.config.limitBarcodesTo.forEach((i) => spawnArgs.push(i))
     }
 
-    console.log("Running porechop with: ", spawnArgs)
+    // console.log("Running porechop with: ", spawnArgs)
 
     const porechop = spawn('porechop', spawnArgs);
 

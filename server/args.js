@@ -10,6 +10,7 @@ const parser = new argparse.ArgumentParser({
   `
 });
 parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
+parser.addArgument('--port', {type: 'int', help: "The base port to use (default 3000)"});
 
 /* ----------------- CONFIG OPTIONS -------------------- */
 const config = parser.addArgumentGroup({title: 'Config commands', description: "These options can all be specified in the GUI"});

@@ -75,6 +75,11 @@ const getInitialConfig = (args) => {
     exampleConfigPaths: scanExampleConfigs()
   };
 
+  if (args.port) {
+    global.serverPort = args.port + 1;
+    global.socketPort = args.port + 2;
+  }
+
   /* most options _can_ be specified on the command line, but may also be specified in the client */
   if (args.barcodeNames) {
     args.barcodeNames.forEach((raw, idx) => {
