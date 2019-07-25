@@ -56,10 +56,10 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
     }
 
     porechop.on('close', (code) => {
-        // console.log(`Porechop finished. Exit code ${code}`);
         if (code === 0) {
             resolve();
         } else {
+            console.log(`Porechop failed with error code ${code}`);
             reject();
         }
     });
