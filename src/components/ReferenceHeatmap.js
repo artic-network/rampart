@@ -48,8 +48,9 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     let dataIdx = 0;
     for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
-            const count = data[names[sampleIdx]].refMatches[referencePanel[refIdx].name] || 0;
-            const percent = (100.0 * count) / data[names[sampleIdx]].refMatches['total'] || 0;
+            const count = parseInt(data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]) || 0;
+            const total = parseInt(data[names[sampleIdx]].refMatches['total']) || 1;
+            const percent = parseFloat((100.0 * count) / total) || 0;
             d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
@@ -122,7 +123,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             .html(`
                 Sample: ${names[d.sampleIdx]}
                 <br/>
-               ${parseInt(d.count)} (${parseFloat(d.percent).toFixed(2)}%) of reads map to ${referencePanel[d.refIdx].name}
+               ${d.count} (${d.percent.toFixed(2)}%) of reads map to ${referencePanel[d.refIdx].name}
             `);
     }
     function handleMouseOut() {
@@ -139,7 +140,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr('height', cellDims.height)
         .attr("x", d => scales.x(d.sampleIdx) + cellDims.padding)
         .attr("y", d => scales.y(d.refIdx+1) + cellDims.padding)
-        .attr("fill", d => d[3] === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d.percent))
+        .attr("fill", d => d.count === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d.percent))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
