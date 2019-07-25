@@ -50,7 +50,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
             const count = parseInt(data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]) || 0;
             const total = parseInt(data[names[sampleIdx]].refMatches['total']) || 1;
-            const percent = parseFloat((100.0 * count) / total) || 0;
+            const percent = (100.0 * count) / total;
             d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
