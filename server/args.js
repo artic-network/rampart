@@ -10,7 +10,7 @@ const parser = new argparse.ArgumentParser({
   `
 });
 parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
-parser.addArgument('--port', {type: 'int', help: "The base port to use (default 3000)"});
+parser.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
 
 /* ----------------- CONFIG OPTIONS -------------------- */
 const config = parser.addArgumentGroup({title: 'Config commands', description: "These options can all be specified in the GUI"});
@@ -29,7 +29,7 @@ config.addArgument('--discardMiddle', {action: "storeTrue", help: "Look for barc
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});
 development.addArgument('--emptyDemuxed', {action: "storeTrue", help: "remove any demuxed files present when rampart starts up"});
-development.addArgument('--devClient', {action: "storeTrue", help: "Don't serve build (client)"})
+development.addArgument('--devClient', {action: "storeTrue", help: "Don't serve built client -- i.e. have `npm run start` running from another terminal. You cannot change the ports with this mode!"})
 development.addArgument('--mockFailures', {action: "storeTrue", help: "stochastic failures (mapping / demuxing / basecalling)"});
 
 

@@ -115,6 +115,7 @@ const Renderer = (props) => {
         sidebarOpenCB={setSidebarOpenState}
         combinedData={props.combinedData}
         socket={props.socket}
+        infoMessage={props.infoMessage}
       />
       {
         props.mainPage === "chooseBasecalledDirectory" ?

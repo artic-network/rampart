@@ -15,10 +15,6 @@ class Header extends React.Component {
           break;
       }
     }
-    this.state = {infoMessage: ""};
-    this.props.socket.on("infoMessage", (infoMessage) => {
-      this.setState({infoMessage});
-    })
   }
   componentWillMount() {
       document.addEventListener("keydown", this.handleKeyDown);
@@ -53,7 +49,7 @@ class Header extends React.Component {
       <div>
         <h2 style={{margin: "2px"}}>{this.props.config.title}</h2>
         <h3 style={{margin: "2px"}}>{readsMsg}</h3>
-        <h3 style={{margin: "2px"}}>{`Last server message: ${this.state.infoMessage}`}</h3>
+        <h3 style={{margin: "2px"}}>{`Last server message: ${this.props.infoMessage}`}</h3>
 
         {/* <h3 style={{margin: "2px"}}>{runTimeMsg}</h3> */}
         {/* <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3> */}
@@ -93,7 +89,8 @@ Header.propTypes = {
   sidebarButtonNames: PropTypes.array.isRequired,
   sidebarOpenCB: PropTypes.func.isRequired,
   config: PropTypes.object,
-  combinedData: PropTypes.object
+  combinedData: PropTypes.object,
+  infoMessage: PropTypes.string.isRequired
 };
 
 Header.defaultProps = {
