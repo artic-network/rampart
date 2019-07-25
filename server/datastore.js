@@ -256,14 +256,24 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
 /**
  * Convert the refMatchCounts (obj of refName -> count) to object of refName -> %
  */
+// const summariseRefMatches = function(refMatchCounts) {
+//   const refMatches = {};
+//   const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
+//   for (const ref of Object.keys(refMatchCounts)) {
+//     refMatches[ref] = refMatchCounts[ref] / total * 100;
+//   }
+//   return refMatches;
+// };
+    // instead of converting to %age, just add the total in (so it can be calculated by the UI)
 const summariseRefMatches = function(refMatchCounts) {
   const refMatches = {};
   const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
   for (const ref of Object.keys(refMatchCounts)) {
-    refMatches[ref] = refMatchCounts[ref] / total * 100;
+    refMatches[ref] = refMatchCounts[ref];
   }
+  refMatches['total'] = total;
   return refMatches;
-}
+};
 
 
 const summariseTemporalData = function(temporalMap) {
