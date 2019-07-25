@@ -91,8 +91,18 @@ const getInitialConfig = (args) => {
   if (args.rapidBarcodes) {
       config.demuxOption = "--rapid_barcodes"
   }
-  if (args.limitBarcodesTo) {
-    config.limitBarcodesTo = args.limitBarcodesTo
+  if (config.barcodeToName) {
+    // if barcode names have been specified then limit demuxing to only those barcodes...
+    const limitBarcodesTo = [];
+    for (barcode in config.barcodeToName) {
+      var matches = barcode.match(/(\d\d?)/);
+      if (matches) {
+        limitBarcodesTo.push(matches[1]);
+      }
+    }
+    if (limitBarcodesTo.length > 0) {
+      config.limitBarcodesTo = limitBarcodesTo.join(" ");
+    }
   }
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});

@@ -41,11 +41,11 @@ const call_porechop = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resol
     }
     spawnArgs.push(global.config.demuxOption);
     if (global.config.limitBarcodesTo) {
-        spawnArgs.push('--limit_barcodes_to');
-        global.config.limitBarcodesTo.forEach((i) => spawnArgs.push(i))
+        spawnArgs.push('--limit_barcodes_to', global.config.limitBarcodesTo);
     }
 
-    // console.log("Running porechop with: ", spawnArgs)
+    // const command = spawnArgs.join(" ")
+    // console.log("Running porechop with: ", command)
 
     const porechop = spawn('porechop', spawnArgs);
 
