@@ -2,7 +2,7 @@
 
 rule demultiplex_porechop:
     input:
-        demuxedPath + "/basecalled/{file_stem}.fastq"
+        config["basecalledPath"] + "/{file_stem}.fastq"
     params:
         require_two_barcodes=config["require_two_barcodes"],
         discard_middle=config["discard_middle"],
@@ -12,7 +12,7 @@ rule demultiplex_porechop:
     threads:
         2
     output:
-        temp(demuxedPath + "/temp_demuxed/{file_stem}.fastq")
+        config["outputPath"] + "/temp_demuxed/{file_stem}.fastq"
     shell:
         "porechop --verbosity 0 "
         "-i {input} "
@@ -24,6 +24,6 @@ rule demultiplex_porechop:
         "{params.require_two_barcodes} "
         "{params.discard_middle} "
         "{params.no_split} "
-        "{params.discard_unassigned} "
+        # "{params.discard_unassigned} "
         "{params.native_barcodes}"
 
