@@ -6,6 +6,17 @@ In cases of amplicon-based sequencing, the pipeline can also accept a bed file, 
 
 There is also an optional BinLorry rule that will bin by read length (min, max) and barcode by default. 
 
+### Header annotations 
+
+e.g.
+```
+@6d3d6bff-4c48-4b5c-8fc9-bc0765e27016 runid=b10b0df343a0c44bc8f661f2cfbe235fce1fbedc \
+sampleid=seq_run read=58437 ch=444 start_time=2019-05-29T20:48:48Z \
+barcode=NB01 coords=2924:3012 identity=0.85 reference_hit=GII.P6_GII.6
+AGTTACTAAGGTTAACACTGCAGTGAACCTCCTCTTGACACCTCTCTCATTGTGTCATCAACCTGTTTGTCGTCTGCCCACAC
++
+$)''$'(%+38>?6'$*(&'&'&1(&%''(&,&+%%+,,-22131545230/)(%+&&-$&.-+)%&'&&$*421(&&&%&11
+```
 ### Dependencies
 
 In addition to the ``RAMPART`` dependencies, this snakemake pipeline also requires ``snakemake=5.4.3``.
