@@ -7,8 +7,8 @@ from Bio import SeqIO
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse a single annotated FASTQ file. Normally called by rampart.js')
-    parser.add_argument("-p", "--reference-panel", help="FASTA of reference sequences (used to find best match)", action="store")
-    parser.add_argument("-c", "--coordinate-reference", help="RAMPART config JSON with a single reference (used for co-ordinates)", action="store", dest="fastq")
+    # parser.add_argument("-p", "--reference-panel", help="FASTA of reference sequences (used to find best match)", action="store")
+    # parser.add_argument("-c", "--coordinate-reference", help="RAMPART config JSON with a single reference (used for co-ordinates)", action="store", dest="fastq")
     parser.add_argument("-f", "--fastq", help="annotated fastq to parse information from", action="store")
     return parser.parse_args()
 
@@ -63,6 +63,8 @@ if __name__ == '__main__':
     parse_fastq(str(args.fastq))
 
     first_read_time_stamp, unmatched, mapping_results = parse_fastq(args.fastq)
+    # print(first_read_time_stamp)
+    # print(unmatched)
     # # summary = {
     # #     "timeStamp": str(first_read_time_stamp),
     # #     "readData": mapping_results
