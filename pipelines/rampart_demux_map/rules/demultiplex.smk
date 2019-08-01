@@ -12,12 +12,12 @@ rule demultiplex_porechop:
     threads:
         2
     output:
-        config["outputPath"] + "/temp_demuxed/{file_stem}.fastq"
+        temp(config["outputPath"] + "/temp_demuxed/{file_stem}.fastq")
     shell:
         "porechop --verbosity 0 "
         "-i {input} "
         "-o {output} "
-        "--barcode_threshold 80 "
+        "--barcode_threshold 60 "
         "--threads 2 "
         "--barcode_diff 5 "
         "--barcode_labels "

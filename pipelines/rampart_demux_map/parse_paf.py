@@ -46,7 +46,7 @@ def get_hits(paf):
             if tokens[5]=='*': #output by minimap2 if read doesn't map
                 hit_dict[tokens[0]]=("none",0,0)
             else:
-                hit_dict[tokens[0]]=(tokens[5],int(tokens[9]),int(tokens[10]))
+                hit_dict[tokens[0]]=(tokens[5],int(tokens[7]),int(tokens[8]))
     return hit_dict
 
 def get_barcodes(barcoding_report):
@@ -216,14 +216,16 @@ with open(str(args.reads_out),"w") as fw: #file to write reads
         records.append(record)
     if not args.dont_write_reads:
         SeqIO.write(records, fw, "fastq")
+try:
+    prop_unmapped = unmapped_count/record_count
+    print("Number of missing reads for coordinate mapping is {}".format(coord_unmapped))
+except:
+    print("No records, what's going on!!!?")
 
-prop_unmapped = unmapped_count/record_count
-print("Number of misisng reads for coordinate mapping is {}".format(coord_unmapped))
 if prop_unmapped >0.95:
     print("\nWarning: Very few reads have mapped (less than 5%).\n")
 elif prop_unmapped > 0.5:
     print("\nWarning: Over half of your reads haven't mapped, perhaps consider using a different reference panel.\n")
-
 
 if unknown:
     print("\nWarning: Samples haven't got barcode information, you may want to consider demultiplexing.\n")
