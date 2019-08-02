@@ -18,7 +18,7 @@ const saveFastq = ({sampleName, outputDirectory, filters}) => {
   for (const [fastqName, fastqLines] of matches) {
     if (!fastqLines.length) return;
     verbose(`Extracting ${fastqLines.length} reads from ${fastqName}`)
-    const fastqPath = path.join(global.config.demuxedPath, fastqName);
+    const fastqPath = path.join(global.config.annotatedPath, fastqName);
     if (!fs.existsSync(fastqPath)) {
       warn(`Fastq file ${fastqPath} should exist but doesn't!`)
       global.io.emit("showWarningMessage", `Fastq file ${fastqPath} should exist but doesn't!`);

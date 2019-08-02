@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 const { promisify } = require('util');
-const { save_coordinate_reference_as_fasta, addToMappingQueue } = require("./mapper");
-const { addToDemuxQueue } = require("./demuxer");
+const { addToParsingQueue } = require("./annotationParser");
+const { addToAnnotationQueue } = require("./annotator");
 const readdir = promisify(fs.readdir);
 const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
 const { prettyPath, verbose, log, deleteFolderRecursive } = require('./utils');
@@ -15,11 +15,11 @@ const getFastqsFromDirectory = async (dir) => {
     return fastqs;
 }
 
-const startUp = async ({emptyDemuxed=false}={}) => {
+const startUp = async ({clearAnnotated=false}={}) => {
 
   log("Rampart Start Up")
-  if (!fs.existsSync(global.config.basecalledPath) || !fs.existsSync(global.config.demuxedPath)) {
-    verbose("[startUp] no basecalled dir / demuxed dir");
+  if (!fs.existsSync(global.config.basecalledPath) || !fs.existsSync(global.config.annotatedPath)) {
+    verbose("[startUp] no basecalled dir / annotated dir");
     return false;
   }
 
@@ -38,45 +38,43 @@ const startUp = async ({emptyDemuxed=false}={}) => {
   const unsortedBasecalledFastqs = await getFastqsFromDirectory(global.config.basecalledPath);
   log(`  * Found ${unsortedBasecalledFastqs.length} basecalled fastqs in ${prettyPath(global.config.basecalledPath)}`);
 
-  let unsortedDemuxedFastqs = [];
-  if (emptyDemuxed) {
-    log(`  * Clearing the demuxed folder (${prettyPath(global.config.demuxedPath)})`);
-    const demuxedFilesToDelete = await readdir(global.config.demuxedPath);
-    for (const file of demuxedFilesToDelete) {
-      fs.unlinkSync(path.join(global.config.demuxedPath, file));
+  let unsortedAnnotatedFastqs = [];
+  if (clearAnnotated) {
+    log(`  * Clearing the annotated folder (${prettyPath(global.config.annotatedPath)})`);
+    const annotatedFilesToDelete = await readdir(global.config.annotatedPath);
+    for (const file of annotatedFilesToDelete) {
+      fs.unlinkSync(path.join(global.config.annotatedPath, file));
     }
   } else {
-    unsortedDemuxedFastqs = await getFastqsFromDirectory(global.config.demuxedPath);
-    log(`  * Found ${unsortedDemuxedFastqs.length} basecalled fastqs in ${prettyPath(global.config.demuxedPath)}`);
+    unsortedAnnotatedFastqs = await getFastqsFromDirectory(global.config.annotatedPath);
+    log(`  * Found ${unsortedAnnotatedFastqs.length} annotated fastqs in ${prettyPath(global.config.annotatedPath)}`);
   }
 
   /* EXTRACT TIMESTAMPS FROM THOSE FASTQs */
-  log(`  * Getting read times from basecalled and demuxed files`);
+  log(`  * Getting read times from basecalled and annotated files`);
   for (let fastq of unsortedBasecalledFastqs) {
     await setReadTime(fastq);
   }
-  for (let fastq of unsortedDemuxedFastqs) {
+  for (let fastq of unsortedAnnotatedFastqs) {
     await setReadTime(fastq);
   }
   setEpochOffset();
 
-
-
   /* sort the fastqs via these timestamps and push onto the appropriate deques */
-  log(`  * Sorting available basecalled and demuxed files based on read times`);
-  unsortedDemuxedFastqs
+  log(`  * Sorting available basecalled and annotated files based on read times`);
+  unsortedAnnotatedFastqs
     .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
     .forEach((f) => {
-      addToMappingQueue(f);
+      addToParsingQueue(f);
       global.fastqsSeen.add(path.basename(f));
     })
 
-  const demuxedBasenames = unsortedDemuxedFastqs.map((name) => path.basename(name))
+  const annotatedBasenames = unsortedAnnotatedFastqs.map((name) => path.basename(name))
   unsortedBasecalledFastqs
-    .filter((fastqPath) => !demuxedBasenames.includes(path.basename(fastqPath)))
+    .filter((fastqPath) => !annotatedBasenames.includes(path.basename(fastqPath)))
     .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
     .forEach((f) => {
-      addToDemuxQueue(f);
+      addToAnnotationQueue(f);
       global.fastqsSeen.add(path.basename(f))
     });
 

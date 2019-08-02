@@ -2,7 +2,7 @@ const chokidar = require('chokidar');
 const fs = require('fs');
 const path = require('path');
 const { sleep, verbose, log } = require('./utils');
-const { addToDemuxQueue } = require("./demuxer");
+const { addToAnnotationQueue } = require("./annotator");
 
 const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
@@ -11,8 +11,8 @@ const newFastqFileHandler = (newfile, details) => {
     if (global.fastqsSeen.has(basename)) {
       return;
     }
-    verbose(`[fastq watcher] new basecalled file => adding "${basename}" to demux queue.`);
-    addToDemuxQueue(newfile);
+    verbose(`[fastq watcher] new basecalled file => adding "${basename}" to annotation queue.`);
+    addToAnnotationQueue(newfile);
     global.fastqsSeen.add(basename);
 
   } catch (err) {

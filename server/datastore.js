@@ -14,7 +14,7 @@ const Datastore = function() {
     readLengthResolution: 10,
   };
   this.barcodesSeen = new Set();
-}
+};
 
 /**
  * Add newly demuxed data to the datastore.
@@ -24,9 +24,9 @@ Datastore.prototype.addDemuxedFastq = function(fileToDemux, barcodeDemuxCounts, 
   const datapoint = new Datapoint(fileToDemux, barcodeDemuxCounts, timestamp);
   this.datapoints.push(datapoint);
   const datapointAddress = this.datapoints.length-1;
-  this.processNewlyDemuxedDatapoint(datapoint)
+  this.processNewlyDemuxedDatapoint(datapoint);
   return datapointAddress;
-}
+};
 
 /**
  * Add newly mapped data to the datastore
@@ -35,11 +35,11 @@ Datastore.prototype.addDemuxedFastq = function(fileToDemux, barcodeDemuxCounts, 
 Datastore.prototype.addMappedFastq = function(datapointAddress, results) {
   this.datapoints[datapointAddress].addMappedFastq(results);
   this.processNewlyMappedDatapoint(this.datapoints[datapointAddress]);
-}
+};
 
 Datastore.prototype.getBarcodesSeen = function() {
   return [...this.barcodesSeen];
-}
+};
 
 /**
  * ammends this.processedData when a new datapoint has been created (which will
@@ -49,7 +49,7 @@ Datastore.prototype.getBarcodesSeen = function() {
  */
 Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, summarise=true) {
   const barcodes = datapoint.getBarcodes();
-  let newBarcodesSeen = false
+  let newBarcodesSeen = false;
   barcodes.forEach((barcode) => {
     if (!this.barcodesSeen.has(barcode)) {
       this.barcodesSeen.add(barcode);
@@ -59,7 +59,7 @@ Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, summarise
     if (!this.processedData[sampleName]) {
       /* initialise this.processedData for any new sample names / barcodes observed */
       this.processedData[sampleName] = this.initialiseProcessedData(this.processedData[sampleName]);
-    };
+    }
     this.processedData[sampleName].demuxedCount += datapoint.getDemuxedCount(barcode);
   });
   if (summarise) {
@@ -81,7 +81,7 @@ Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, summarise=
   const nGenomeSlices = Math.ceil(global.config.reference.length / this.viewOptions.genomeResolution);
   const barcodes = datapoint.getBarcodes();
   const refNameToPanelIdx = {};
-  global.config.referencePanel.forEach((obj, idx) => {refNameToPanelIdx[obj.name] = idx;})
+  global.config.referencePanel.forEach((obj, idx) => {refNameToPanelIdx[obj.name] = idx;});
 
   barcodes.forEach((barcode) => {
     const sampleName = this.getSampleName(barcode);
@@ -108,13 +108,13 @@ Datastore.prototype.getSampleName = function(barcode) {
     return global.config.barcodeToName[barcode].name;
    }
    return barcode;
-}
+};
 
 /**
  * Initialise the processed data for a "new" sampleName
  */
 Datastore.prototype.initialiseProcessedData = function() {
-  const data = {}
+  const data = {};
   data.demuxedCount = 0;
   data.mappedCount = 0;
   data.refMatchCounts = {};
@@ -123,7 +123,7 @@ Datastore.prototype.initialiseProcessedData = function() {
   data.readLengthCounts = {};
   data.refMatchCountsAcrossGenome = [];
   return data;
-}
+};
 
 /**
  * Initialise the processed data for a "new" sampleName
@@ -132,7 +132,7 @@ Datastore.prototype.initialiseMappingComponentsOfProcessedDataIfNeeded = functio
   if (data.coverage.length) return // already initialised
   data.coverage = Array.from(new Array(nGenomeSlices), () => 0);
   data.refMatchCountsAcrossGenome = global.config.referencePanel.map(() => Array.from(new Array(nGenomeSlices), () => 0));
-}
+};
 
 
 /**
@@ -145,9 +145,9 @@ Datastore.prototype.reprocessAllDatapoints = function() {
   this.datapoints.forEach((datapoint) => {
     this.processNewlyDemuxedDatapoint(datapoint, false);
     this.processNewlyMappedDatapoint(datapoint, false);
-  })
+  });
   this.summariseProcessedData();
-}
+};
 
 /**
  * Creates `this.summarisedData` which has keys of `sampleName`, each with properties
@@ -182,7 +182,7 @@ Datastore.prototype.summariseProcessedData = function() {
 
   timerEnd("summariseProcessedData");
   global.DATA_UPDATED();
-}
+};
 
 /**
  * returns an object with properties:
@@ -196,16 +196,16 @@ Datastore.prototype.summariseDataForAllSamples = function() {
     demuxedCount: Object.values((this.processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
     mappedCount: Object.values((this.processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
     temporal: summariseOverallTemporalData(this.summarisedData)
-  }
+  };
   return combinedData;
-}
+};
 
 Datastore.prototype.getDataForClient = function() {
   if (!this.summarisedData) return false;
   const dataPerSample = this.summarisedData;
   const combinedData = this.summariseDataForAllSamples();
   return {dataPerSample, combinedData, viewOptions: this.viewOptions};
-}
+};
 
 
 Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
@@ -213,7 +213,7 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
   Object.keys(global.config.barcodeToName).forEach((key) => {
     if (key === sampleName) barcodes.push(key);
     if (global.config.barcodeToName[key].name === sampleName) barcodes.push(key);
-  })
+  });
 
   const matches = [];
 
@@ -224,10 +224,10 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
         matches.push(result);
       }
     })
-  })
+  });
 
   return matches;
-}
+};
 
 /**
  * Convert the refMatchCounts (obj of refName -> count) to object of refName -> %
@@ -239,12 +239,12 @@ const summariseRefMatches = function(refMatchCounts) {
     refMatches[ref] = refMatchCounts[ref] / total * 100;
   }
   return refMatches;
-}
+};
 
 
 const summariseTemporalData = function(temporalMap) {
   return Object.values(temporalMap).sort((a, b) => a.time>b.time ? 1 : -1);
-}
+};
 
 /**
  * Turn `readLengthCounts` into an array of xy values for visualisation
@@ -268,7 +268,7 @@ const summariseReadLengths = function(readLengthCounts, readLengthResolution) {
     readLengths.xyValues.push([xValues[i], counts[i]]);
   }
   return readLengths;
-}
+};
 
 
 /**
@@ -304,7 +304,7 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
   }
 
   return stream;
-}
+};
 
 /**
  * We want to create an array of `[ [time, mappedCount], ... ]` for all barcodes combined.
@@ -345,7 +345,7 @@ const summariseOverallTemporalData = (summarisedData) => {
     });
   });
   return temporal;
-}
+};
 
 
 
@@ -359,6 +359,6 @@ const appendTemporalData = function(barcode, timestamp, mappedCount, temporalMap
     over1000x: parseInt((coverage.reduce((acc, cv) => cv > 1000 ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
   };
   temporalMap[String(timestamp)] = temporalDataPoint; // this is ok if it overwrites
-}
+};
 
 module.exports = { default: Datastore };

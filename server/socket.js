@@ -60,7 +60,7 @@ const setUpIOListeners = (socket) => {
   socket.on('basecalledAndDemuxedPaths', async (clientData) => {
     verbose("[basecalledAndDemuxedPaths]")
     global.config.basecalledPath = clientData.basecalledPath;
-    global.config.demuxedPath = clientData.demuxedPath;
+    global.config.annotatedPath = clientData.annotatedPath;
     const success = await startUp({emptyDemuxed: true}); // TODO
     if (success) {
       verbose("[basecalledAndDemuxedPaths] success")

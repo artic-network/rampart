@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const { getAbsolutePath, verbose, log } = require("./utils");
-const { mapper, save_coordinate_reference_as_fasta } = require("./mapper");
+const { annotationParser } = require("./annotationParser");
 
 const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
@@ -12,26 +12,27 @@ const ensurePathExists = (p, {make=false}={}) => {
             throw new Error(`ERROR. Path ${p} doesn't exist.`);
         }
     }
-}
+};
 
-const getReferenceNames = (referencePanelPath) => {
-  return fs.readFileSync(referencePanelPath, "utf8")
-    .split("\n")
-    .filter((l) => l.startsWith(">"))
-    .map((n) => {
-      if (n.indexOf(" ") > 0) {
-        return {
-          "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
-          "description": n.substring(n.indexOf(" ")) // fasta description is the rest
-        };
-      } else {
-        return {
-          "name": n.substring(1),
-          "description": ""
-        };
-      }
-    });
-}
+// Todo: remove - reference names are now compiled on the fly
+// const getReferenceNames = (referencePanelPath) => {
+//   return fs.readFileSync(referencePanelPath, "utf8")
+//     .split("\n")
+//     .filter((l) => l.startsWith(">"))
+//     .map((n) => {
+//       if (n.indexOf(" ") > 0) {
+//         return {
+//           "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
+//           "description": n.substring(n.indexOf(" ")) // fasta description is the rest
+//         };
+//       } else {
+//         return {
+//           "name": n.substring(1),
+//           "description": ""
+//         };
+//       }
+//     });
+// }
 
 /* return format is array of {label: <label for display>, value: <path string>} */
 const scanExampleConfigs = () => {
@@ -47,25 +48,14 @@ const scanExampleConfigs = () => {
  */
 const getInitialConfig = (args) => {
 
-  // const barcodes = [
-  //   "BC01", "BC02", "BC03", "BC04", "BC05", "BC06", "BC07", "BC08", "BC09", "BC10", "BC11", "BC12"
-  // ];
-
   const config = {
     title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
     barcodeToName: {},
-    demuxOption: "--native_barcodes",
-    discardUnassigned: args.discardUnassigned,
-    discardMiddle: args.discardMiddle,
     rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
     basecalledPath: "",
-    demuxedPath: "",
-    referenceConfigPath: "",
-    referencePanelPath: "",  // supplied to the mapper
-    coordinateReferencePath: "", // supplied to the mapper
+    annotatedPath: "",
     referencePanel: [],
     reference: undefined,
-    relaxedDemuxing: args.relaxedDemuxing,
     exampleConfigPaths: scanExampleConfigs()
   };
 
@@ -77,30 +67,28 @@ const getInitialConfig = (args) => {
     });
   }
 
-  if (args.rapidBarcodes) {
-      config.demuxOption = "--rapid_barcodes"
-  }
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }
-  if (args.demuxedDir) {
-    config.demuxedPath = getAbsolutePath(args.demuxedDir, {relativeTo: process.cwd()});
-    ensurePathExists(config.demuxedPath, {make: true});
+  if (args.annotatedDir) {
+    config.annotatedPath = getAbsolutePath(args.annotatedDir, {relativeTo: process.cwd()});
+    ensurePathExists(config.annotatedPath, {make: true});
   }
 
-  if (args.referencePanelPath) {
-    ensurePathExists(args.referencePanelPath);
-    config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
-    config.referencePanel = getReferenceNames(config.referencePanelPath);
-  }
-
-  if (args.referenceConfigPath) {
-    ensurePathExists(args.referenceConfigPath);
-    config.referenceConfigPath = getAbsolutePath(args.referenceConfigPath, {relativeTo: process.cwd()});
-    /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
-    const reference = JSON.parse(fs.readFileSync(config.referenceConfigPath)).reference;
-    config.reference = reference;
-  }
+  // Todo: remove - references files are now dealt with by the mapping script
+  // if (args.referencePanelPath) {
+  //   ensurePathExists(args.referencePanelPath);
+  //   config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
+  //   config.referencePanel = getReferenceNames(config.referencePanelPath);
+  // }
+  //
+  // if (args.referenceConfigPath) {
+  //   ensurePathExists(args.referenceConfigPath);
+  //   config.referenceConfigPath = getAbsolutePath(args.referenceConfigPath, {relativeTo: process.cwd()});
+  //   /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
+  //   const reference = JSON.parse(fs.readFileSync(config.referenceConfigPath)).reference;
+  //   config.reference = reference;
+  // }
 
   return config;
 };
@@ -108,6 +96,8 @@ const getInitialConfig = (args) => {
 /**
  * update the config file via GUI provided data
  */
+
+// todo - update this to remove bits about reference files
 const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
   /* if client is sending us FASTA file */
