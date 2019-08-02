@@ -1,22 +1,16 @@
 
 ##### Config file #####
 
-configfile: "config.yaml"
-
-##### Pipeline variables #####
-
-demuxedPath = str(config["demuxedPath"]).rstrip('/')
-referencePanelPath = str(config["referencePanelPath"])
-referenceConfigPath = str(config["referenceConfigPath"])
-
-#bedPath = str(config["bedPath"])
+configfile: "pipelines/rampart_demux_map/config.yaml"
 
 ##### Target rules #####
+
 rule all:
     input:
-        expand(demuxedPath + "/annotated_reads/{file_stem}.fastq", file_stem=config["file_stem"])
+        expand(config["outputPath"]+ "/annotated_reads/{file_stem}.fastq", file_stem=config["file_stem"])
 
 ##### Modules #####
 include: "rules/demultiplex.smk"
 include: "rules/map.smk"
+include: "rules/bin.smk"
 
