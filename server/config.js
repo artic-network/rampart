@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { getAbsolutePath, verbose, log } = require("./utils");
 const { mapper, save_coordinate_reference_as_fasta } = require("./mapper");
+const { getInitialReferenceColours } = require("./colours");
 
 const ensurePathExists = (p, {make=false}={}) => {
     if (!fs.existsSync(p)) {
@@ -14,23 +15,28 @@ const ensurePathExists = (p, {make=false}={}) => {
     }
 }
 
-const getReferenceNames = (referencePanelPath) => {
-  return fs.readFileSync(referencePanelPath, "utf8")
+const parseReferenceInfo = (referencePanelPath) => {
+  const info = fs.readFileSync(referencePanelPath, "utf8")
     .split("\n")
     .filter((l) => l.startsWith(">"))
     .map((n) => {
       if (n.indexOf(" ") > 0) {
         return {
           "name": n.substring(1, n.indexOf(" ")), // fasta name is up until the first space
-          "description": n.substring(n.indexOf(" ")) // fasta description is the rest
+          "description": n.substring(n.indexOf(" ")), // fasta description is the rest
+          "display": false // display in client?
         };
       } else {
         return {
           "name": n.substring(1),
-          "description": ""
+          "description": "",
+          "display": false // display in client?
         };
       }
     });
+    const colours = getInitialReferenceColours(info.length);
+    info.forEach((d, i) => {d.colour = colours[i]});
+    return info;
 }
 
 /* return format is array of {label: <label for display>, value: <path string>} */
@@ -63,7 +69,7 @@ const getInitialConfig = (args) => {
     referenceConfigPath: "",
     referencePanelPath: "",  // supplied to the mapper
     coordinateReferencePath: "", // supplied to the mapper
-    referencePanel: [],
+    referencePanel: [], // all references in FASTA
     reference: undefined,
     relaxedDemuxing: args.relaxedDemuxing,
     exampleConfigPaths: scanExampleConfigs()
@@ -80,6 +86,19 @@ const getInitialConfig = (args) => {
   if (args.rapidBarcodes) {
       config.demuxOption = "--rapid_barcodes"
   }
+  if (config.barcodeToName) {
+    // if barcode names have been specified then limit demuxing to only those barcodes...
+    const limitBarcodesTo = [];
+    for (barcode in config.barcodeToName) {
+      var matches = barcode.match(/(\d\d?)/);
+      if (matches) {
+        limitBarcodesTo.push(matches[1]);
+      }
+    }
+    if (limitBarcodesTo.length > 0) {
+      config.limitBarcodesTo = [...limitBarcodesTo];
+    }
+  }
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }
@@ -91,7 +110,7 @@ const getInitialConfig = (args) => {
   if (args.referencePanelPath) {
     ensurePathExists(args.referencePanelPath);
     config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
-    config.referencePanel = getReferenceNames(config.referencePanelPath);
+    config.referencePanel = parseReferenceInfo(config.referencePanelPath);
   }
 
   if (args.referenceConfigPath) {
@@ -117,7 +136,7 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
     }
     newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
     fs.writeFileSync(newConfig.referencePanelPath, refFasta);
-    newConfig.referencePanel = getReferenceNames(newConfig.referencePanelPath);
+    newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
   }
 
   /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
@@ -164,9 +183,27 @@ const updateConfigWithNewBarcodes = () => {
   global.CONFIG_UPDATED();
 }
 
+const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
+  let changed = false;
+  global.config.referencePanel.forEach((info) => {
+    if (info.display && !refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = false;
+    }
+    if (!info.display && refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = true;
+    }
+  });
+  if (changed) {
+    global.CONFIG_UPDATED();
+  }
+}
+
 
 module.exports = {
     getInitialConfig,
     modifyConfig,
-    updateConfigWithNewBarcodes
+    updateConfigWithNewBarcodes,
+    updateWhichReferencesAreDisplayed
 };

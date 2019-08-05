@@ -1,6 +1,6 @@
 const Datapoint = require("./datapoint").default;
 const { timerStart, timerEnd } = require('./timers');
-const { updateConfigWithNewBarcodes} = require("./config");
+const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed } = require("./config");
 
 /**
  * The main store of all demuxed & mapped data
@@ -45,9 +45,9 @@ Datastore.prototype.getBarcodesSeen = function() {
  * ammends this.processedData when a new datapoint has been created (which will
  * not yet have mapping information)
  * @param datapoint {Datapoint}
- * @param summarise {bool} if true, then this.summariseProcessedData() will be called
+ * @param notify_client {bool} if true, then the client will be sent new data
  */
-Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, summarise=true) {
+Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, notify_client=true) {
   const barcodes = datapoint.getBarcodes();
   let newBarcodesSeen = false
   barcodes.forEach((barcode) => {
@@ -62,8 +62,8 @@ Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, summarise
     };
     this.processedData[sampleName].demuxedCount += datapoint.getDemuxedCount(barcode);
   });
-  if (summarise) {
-    this.summariseProcessedData();
+  if (notify_client) {
+    global.NOTIFY_CLIENT_DATA_UPDATED()
   }
   if (newBarcodesSeen) {
     updateConfigWithNewBarcodes();
@@ -74,9 +74,9 @@ Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, summarise
 /**
  * ammends this.processedData when a datapoint has had mapping info added
  * @param datapoint {Datapoint}
- * @param summarise {bool} if true, then this.summariseProcessedData() will be called
+ * @param notify_client {bool} if true, then the client will be sent new data
  */
-Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, summarise=true) {
+Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_client=true) {
   timerStart("processNewlyMappedDatapoint");
   const nGenomeSlices = Math.ceil(global.config.reference.length / this.viewOptions.genomeResolution);
   const barcodes = datapoint.getBarcodes();
@@ -94,8 +94,8 @@ Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, summarise=
     datapoint.appendReferenceMatchCounts(barcode, this.processedData[sampleName].refMatchCountsAcrossGenome, refNameToPanelIdx, this.viewOptions.genomeResolution);
   });
   timerEnd("processNewlyMappedDatapoint");
-  if (summarise) {
-    this.summariseProcessedData();
+  if (notify_client) {
+    global.NOTIFY_CLIENT_DATA_UPDATED();
   }
 };
 
@@ -146,64 +146,88 @@ Datastore.prototype.reprocessAllDatapoints = function() {
     this.processNewlyDemuxedDatapoint(datapoint, false);
     this.processNewlyMappedDatapoint(datapoint, false);
   })
-  this.summariseProcessedData();
+  global.NOTIFY_CLIENT_DATA_UPDATED();
+}
+
+
+const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
+  /* we only want to report references over a threshold
+  TODO: make this threshold / number taken definable by the client */
+  const refMatches = {};
+  const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
+  for (const [sampleName, sampleData] of Object.entries(processedData)) {
+    /* summarise ref matches for _all_ references */
+    refMatches[sampleName] = summariseRefMatches(sampleData.refMatchCounts);
+    for (const [refName, perc] of Object.entries(refMatches[sampleName])) {
+      if (perc > threshold) {
+        if (refsAboveThres[refName] === undefined) refsAboveThres[refName]=0;
+        refsAboveThres[refName]++;
+      }
+    }
+  }
+  const refsToDisplay = Object.keys(refsAboveThres)
+    .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+    .slice(0, maxNum);
+
+  updateWhichReferencesAreDisplayed(refsToDisplay);
+  return refMatches;
 }
 
 /**
- * Creates `this.summarisedData` which has keys of `sampleName`, each with properties
- *    `demuxedCount` {int}
- *    `mappedCount` {int}
- *    `refMatches` {object} may have no keys, else keys: ref names, values: floats (percentages)
- *    `coverage` {array} may be length 0. array of coverage at positions.
- *    `maxCoverage` {int}
- *    `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
- *    `readLengths` {Object} keys: `xyValues`, array of [int, int]
- *    `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}
- *    `referencePanelNames` {Array of strings} same order as `refMatchesAcrossGenome`
+ * Creates a summary of data (similar to `this.processedData`) to deliver to the client.
+ * @returns {Array}
+ *    [0] {object} Summarising each sample observed so far.
+ *         properties: each `sampleName` (i.e. props of `this.processedData`)
+ *         values: {object}, each with properties
+ *            `demuxedCount` {int}
+ *            `mappedCount` {int}
+ *            `refMatches` {object} may have no keys, else keys: ref names, values: floats (percentages)
+ *            `coverage` {array} may be length 0. array of coverage at positions.
+ *            `maxCoverage` {int}
+ *            `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
+ *            `readLengths` {Object} keys: `xyValues`, array of [int, int]
+ *            `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}. Order matches global.config.referencePanel
+ *    [1] {object} summarise the overall run (i.e. all samples/barcodes combined)
+ *        properties:
+ *        `demuxedCount` {int}
+ *        `mappedCount` {int}
+ *        `temporal` {}
  */
-Datastore.prototype.summariseProcessedData = function() {
-  timerStart("summariseProcessedData");
-  this.summarisedData = {};
+const collectSampleDataForClient = function(processedData, viewOptions) {
+  timerStart("collectSampleDataForClient");
+
+  const refMatchesAcrossSamples = whichReferencesToDisplay(processedData);
 
   /* for each sample in this.processedData, summarise the information */
-  for (const [sampleName, sampleData] of Object.entries(this.processedData)) {
-    this.summarisedData[sampleName] = {
+  const summarisedData = {};
+  for (const [sampleName, sampleData] of Object.entries(processedData)) {
+    summarisedData[sampleName] = {
       demuxedCount: sampleData.demuxedCount,
       mappedCount: sampleData.mappedCount,
-      refMatches: summariseRefMatches(sampleData.refMatchCounts),
+      refMatches: refMatchesAcrossSamples[sampleName],
       coverage: sampleData.coverage,
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
       temporal: summariseTemporalData(sampleData.temporalMap),
-      readLengths: summariseReadLengths(sampleData.readLengthCounts, this.viewOptions.readLengthResolution),
-      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, this.viewOptions.genomeResolution),
-      referencePanelNames: global.config.referencePanel.map((obj) => obj.name)
+      readLengths: summariseReadLengths(sampleData.readLengthCounts, viewOptions.readLengthResolution),
+      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, viewOptions.genomeResolution)
     }
   }
 
-  timerEnd("summariseProcessedData");
-  global.DATA_UPDATED();
-}
+  // console.log("refMatchesAcrossGenome", refMatchesAcrossGenome)
 
-/**
- * returns an object with properties:
- *    `demuxedCount` {int}
- *    `mappedCount` {int}
- *    `temporal` {}
- * which represents the total data for all samples, regardless of barcode
- */
-Datastore.prototype.summariseDataForAllSamples = function() {
   const combinedData = {
-    demuxedCount: Object.values((this.processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
-    mappedCount: Object.values((this.processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
-    temporal: summariseOverallTemporalData(this.summarisedData)
+    demuxedCount: Object.values((processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
+    mappedCount: Object.values((processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
+    temporal: summariseOverallTemporalData(summarisedData)
   }
-  return combinedData;
+
+  timerEnd("collectSampleDataForClient");
+  return [summarisedData, combinedData];
 }
 
 Datastore.prototype.getDataForClient = function() {
-  if (!this.summarisedData) return false;
-  const dataPerSample = this.summarisedData;
-  const combinedData = this.summariseDataForAllSamples();
+  const [dataPerSample, combinedData] = collectSampleDataForClient(this.processedData, this.viewOptions);
+  if (!Object.keys(dataPerSample).length) return false;
   return {dataPerSample, combinedData, viewOptions: this.viewOptions};
 }
 
@@ -232,14 +256,24 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
 /**
  * Convert the refMatchCounts (obj of refName -> count) to object of refName -> %
  */
+// const summariseRefMatches = function(refMatchCounts) {
+//   const refMatches = {};
+//   const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
+//   for (const ref of Object.keys(refMatchCounts)) {
+//     refMatches[ref] = refMatchCounts[ref] / total * 100;
+//   }
+//   return refMatches;
+// };
+    // instead of converting to %age, just add the total in (so it can be calculated by the UI)
 const summariseRefMatches = function(refMatchCounts) {
   const refMatches = {};
   const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
   for (const ref of Object.keys(refMatchCounts)) {
-    refMatches[ref] = refMatchCounts[ref] / total * 100;
+    refMatches[ref] = refMatchCounts[ref];
   }
+  refMatches['total'] = total;
   return refMatches;
-}
+};
 
 
 const summariseTemporalData = function(temporalMap) {
@@ -290,10 +324,9 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
   const nReferences = referencePanel.length;
 
   for (let xIdx=0; xIdx<nGenomeSlices; xIdx++) {
-    let totalReadsHere = 0;
-    for (let refIdx=0; refIdx<nReferences; refIdx++) {
-      totalReadsHere += refMatchCountsAcrossGenome[refIdx][xIdx];
-    }
+    const totalReadsHere = refMatchCountsAcrossGenome
+      .map((gSlices) => gSlices[xIdx])
+      .reduce((a, b) => a+b)
     let yPosition = 0;
     for (let refIdx=0; refIdx<nReferences; refIdx++) {
       /* require >10 reads to calc stream */

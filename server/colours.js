@@ -1,15 +1,6 @@
-import { scaleSequential } from "d3-scale";
-import * as chromatic from "d3-scale-chromatic";
-import { color as d3color } from "d3-color";
-
-/**
- * Heatmap scale over 0-100 (i.e. percentage)
- */
-export const heatColourScale = scaleSequential(chromatic.interpolateYlOrRd)
-  .domain([100, 0])
-
-export const defaultLineColour = "#F6EECA";
-
+const d3color = require("d3-color").color;
+const chromatic = require("d3-scale-chromatic");
+// const scaleSequential = require("d3-scale").scaleSequential;
 
 /**
  * Given a d3 interpolator function, return an array of hexes.
@@ -41,7 +32,7 @@ const _interpolatorToArray = (interp, n, ignoreStart=0, ignoreEnd=0, luminanceTh
  * 
  * The colour picker fits 6 panels across (2 rows down)
  */
-export const availableColours = [
+const availableColours = [
   /* ROW 1 */
   _interpolatorToArray(chromatic.interpolateYlGnBu, 10, 1, 1),
   _interpolatorToArray(chromatic.interpolateRdYlBu, 10, 0, 1),
@@ -65,7 +56,7 @@ export const availableColours = [
  * When we have gone across this, we repeat the progress at a higher index.
  * Loops around so that while colours will eventually repeat, they will never be undefined.
  */
-export const createReferenceColours = (n) => {
+const getInitialReferenceColours = (n) => {
   let whichPanelIdx = 6; /* start at the 7th set of available colours */
   let inPanelIdx = 2; /* start at the 2nd entry of each panel */
   const ret = new Array(n);
@@ -81,27 +72,7 @@ export const createReferenceColours = (n) => {
   return ret;
 }
 
-/**
- * Sample colours are picked from the availableColours
- * and will go through three panels (idx 1, 3, 5) before
- * wrapping around
- */
-export const createSampleColours = (n) => {
-  const jump = n > 10 ? 1 :
-    n > 5 ? 3 :
-      1;
-  let whichPanelIdx = 1;
-  let inPanelIdx = jump;
-  const ret = new Array(n);
-  for (let i = 0; i<n; i++) {
-    ret[i] = availableColours[whichPanelIdx][inPanelIdx];
-    inPanelIdx += jump;
-    if (inPanelIdx >= availableColours[whichPanelIdx].length) {
-      inPanelIdx = 1;
-      whichPanelIdx = whichPanelIdx === 1 ? 3 :
-        whichPanelIdx === 3 ? 5 :
-          1;
-    }
-  }
-  return ret;
-}
+
+module.exports = {
+  getInitialReferenceColours
+};

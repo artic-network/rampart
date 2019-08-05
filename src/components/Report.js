@@ -75,9 +75,12 @@ const ReferenceMatches = ({data, config}) => {
               <th key={"header"}>{name}</th>
               {refNames.map((refName) => {
                 if (data[name].refMatches[refName]) {
+                    const count = parseInt(data[name].refMatches[refName]);
+                    const total = parseInt(data[name].refMatches['total']);
+                    const percent = (100.0 * count) / total;
                   return (
                     <td key={refName}>
-                      {`${parseInt(data[name].refMatches[refName], 10)}%`}
+                      {`${percent.toFixed(2)}%`}
                     </td>
                   )
                 }

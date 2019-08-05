@@ -24,21 +24,29 @@ const ColourPicker = ({currentColour, name, onChange, onCancel}) => {
   )
 }
 
-const ViewOptions = ({viewOptions, setViewOptions}) => {
-
+const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [colourToPick, setColourToPick] = useState(false); // set to {name: "BC01", key: "sampleColours"} for dev
   const changeColour = (hex) => {
-    const {key, name} = colourToPick;
+    const {key, name, idx} = colourToPick;
+    /* this is in flux as we migrate all the colours from viewOptions to the config */
+    if (key === "referenceColours") {
+      config.referencePanel[idx].colour = hex; /* probably shouldn't modify in place */
+      setColourToPick(false);
+      setConfig({config});
+      return;
+    }
     const newViewOptions = {}; // partial, i.e. will be merged with state in reducer
     newViewOptions[key] = Object.assign({}, viewOptions[key]);
     newViewOptions[key][name] = hex;
     setViewOptions(newViewOptions);
     setColourToPick(false);
   }
-  const pickColour = ({key, name}) => {
-    setColourToPick({key, name, value: viewOptions[key][name]})
-  }
+  if (!Object.keys(config).length) return (
+    <div className={`viewOptions`}>
+      <h2>No config set</h2>
+    </div>
+  );
 
   console.log(viewOptions)
   // this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
@@ -70,7 +78,7 @@ const ViewOptions = ({viewOptions, setViewOptions}) => {
         return (
           <div key={name} className="colourSwatch">
             <div
-              onClick={() => pickColour({key: "sampleColours", name})}
+              onClick={() => setColourToPick({key: "sampleColours", name, value: viewOptions.sampleColours[name]})}
               style={{backgroundColor: viewOptions.sampleColours[name]}}
             />
             <div>{name}</div>
@@ -79,20 +87,30 @@ const ViewOptions = ({viewOptions, setViewOptions}) => {
       })}
 
       <h2>Reference colours:</h2>
-      {Object.keys(viewOptions.referenceColours).map((name) => {
-        return (
-          <div key={name} className="colourSwatch">
-            <div
-              onClick={() => pickColour({key: "referenceColours", name})}
-              style={{backgroundColor: viewOptions.referenceColours[name]}}
-            />
-            <div>{name}</div>
-          </div>
-        )
-      })}
-
+      {config.referencePanel.map((info, idx) => (
+        <div key={info.name} className="colourSwatch">
+          <div
+            onClick={() => setColourToPick({key: "referenceColours", name: info.name, idx: idx, value: info.colour})}
+            style={{backgroundColor: info.colour}}
+          />
+          <div>{`${info.name} (${info.display})`}</div>
+        </div>
+      ))}
     </div>
   )
 }
 
 export default ViewOptions
+
+
+// {Object.keys(viewOptions.referenceColours).map((name) => {
+//   return (
+//     <div key={name} className="colourSwatch">
+//       <div
+//         onClick={() => pickColour({key: "referenceColours", name})}
+//         style={{backgroundColor: viewOptions.referenceColours[name]}}
+//       />
+//       <div>{name}</div>
+//     </div>
+//   )
+// })}
