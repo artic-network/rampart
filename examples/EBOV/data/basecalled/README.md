@@ -1,1 +1,0 @@
-Some example fastq files base-called by Guppy
