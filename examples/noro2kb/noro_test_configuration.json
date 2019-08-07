@@ -1,0 +1,39 @@
+{
+  "name": "2kb Amplicon Norovirus ",
+  "referenceConfigPath": "annotation.json",
+  "referencePanelPath": "initial_record_set.fasta",
+  "samples": [
+    {
+        "name": "Sample 19",
+         "description": "",
+        "barcodes": [ "NB19" ]
+    },
+    {
+        "name": "Sample 20",
+         "description": "",
+        "barcodes": [ "NB20" ]
+    },
+    {
+        "name": "Sample 21",
+         "description": "",
+        "barcodes": [ "NB21" ]
+    },
+    {
+        "name": "Sample 22",
+         "description": "",
+        "barcodes": [ "NB22" ]
+    },
+    {
+        "name": "Sample 23",
+         "description": "",
+        "barcodes": [ "NB23" ]
+    },
+    {
+        "name": "Sample 24",
+         "description": "",
+        "barcodes": [ "NB24" ]
+    }
+  ],
+  "basecalledPath": "./data/basecalled/",
+  "demuxedPath": "./data/demuxed/"
+}
