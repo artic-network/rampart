@@ -67,12 +67,33 @@ const getInitialConfig = (args) => {
     });
   }
 
+  if (config.barcodeToName) {
+    // if barcode names have been specified then limit demuxing to only those barcodes...
+    const limitBarcodesTo = [];
+    for (barcode in config.barcodeToName) {
+      var matches = barcode.match(/(\d\d?)/);
+      if (matches) {
+        limitBarcodesTo.push(matches[1]);
+      }
+    }
+    if (limitBarcodesTo.length > 0) {
+      config.limitBarcodesTo = [...limitBarcodesTo];
+    }
+  }
+
   if (args.basecalledDir) {
     config.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
   }
+
   if (args.annotatedDir) {
     config.annotatedPath = getAbsolutePath(args.annotatedDir, {relativeTo: process.cwd()});
     ensurePathExists(config.annotatedPath, {make: true});
+  }
+
+  if (args.referencePanelPath) {
+    ensurePathExists(args.referencePanelPath);
+    config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
+    config.referencePanel = parseReferenceInfo(config.referencePanelPath);
   }
 
   // Todo: remove - references files are now dealt with by the mapping script
@@ -107,7 +128,7 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
     }
     newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
     fs.writeFileSync(newConfig.referencePanelPath, refFasta);
-    newConfig.referencePanel = getReferenceNames(newConfig.referencePanelPath);
+    newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
   }
 
   /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
@@ -154,9 +175,27 @@ const updateConfigWithNewBarcodes = () => {
   global.CONFIG_UPDATED();
 }
 
+const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
+  let changed = false;
+  global.config.referencePanel.forEach((info) => {
+    if (info.display && !refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = false;
+    }
+    if (!info.display && refsToDisplay.includes(info.name)) {
+      changed = true;
+      info.display = true;
+    }
+  });
+  if (changed) {
+    global.CONFIG_UPDATED();
+  }
+}
+
 
 module.exports = {
     getInitialConfig,
     modifyConfig,
-    updateConfigWithNewBarcodes
+    updateConfigWithNewBarcodes,
+    updateWhichReferencesAreDisplayed
 };

@@ -10,6 +10,7 @@ const parser = new argparse.ArgumentParser({
   `
 });
 parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
+parser.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
 
 /* ----------------- CONFIG OPTIONS -------------------- */
 const config = parser.addArgumentGroup({title: 'Config commands', description: "These options can all be specified in the GUI"});

@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useReducer} from 'react';
 import PropTypes from "prop-types";
 import Select from "react-select";
 import { IoIosSave } from "react-icons/io";
@@ -60,7 +60,13 @@ const SaveConfig = ({handleClick}) => (
 )
 
 
-const Config = ({config, setConfig, socket, closeSidebar}) => {
+const reducer = (prevState, updatedProperty) => ({...prevState, ...updatedProperty});
+
+const Config = ({config, setConfig, closeSidebar}) => {
+  /* since changing config is done on the server (the client just displays
+   * it) we want to maintain a copy here, and then send it to the server
+   * when we're all done */
+  const [modifiedConfig, setModifiedConfig] = useReducer(reducer, JSON.parse(JSON.stringify(config)));
   const refPanelChooser = useRef();
   const [refPanelDropperHover, setRefPanelDropperHover] = useState(false);
   const [refPanelFileDropped, setRefPanelFileDropped] = useState(undefined);
@@ -77,14 +83,13 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
   }
 
   const submit = () => {
-    console.log("sending new config to server")
     setRefPanelFileDropped(false);
     setRefConfigFileDropped(false);
-    const dataForServer = {config, refFasta: refPanelFileDropped, refJsonString: refConfigFileDropped};
+    const dataForServer = {config: modifiedConfig, refFasta: refPanelFileDropped, refJsonString: refConfigFileDropped};
     if (refConfigArticSelection) {
       dataForServer.refJsonPath = refConfigArticSelection.value;
     }
-    socket.emit('config', dataForServer);
+    setConfig(dataForServer);
     closeSidebar();
   }
 
@@ -107,21 +112,21 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
         <input
           type="text"
           className="wide"
-          value={config.title}
-          onChange={(event) => {setConfig(Object.assign({}, config, {title: event.target.value}))}}
+          value={modifiedConfig.title}
+          onChange={(event) => {setModifiedConfig({title: event.target.value})}}
         />
       </label>
 
       <h2>Reference Config (JSON)</h2>
-      {config.reference ? (
-        <div>{`Reference: ${config.reference.label}, ${config.reference.length}bp. This cannot be changed.`}</div>
+      {modifiedConfig.reference ? (
+        <div>{`Reference: ${modifiedConfig.reference.label}, ${modifiedConfig.reference.length}bp. This cannot be changed.`}</div>
       ) : refConfigFileDropped ? (
           <div>File loaded -- click submit!</div>
         ) : (refConfigArticSelection && refConfigArticSelection.value) ? (
-          <ArticConfigSelection items={config.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
+          <ArticConfigSelection items={modifiedConfig.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
           ) : (
             <div>
-              <ArticConfigSelection items={config.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
+              <ArticConfigSelection items={modifiedConfig.exampleConfigPaths} setter={setRefConfigArticSelection} choice={refConfigArticSelection}/>
               <div
                 className={`fileDropZone ${refConfigDropperHover ? "dragging" : ""}`}
                 onDragEnterCapture={() => setRefConfigDropperHover(true)}
@@ -149,8 +154,8 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
       }
 
       <h2>Reference Panel (FASTA)</h2>
-      {config.referencePanel.length ? (
-        <div>{`Set, with ${config.referencePanel.length} references. You cannot change this!`}</div>
+      {modifiedConfig.referencePanel.length ? (
+        <div>{`Set, with ${modifiedConfig.referencePanel.length} references. You cannot change this!`}</div>
       ) : refPanelFileDropped ? (
           <div>File loaded -- click submit!</div>
         ) : (
@@ -182,8 +187,8 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
       }
 
       <h2>Barcodes</h2>
-      {Object.keys(config.barcodeToName)
-        .sort((a, b) => config.barcodeToName[a].order > config.barcodeToName[b].order ? 1 : -1)
+      {Object.keys(modifiedConfig.barcodeToName)
+        .sort((a, b) => modifiedConfig.barcodeToName[a].order > modifiedConfig.barcodeToName[b].order ? 1 : -1)
         .map((barcodeName) => {
           return (
             <label key={barcodeName}>
@@ -192,11 +197,9 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
               </div>
               <input
                 type="text"
-                value={config.barcodeToName[barcodeName].name}
+                value={modifiedConfig.barcodeToName[barcodeName].name}
                 onChange={(event) => {
-                  const barcodeToName = config.barcodeToName;
-                  barcodeToName[barcodeName].name = event.target.value;
-                  setConfig(Object.assign({}, config, {barcodeToName}));
+                  modifiedConfig.barcodeToName[barcodeName].name = event.target.value;
                 }}
               />
               {/* TODO -- add ordering box / dragger here */}
@@ -213,8 +216,7 @@ const Config = ({config, setConfig, socket, closeSidebar}) => {
 
 Config.propTypes = {
   config: PropTypes.object.isRequired,
-  setConfig: PropTypes.func.isRequired,
-  socket: PropTypes.object.isRequired
+  setConfig: PropTypes.func.isRequired
 };
 
 

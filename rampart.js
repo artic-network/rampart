@@ -17,7 +17,7 @@ global.fastqsSeen = new Set();
 
 
 const main = async () => {
-  const app = await server.run({devClient: args.devClient}); // eslint-disable-line
+  server.run({devClient: args.devClient, ports: args.ports});
   const success = await startUp({emptyDemuxed: args.emptyDemuxed})
   if (success) await startBasecalledFilesWatcher();
 }

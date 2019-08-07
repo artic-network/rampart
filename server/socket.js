@@ -17,7 +17,7 @@ const sendData = () => {
   global.io.emit('data', {dataPerSample, combinedData, viewOptions});
 }
 
-global.DATA_UPDATED = () => sendData();
+global.NOTIFY_CLIENT_DATA_UPDATED = () => sendData();
 
 /**
  * Send config over the socket

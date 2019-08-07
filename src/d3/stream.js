@@ -1,9 +1,8 @@
 import { mouse } from "d3-selection";
 import { area } from "d3-shape";
 
-export const drawStream = ({svg, scales, stream, referencePanelNames, referenceColours, hoverSelection, genomeResolution}) => {
-
-  console.log({svg, scales, stream, referencePanelNames, referenceColours, hoverSelection})
+export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection, genomeResolution}) => {
+    console.log("drawStream", {svg, scales, stream, referencePanel, hoverSelection})
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
@@ -17,8 +16,8 @@ export const drawStream = ({svg, scales, stream, referencePanelNames, referenceC
           const percMatch = parseInt((dd[idx][1] - dd[idx][0]) * 100, 10);
           if (percMatch > 5) {
             html += `
-              <span class="hoverColourSquare" style="background-color: ${referenceColours[referencePanelNames[ii]]}"></span>
-              <span>${referencePanelNames[ii]}: ${percMatch}%</span>
+              <span class="hoverColourSquare" style="background-color: ${referencePanel[ii].colour}"></span>
+              <span>${referencePanel[ii].name}: ${percMatch}%</span>
               </br>
             `;
           }
@@ -44,7 +43,7 @@ export const drawStream = ({svg, scales, stream, referencePanelNames, referenceC
         .enter()
         .append("path")
         .attr("d", areaObj)
-        .attr("fill", (d, i) => referenceColours[referencePanelNames[i]])
+        .attr("fill", (d, i) => referencePanel[i].colour)
         .attr("opacity", 1)
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
