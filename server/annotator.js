@@ -3,7 +3,7 @@ const path = require('path');
 const Deque = require("collections/deque");
 const { setReadTime, getReadTime } = require("./readTimes");
 const { verbose, warn } = require("./utils");
-const { addToParserQueue } = require("./readAnnotationParser");
+const { addToParserQueue } = require("./annotationParser");
 
 /**
  * This file defines the deque handler, which processes FASTQ files
@@ -17,6 +17,13 @@ const annotationQueue = new Deque();
 annotationQueue.observeRangeChange(() => {demuxer();});
 const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
 
+/**
+ * Todo - this needs to be fixed to call the Snakemake pipeline
+ * @param fastqIn
+ * @param fastqOut
+ * @param relaxedDemuxing
+ * @returns {Promise<any>}
+ */
 const call_annotation_script = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resolve, reject) => {
     let spawnArgs = [
         '--verbosity', '0',
@@ -42,29 +49,29 @@ const call_annotation_script = (fastqIn, fastqOut, relaxedDemuxing) => new Promi
     });
 });
 
-/**
- * When demuxing is successful we have "some" data -- the barcode counts
- * @param {string} demuxedFastqPath 
- * @returns {Promise} resolves with an object of barcode {str} -> demuxed counts {int}
- */
-const getBarcodeDemuxCounts = (demuxedFastqPath) => new Promise((resolve, reject) => {
-  // console.log(demuxedFastqPath)
-  const getBarcodes = spawn('./server/getBarcodesFromDemuxedFastq.py', [demuxedFastqPath]);
-  getBarcodes.stdout.on('data', (stdout) => {
-    const data = String(stdout).split(/\s+/);
-    const barcodeDemuxCounts = {};
-    for (let i = 1; i < data.length; i+=2) {
-      barcodeDemuxCounts[data[i]] = parseInt(data[i-1], 10);
-    }
-    resolve(barcodeDemuxCounts);
-  });
-  getBarcodes.on('close', (code) => {
-    reject(code);
-  });
-});
+// /**
+//  * When demuxing is successful we have "some" data -- the barcode counts
+//  * @param {string} demuxedFastqPath
+//  * @returns {Promise} resolves with an object of barcode {str} -> demuxed counts {int}
+//  */
+// const getBarcodeDemuxCounts = (demuxedFastqPath) => new Promise((resolve, reject) => {
+//   // console.log(demuxedFastqPath)
+//   const getBarcodes = spawn('./server/getBarcodesFromDemuxedFastq.py', [demuxedFastqPath]);
+//   getBarcodes.stdout.on('data', (stdout) => {
+//     const data = String(stdout).split(/\s+/);
+//     const barcodeDemuxCounts = {};
+//     for (let i = 1; i < data.length; i+=2) {
+//       barcodeDemuxCounts[data[i]] = parseInt(data[i-1], 10);
+//     }
+//     resolve(barcodeDemuxCounts);
+//   });
+//   getBarcodes.on('close', (code) => {
+//     reject(code);
+//   });
+// });
 
 
-let isRunning = false; // only want one porechop thread at a time!
+let isRunning = false; // only want one annotation thread at a time!
 const annotator = async () => {
     // console.log("annotator watching deque with ", annotationQueue.length, "files")
     // waiting for >= 2 files here, as guppy continuously writes to files
@@ -83,7 +90,7 @@ const annotator = async () => {
 
             // AR - adding a data point in the data store now happens when the annotations are parsed.
             // const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
-            // const datastoreAddress = global.datastore.addDemuxedFastq(fileToDemuxBasename, barcodeDemuxCounts, timestamp);
+            const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
 
             verbose(`[annotator] ${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
             addToParserQueue([datastoreAddress, fileToWrite]);

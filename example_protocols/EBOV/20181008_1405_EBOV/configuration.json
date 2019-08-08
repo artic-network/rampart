@@ -1,0 +1,25 @@
+{
+  "name": "EBOV Validation Run (MinIT)",
+  "samples": [
+    {
+      "name": "Mayinga",
+      "description": "",
+      "barcodes": [ "BC01" ]
+    },
+    {
+      "name": "Kikwit",
+      "description": "",
+      "barcodes": [ "BC03" ]
+    },
+    {
+      "name": "Makona",
+      "description": "",
+      "barcodes": [ "BC04" ]
+    },
+    {
+      "name": "Negative Control",
+      "description": "",
+      "barcodes": [ "BC02" ]
+    }
+  ],
+}

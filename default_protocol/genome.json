@@ -1,0 +1,13 @@
+{
+	"genome": {
+		"label": "default",
+		"length": 100,
+		"genes": {
+			"reference": {
+			  "start": 1,
+			  "end": 1000,
+			  "strand": 1
+			}
+		}
+	}	  
+}
