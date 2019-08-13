@@ -1,15 +1,15 @@
 {
 	"read-processor": {
-		"path": "process_reads"
+		"path": "pipelines/process_reads"
 	},
 	"post-processing": [
 		{
 			"name": "Bin reads",
-			"path": "bin_reads"
+			"path": "pipelines/bin_reads"
 		},
 		{
 			"name": "Build consensus",
-			"path": "build_consensus"
+			"path": "pipelines/build_consensus"
 		}
 	]
 }

@@ -1,17 +1,22 @@
+/**
+ * Deals with server configuration at startup from command line arguments and configuration
+ * files.
+ * @type {module:fs}
+ */
 const fs = require('fs')
 const path = require('path')
 const { getAbsolutePath, verbose, log } = require("./utils");
 const { annotationParser } = require("./annotationParser");
 
 const ensurePathExists = (p, {make=false}={}) => {
-    if (!fs.existsSync(p)) {
-        if (make) {
-            log(`Creating path ${p}`);
-            fs.mkdirSync(p, {recursive: true})
-        } else {
-            throw new Error(`ERROR. Path ${p} doesn't exist.`);
-        }
+  if (!fs.existsSync(p)) {
+    if (make) {
+      log(`Creating path ${p}`);
+      fs.mkdirSync(p, {recursive: true})
+    } else {
+      throw new Error(`ERROR. Path ${p} doesn't exist.`);
     }
+  }
 };
 
 // Todo: remove - reference names are now compiled on the fly
@@ -38,15 +43,105 @@ const ensurePathExists = (p, {make=false}={}) => {
 const scanExampleConfigs = () => {
   const dir = path.join(__dirname, "..", "assets/includedConfigs");
   return fs.readdirSync(dir)
-    .filter((p) => p.endsWith(".json"))
-    .map((p) => ({value: path.join(dir, p), label: p}));
+      .filter((p) => p.endsWith(".json"))
+      .map((p) => ({value: path.join(dir, p), label: p}));
 };
+
+const DEFAULT_PROTOCOL_PATH = "default_protocol";
+const GENOME_CONFIG= "genome.json";
+const PRIMERS_CONFIG = "primers.json";
+const PIPELINES_CONFIG = "pipelines.json";
+const RUN_CONFIG = "run_configuration.json";
 
 /**
  * Create initial config file from command line arguments - Note that
  * No data has been processed at this point.
+ *
+ * This will take configuration in the following order:
+ *
+ * [RAMPART_ROOT]/default_protocol/
+ * [PROTOCOL_PATH]/
+ * current working directory/
+ *
+ * the PROTOCOL_PATH is specified as an environment variable `RAMPART_PROTOCOL` or as a
+ * command line option `--protocol`
+ *
+ * Configuration files looked for:
+ * `genome.json` - a description of the layout of genes in the genome. Used for visualized
+ *      the coverage maps.
+ *
+ * `primers.json` - a description of the location of amplicons in the current protocol
+ *      (for visualization).
+ *
+ * `pipelines.json` - a list of pipelines available with paths to the Snakemake files. One
+ *      pipeline named 'read_processor' is used to process reads for RAMPART and must be
+ *      present. Other pipelines are used for post-RAMPART processing and analysis.
+ *
+ * `run_configuration.json` - This file provides the configuration for the current run
+ *      (e.g., mapping of barcodes to samples, title of run, descriptions etc). It will
+ *      usually be in the current working directory.
+ *
+ * Some of these options may also be overridden using command line options such as
+ * `--barcodeNames`, `--title`, `--basecalledPath`
+ *
  */
+
+function readConfigFile(paths, fileName) {
+  let config = {};
+
+  // iterate over the paths and if a file exists, read it on top of the
+  // existing configuration object.
+  paths.forEach( (path) => {
+    if (fs.existsSync(path + fileName)) {
+
+      verbose(`Reading ${fileName} from ${path}`);
+      config = { ...config, ...JSON.parse(fs.readFileSync(path + fileName))};
+    }
+  });
+  return config;
+}
+
 const getInitialConfig = (args) => {
+
+  const pathCascade = [
+    getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: process.cwd()})
+  ];
+
+  let userProtocolPath = sys.getEnvironmentVariable("RAMPART_PROTOCOL");
+  if (args.protocol) {
+    userProtocolPath = args.protocol;
+  }
+
+  if (userProtocolPath) {
+    pathCascade.append(userProtocolPath);
+  }
+
+  pathCascade.append("./");
+
+  const config = {
+    genome: readConfigFile(pathCascade, GENOME_CONFIG),
+    primers: readConfigFile(pathCascade, PRIMERS_CONFIG),
+    pipelines: readConfigFile(pathCascade, PIPELINES_CONFIG),
+    run: readConfigFile(pathCascade, RUN_CONFIG)
+  }
+
+  // todo - check config objects for correctness
+
+  // const config = {
+  //   title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
+  //   barcodeToName: {},
+  //   rampartTmpDir: path.join(__dirname, "..", "tmp"), // TODO -- add to cmd line arguments
+  //   basecalledPath: "",
+  //   annotatedPath: "",
+  //   referencePanel: [],
+  //   reference: undefined,
+  //   exampleConfigPaths: scanExampleConfigs()
+  // };
+
+}
+
+
+const getInitialConfig_old = (args) => {
 
   const config = {
     title: args.title ? args.title : `Started @ ${(new Date()).toISOString()}`,
@@ -88,12 +183,6 @@ const getInitialConfig = (args) => {
   if (args.annotatedDir) {
     config.annotatedPath = getAbsolutePath(args.annotatedDir, {relativeTo: process.cwd()});
     ensurePathExists(config.annotatedPath, {make: true});
-  }
-
-  if (args.referencePanelPath) {
-    ensurePathExists(args.referencePanelPath);
-    config.referencePanelPath = getAbsolutePath(args.referencePanelPath, {relativeTo: process.cwd()});
-    config.referencePanel = parseReferenceInfo(config.referencePanelPath);
   }
 
   // Todo: remove - references files are now dealt with by the mapping script
@@ -168,7 +257,7 @@ const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString})
 const updateConfigWithNewBarcodes = () => {
   verbose("[updateConfigWithNewBarcodes]")
   const newBarcodes = global.datastore.getBarcodesSeen()
-    .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
+      .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
   newBarcodes.forEach((bc) => {
     global.config.barcodeToName[bc] = {name: undefined, order: 0}
   })
@@ -194,8 +283,8 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
 
 
 module.exports = {
-    getInitialConfig,
-    modifyConfig,
-    updateConfigWithNewBarcodes,
-    updateWhichReferencesAreDisplayed
+  getInitialConfig,
+  modifyConfig,
+  updateConfigWithNewBarcodes,
+  updateWhichReferencesAreDisplayed
 };
