@@ -1,6 +1,6 @@
 {
 	"label": "default",
-	"length": 100,
+	"length": 1000,
 	"genes": {
 		"reference": {
 			"start": 1,
