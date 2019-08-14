@@ -44,7 +44,7 @@ const startBasecalledFilesWatcher = async () => {
    */
 
   while (true) {
-    if (fs.existsSync(global.config.basecalledPath)) {
+    if (fs.existsSync(global.config.run.basecalledPath)) {
       startWatcher();
       break;
     }

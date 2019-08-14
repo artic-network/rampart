@@ -67,6 +67,7 @@ function readConfigFile(paths, fileName) {
         if (fs.existsSync(filePath)) {
             verbose(`Reading ${fileName} from ${path}`);
             config = { ...config, ...JSON.parse(fs.readFileSync(filePath))};
+            config.path = normalizePath(path); // add the path of the final config file read - for relative paths
         }
     });
     return config;
@@ -113,7 +114,7 @@ const getInitialConfig = (args) => {
             clearAnnotated: false,
             simulateRealTime: 0
         }
-    }
+    };
 
     config.genome = readConfigFile(pathCascade, GENOME_CONFIG_FILENAME);
     config.primers = readConfigFile(pathCascade, PRIMERS_CONFIG_FILENAME);
@@ -146,10 +147,19 @@ const getInitialConfig = (args) => {
         }
     }
 
+    // todo - check config objects for correctness
+    assert(config.genome, "No genome description has been provided");
+    assert(config.genome.label, "Genome description missing label");
+    assert(config.genome.length, "Genome description missing length");
+    assert(config.genome.genes, "Genome description missing genes");
+
+    assert(config.pipelines, "No pipeline configuration has been provided");
+    assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
 
     if (args.basecalledDir) {
-        config.run.basecalledPath = getAbsolutePath(args.basecalledDir, {relativeTo: process.cwd()});
+        config.run.basecalledPath = args.basecalledDir;
     }
+    config.run.basecalledPath = getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()});
     verbose(`Basecalled path: ${config.run.basecalledPath}`);
 
     if (args.annotatedDir) {
@@ -174,14 +184,11 @@ const getInitialConfig = (args) => {
         verbose(`Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    // todo - check config objects for correctness
-    assert(config.genome, "No genome description has been provided");
-    assert(config.genome.label, "Genome description missing label");
-    assert(config.genome.length, "Genome description missing length");
-    assert(config.genome.genes, "Genome description missing genes");
+    config.pipelines.annotation.path = config.pipelines.path + config.pipelines.annotation.path;
+    config.pipelines.annotation.config = config.pipelines.path + config.pipelines.annotation.config;
 
-    assert(config.pipelines, "No pipeline configuration has been provided");
-    assert(config.pipelines['read-processor'], "Read proccessing pipeline ('read-processor') not defined");
+    ensurePathExists(config.pipelines.annotation.path);
+    ensurePathExists(config.pipelines.annotation.config);
 
     return config;
 };
