@@ -1,12 +1,14 @@
-file_stem: sample_reads #the stem of the fastq file you wish to run through the pipeline
+# file_stem: sample_reads #the stem of the fastq file you wish to run through the pipeline
 
 #Where is the data and where should it be put
 
-input_path: path/to/data #where rampart will find the data
-output_path: path/to/data #where rampart will put the data
+# annotation_path: path/to/protocol
+
+# input_path: path/to/data #where rampart will find the data
+# output_path: path/to/data #where rampart will put the data
 
 #For mapping
-references: references.fasta
+reference_path: references.fasta
 
 #The following are all porechop options
 
@@ -14,5 +16,5 @@ require_two_barcodes: "--require_two_barcodes"
 discard_middle: "--discard_middle"
 no_split: "--no_split"
 discard_unassigned: "" #default keep unassigned, change to --discard_unassigned if you don't want to see unbarcoded reads
-demuxOption: "--native_barcodes"
+demux_option: "--native_barcodes"
 

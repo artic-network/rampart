@@ -1,13 +1,13 @@
 
 ##### Config file #####
 
-configfile: "../default_protocol/pipelines/process_reads/config.yaml" #absolute path from annotation.js
+# configfile: "config.yaml" #absolute path from annotation.js
 
 ##### Target rules #####
 
 rule all:
     input:
-        expand(config["output_path"]+ "/{file_stem}.csv", file_stem=config["file_stem"])
+        expand(config["output_path"]+ "/{filename_stem}.csv", filename_stem=config["filename_stem"])
 
 ##### Modules #####
 include: "rules/demultiplex.smk"

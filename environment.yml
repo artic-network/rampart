@@ -1,4 +1,4 @@
-name: artic-test
+name: artic-rampart
 channels:
   - bioconda
   - conda-forge

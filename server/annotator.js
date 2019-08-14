@@ -30,6 +30,8 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
     pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
+    // pipelineConfig.push(`reference_path=${}`); need a reference path for the snakemake script
+    pipelineConfig.push(`annotation_path=${global.config.pipelines.annotation.path}`);
     if (global.config.pipelines.annotation.config) {
         pipelineConfig.push(...global.config.pipelines.annotation.config)
     }

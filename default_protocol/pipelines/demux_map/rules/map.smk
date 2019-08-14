@@ -1,9 +1,9 @@
 rule minimap2:
     input:
-        fastq= config["output_path"] + "/temp/{file_stem}.fastq",
-        ref= config["references"]
+        fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
+        ref= config["reference_path"] 
     output:
-        config["output_path"] + "/temp/{file_stem}.paf"
+        temp(config["output_path"] + "/temp/{filename_stem}.paf")
     shell:
         "minimap2 -x map-ont --secondary=no --paf-no-hit {input.ref} {input.fastq} > {output}"
         
@@ -13,12 +13,14 @@ rule minimap2:
 
 rule parse_mapping:
     input:
-        fastq= config["output_path"] + "/temp/{file_stem}.fastq",
-        mapped=config["output_path"] + "/temp/{file_stem}.paf"
+        fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
+        mapped= config["output_path"] + "/temp/{filename_stem}.paf"
+    params:
+        path_to_script = config["annotation_path"]
     output:
-        report = config["output_path"] + "/{file_stem}.csv"
+        report = config["output_path"] + "/{filename_stem}.csv"
     shell:
-        "python pipelines/rampart_demux_map/parse_paf.py "
+        "python {params.path_to_script}/parse_paf.py "
         "--paf_file {input.mapped} "
         "--report {output.report} "
         "--annotated_reads {input.fastq}"
