@@ -1,23 +1,25 @@
 rule minimap2:
     input:
-        fastq= config["outputPath"] + "/demuxed/{file_stem}.fastq",
-        ref= config["referencePanelPath"]
+        fastq= config["output_path"] + "/temp/{file_stem}.fastq",
+        ref= config["references"]
     output:
-        config["outputPath"] + "/mapped/{file_stem}.paf"
+        config["output_path"] + "/mapped/{file_stem}.paf"
     shell:
         "minimap2 -x map-ont --secondary=no --paf-no-hit {input.ref} {input.fastq} > {output}"
+        
+#This minimap call runs a mapping optimised for ont reads, only outputs the top hit for each
+#read and writes all reads, even if they don't have a hit (no hit written as ``*`` in paf file)
+
 
 rule parse_mapping:
     input:
-        fastq= config["outputPath"] + "/demuxed/{file_stem}.fastq",
-        mapped=config["outputPath"] + "/mapped/{file_stem}.paf",
-        coordinate=config["outputPath"] + "/coordinate_mapped/{file_stem}.paf"
+        fastq= config["output_path"] + "/temp/{file_stem}.fastq",
+        mapped=config["output_path"] + "/mapped/{file_stem}.paf"
     output:
-        report = config["outputPath"] + "/reports/{file_stem}.csv",
-        annotated_reads = config["outputPath"] + "/annotated_reads/{file_stem}.fastq"
+        report = config["output_path"] + "/reports/{file_stem}.csv"
     shell:
         "python pipelines/rampart_demux_map/parse_paf.py "
         "--paf_file {input.mapped} "
-        "--annotated_reads {input.fastq} "
-        "--report {output.report}"
-
+        "--report {output.report} "
+        "--annotated_reads {input.fastq}"
+#produces a csv report
