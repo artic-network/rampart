@@ -15,6 +15,6 @@ references: references.fasta
 require_two_barcodes: "--require_two_barcodes"
 discard_middle: "--discard_middle"
 no_split: "--no_split"
-discard_unassigned: "--discard_unassigned"
+discard_unassigned: "" #default keep unassigned, change to --discard_unassigned if you don't want to see unbarcoded reads
 demuxOption: "--native_barcodes"
 
