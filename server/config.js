@@ -210,8 +210,10 @@ const getInitialConfig = (args) => {
     config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
     config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config, {relativeTo: config.pipelines.path});
 
-    // config.pipelines.annotation.path = config.pipelines.path + config.pipelines.annotation.path;
-    // config.pipelines.annotation.config = config.pipelines.path + config.pipelines.annotation.config;
+    if (args.annotationConfig) {
+        // add pass-through options to the annotation script
+        config.pipelines.annotation.configOptions = [...args.annotationConfig];
+    }
 
     ensurePathExists(config.pipelines.annotation.path);
     ensurePathExists(config.pipelines.annotation.config);
