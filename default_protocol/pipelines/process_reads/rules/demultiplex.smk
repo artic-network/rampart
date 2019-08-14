@@ -1,18 +1,17 @@
-# configure this in future to demultiplex and write a report rather than copying the data
-
 rule demultiplex_porechop:
     input:
-        config["basecalledPath"] + "/{file_stem}.fastq"
+        config["input_path"] + "/{file_stem}.fastq"
     params:
+    #Can overwrite all of these parameters at the command line when you call snakemake
         require_two_barcodes=config["require_two_barcodes"],
         discard_middle=config["discard_middle"],
         no_split=config["no_split"],
         discard_unassigned=config["discard_unassigned"],
-        native_barcodes = config["demuxOption"]
+        native_barcodes = config["demux_option"]
     threads:
         2
     output:
-        temp(config["outputPath"] + "/demuxed/{file_stem}.fastq")
+        temp(config["output_path"] + "/temp/{file_stem}.fastq")
     shell:
         "porechop --verbosity 0 "
         "-i {input} "
@@ -24,6 +23,6 @@ rule demultiplex_porechop:
         "{params.require_two_barcodes} "
         "{params.discard_middle} "
         "{params.no_split} "
-        # "{params.discard_unassigned} "
+        "{params.discard_unassigned} " # if you don't want to see the reads without a barcode
         "{params.native_barcodes}"
 
