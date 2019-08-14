@@ -2,13 +2,13 @@ file_stem: sample_reads #the stem of the fastq file you wish to run through the 
 
 #Where is the data and where should it be put
 
-basecalledPath: path/to/data #where rampart will find the data
-outputPath: path/to/data #where rampart will put the data
+input_path: path/to/data #where rampart will find the data
+output_path: path/to/data #where rampart will put the data
 
 #For mapping
-referencePanelPath: references.fasta
-referenceConfigPath: coordinate_reference.fasta
-bedPath: scheme.bed # this is optional
+references: references.fasta
+
+
 
 #The following are all porechop options
 
@@ -17,10 +17,4 @@ discard_middle: "--discard_middle"
 no_split: "--no_split"
 discard_unassigned: "--discard_unassigned"
 demuxOption: "--native_barcodes"
-
-# binning options
-
-barcode : BCXX
-min_length: 400
-max_length: 2400
 
