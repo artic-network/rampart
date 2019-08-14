@@ -90,9 +90,10 @@ const annotator = async () => {
 
             // AR - adding a data point in the data store now happens when the annotations are parsed.
             // const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
-            const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
+            // const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
 
             verbose(`[annotator] ${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
+
             addToParserQueue([datastoreAddress, fileToWrite]);
         } catch (err) {
           console.trace(err);

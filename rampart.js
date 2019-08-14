@@ -7,9 +7,7 @@ const Datastore = require("./server/datastore").default;
 
 /* make some globals available everywhere */
 const args = parser.parseArgs();
-args.emptyDemuxed = true; // TODO!
 if (args.verbose) global.VERBOSE = true;
-if (args.mockFailures) global.MOCK_FAILURES = true;
 
 global.config = getInitialConfig(args)
 global.datastore = new Datastore();
@@ -18,8 +16,8 @@ global.fastqsSeen = new Set();
 
 const main = async () => {
   server.run({devClient: args.devClient, ports: args.ports});
-  const success = await startUp({emptyDemuxed: args.emptyDemuxed})
+  const success = await startUp()
   if (success) await startBasecalledFilesWatcher();
-}
+};
 
 main();

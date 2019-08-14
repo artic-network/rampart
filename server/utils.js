@@ -2,6 +2,15 @@ const path = require('path')
 const fs = require("fs");
 const chalk = require('chalk');
 
+/**
+ * Appends a `/` to the end of a path if not there
+ * @param filepath
+ * @returns {string}
+ */
+const normalizePath = (filepath) => {
+  return `${filepath}${filepath.endsWith('/')? "" : "/"}`;
+};
+
 const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
   if (filepath[0] === '~') {
     return path.join(process.env.HOME, filepath.slice(1));
@@ -16,12 +25,12 @@ const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
     return path.join(relativeTo, filepath)
   }
   return path.join(__dirname, "..", filepath)
-}
+};
 
 const deleteFolderRecursive = function(pathToRm) {
   if (fs.existsSync(pathToRm)) {
     fs.readdirSync(pathToRm).forEach(function(file, index){
-      var curPath = path.join(pathToRm, file);
+      let curPath = path.join(pathToRm, file);
       if (fs.lstatSync(curPath).isDirectory()) { // recurse
         deleteFolderRecursive(curPath);
       } else { // delete file
@@ -35,15 +44,18 @@ const deleteFolderRecursive = function(pathToRm) {
 const fatal = (msg) => {
   console.log(chalk.redBright(`[FATAL] ${msg}`));
   process.exit(2);
-}
+};
+
 const verbose = (msg) => {
   if (global.VERBOSE) {
     console.log(chalk.greenBright(`[verbose]\t${msg}`));
   }
 };
+
 const log = (msg) => {
   console.log(chalk.blueBright(msg));
 };
+
 const warn = (msg) => {
   console.warn(chalk.yellowBright(`[warning]\t${msg}`));
 };
@@ -58,10 +70,11 @@ const prettyPath = (path) => {
       return `.../${path.split("/").slice(-3).join("/")}`;
   }
   return path;
-}
+};
 
 
 module.exports = {
+  normalizePath,
   getAbsolutePath,
   sleep,
   prettyPath,

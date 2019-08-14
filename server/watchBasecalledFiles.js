@@ -22,14 +22,14 @@ const newFastqFileHandler = (newfile, details) => {
 }
 
 const startWatcher = () => {
-  const watcher = chokidar.watch(global.config.basecalledPath, {
+  const watcher = chokidar.watch(global.config.run.basecalledPath, {
     ignored: /(^|[/\\])\../,
     interval: 1000,
     persistent: true,
     depth: 1
   });
-  log(`Started watching folder ${global.config.basecalledPath}`);
-  log(`(basecalled files created here will be demuxed)`);
+  log(`Started watching folder ${global.config.run.basecalledPath}`);
+  log(`(basecalled files created here will be annotated and loaded)`);
   watcher.on("add", newFastqFileHandler);
 }
 
