@@ -18,6 +18,7 @@ const config = parser.addArgumentGroup({title: 'Config commands', description: "
 config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedDir', {help: "destination directory for annotation CSVs (default: './annotations')"});
+config.addArgument('--references', {help: "path to a references fasta file"})
 config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"})
 
 const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});

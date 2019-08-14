@@ -8,7 +8,7 @@
 # output_path: path/to/data #where rampart will put the data
 
 #For mapping
-reference_path: references.fasta
+references_file: references.fasta
 
 #The following are all porechop options
 

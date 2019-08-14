@@ -1,7 +1,7 @@
 rule minimap2:
     input:
         fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
-        ref= config["reference_path"] 
+        ref= config["references_file"]
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.paf")
     shell:
@@ -16,7 +16,7 @@ rule parse_mapping:
         fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
         mapped= config["output_path"] + "/temp/{filename_stem}.paf"
     params:
-        path_to_script = config["annotation_path"]
+        path_to_script = config["pipeline_path"]
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
     shell:

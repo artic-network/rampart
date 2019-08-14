@@ -27,10 +27,11 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
 
     pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
     pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
+    pipelineConfig.push(`references_file=${global.config.protocol.references}`);
+    pipelineConfig.push(`pipeline_path=${global.config.pipelines.annotation.path}`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
-    // pipelineConfig.push(`reference_path=${}`); need a reference path for the snakemake script
-    // pipelineConfig.push(`annotation_path=${global.config.pipelines.annotation.path}`);
     if (global.config.pipelines.annotation.configOptions) {
+        // optional additional configuration options from configuration files or arguments
         pipelineConfig.push(...global.config.pipelines.annotation.configOptions)
     }
 
@@ -44,6 +45,24 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     verbose('Annotation script: snakemake ' + spawnArgs.join(" "));
 
     const annotationScript = spawn('snakemake', spawnArgs);
+
+    const out = [];
+    annotationScript.stdout.on(
+        'data',
+        (data) => {
+            out.push(data.toString());
+            verbose(data.toString());
+        }
+    );
+
+    const err = [];
+    annotationScript.stderr.on(
+        'data',
+        (data) => {
+            err.push(data.toString());
+            warn(data.toString());
+        }
+    );
 
     annotationScript.on('close', (code) => {
         // console.log(`Annotation script finished. Exit code ${code}`);

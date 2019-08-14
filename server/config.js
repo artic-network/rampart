@@ -22,6 +22,7 @@ const DEFAULT_PROTOCOL_PATH = "default_protocol";
 const GENOME_CONFIG_FILENAME= "genome.json";
 const PRIMERS_CONFIG_FILENAME = "primers.json";
 const PIPELINES_CONFIG_FILENAME = "pipelines.json";
+const REFERENCES_FILENAME = "references.fasta";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
 
 /**
@@ -73,6 +74,20 @@ function readConfigFile(paths, fileName) {
     return config;
 }
 
+function findConfigFile(paths, fileName) {
+    let foundFilePath = undefined;
+
+    // iterate over the paths looking for the file, return the path to the last version found.
+    paths.forEach( (path) => {
+        const filePath = normalizePath(path) + fileName;
+        if (fs.existsSync(filePath)) {
+            foundFilePath = filePath;
+        }
+    });
+
+    return foundFilePath;
+}
+
 function assert(item, message) {
     if (!item) {
         throw new Error(message);
@@ -121,7 +136,15 @@ const getInitialConfig = (args) => {
     config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
     config.run = { ...config.run, ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME) };
 
+    config.protocol = {};
+    config.protocol.references = findConfigFile(pathCascade, REFERENCES_FILENAME);
+
     // override with command line arguments
+    if (args.references) {
+        config.protocol.references =  args.references;
+    }
+    config.protocol.references = getAbsolutePath(config.protocol.references, {relativeTo: process.cwd()});
+
     if (args.title) {
         config.run.title = args.title;
     }
@@ -184,8 +207,11 @@ const getInitialConfig = (args) => {
         verbose(`Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    config.pipelines.annotation.path = config.pipelines.path + config.pipelines.annotation.path;
-    config.pipelines.annotation.config = config.pipelines.path + config.pipelines.annotation.config;
+    config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
+    config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config, {relativeTo: config.pipelines.path});
+
+    // config.pipelines.annotation.path = config.pipelines.path + config.pipelines.annotation.path;
+    // config.pipelines.annotation.config = config.pipelines.path + config.pipelines.annotation.config;
 
     ensurePathExists(config.pipelines.annotation.path);
     ensurePathExists(config.pipelines.annotation.config);
