@@ -1,0 +1,19 @@
+import os
+import pandas as pd
+from Bio import SeqIO
+
+configfile: "../default_protocol/pipelines/bin_to_fastq/config.yaml" #relative to annotator.js script
+
+
+##### Target rules #####
+
+rule all:
+    input:
+        expand(config["outputPath"] + "/binned/barcode_{barcode}/barcode_{barcode}.fastq",barcode=config["barcode"])
+        #this is saving the binned fastq in its own separate directory within a directory called binned. Can change this. 
+        #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
+
+##### Modules #####
+include: "rules/bin.smk"
+
+

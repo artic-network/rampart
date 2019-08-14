@@ -1,0 +1,7 @@
+input_path: path/to/data #where rampart will find the data (basecalled reads)
+output_path: path/to/default_output
+
+min_length: 1
+max_length: 100000
+
+barcode: NBXX

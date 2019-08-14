@@ -8,8 +8,6 @@ output_path: path/to/data #where rampart will put the data
 #For mapping
 references: references.fasta
 
-
-
 #The following are all porechop options
 
 require_two_barcodes: "--require_two_barcodes"
