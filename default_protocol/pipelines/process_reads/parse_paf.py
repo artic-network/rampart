@@ -33,7 +33,6 @@ def get_barcode_time(reads):
     header_dict = {}
     for record in SeqIO.parse(str(reads),"fastq"):
         header = parse_read_header(str(record.description))
-        unassigned = 0
         try:
             barcode = header["barcode"]
             start_time = header["start_time"]
@@ -42,6 +41,7 @@ def get_barcode_time(reads):
             start_time = header["start_time"]
 
         header_dict[record.id]=(barcode, start_time)
+        
     return header_dict
 
 def parse_paf(paf,report,reads):
@@ -50,8 +50,7 @@ def parse_paf(paf,report,reads):
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len
     unmapped = 0
 
-    if args.reads:
-        header_dict=get_barcode_time(reads)
+    header_dict=get_barcode_time(reads)
 
     with open(str(paf),"r") as f:
         for l in f:
