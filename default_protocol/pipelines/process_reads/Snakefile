@@ -7,7 +7,7 @@ configfile: "../default_protocol/pipelines/process_reads/config.yaml" #absolute 
 
 rule all:
     input:
-        expand(config["output_path"]+ "/{file_stem}.csv", file_stem=config["file_stem"])
+        expand(config["output_path"]+ "/reports/{file_stem}.csv", file_stem=config["file_stem"])
 
 ##### Modules #####
 include: "rules/demultiplex.smk"
