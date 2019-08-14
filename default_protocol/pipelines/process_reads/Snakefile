@@ -1,16 +1,15 @@
 
 ##### Config file #####
 
-configfile: "pipelines/rampart_demux_map/config.yaml"
+configfile: "../default_protocol/pipelines/process_reads/config.yaml" #absolute path from annotation.js
 
 ##### Target rules #####
 
 rule all:
     input:
-        expand(config["outputPath"]+ "/annotated_reads/{file_stem}.fastq", file_stem=config["file_stem"])
+        expand(config["outputPath"]+ "/reports/{file_stem}.csv", file_stem=config["file_stem"])
 
 ##### Modules #####
 include: "rules/demultiplex.smk"
 include: "rules/map.smk"
-include: "rules/bin.smk"
 
