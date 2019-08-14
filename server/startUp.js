@@ -10,7 +10,10 @@ const { prettyPath, verbose, log, deleteFolderRecursive } = require('./utils');
 const getFilesFromDirectory = async (dir, extension) => {
     let fastqs = (await readdir(dir));
     return fastqs
-        .filter((j) => j.endsWith(`.${extension}`) || j.endsWith(`.${extension.toUpperCase()}`))
+        .filter((j) => {
+            const ext = extension;
+            return j.endsWith(`.${ext}`) || j.endsWith(`.${ext.toUpperCase()}`);
+        })
         .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
         .map((j) => path.join(dir, j));
 };
@@ -32,7 +35,7 @@ const startUp = async () => {
 
     let unsortedBasecalledFastqs = [];
     if (global.config.run.basecalledPath) {
-        const unsortedBasecalledFastqs = await getFilesFromDirectory(global.config.run.basecalledPath, 'fastq');
+        unsortedBasecalledFastqs = await getFilesFromDirectory(global.config.run.basecalledPath, 'fastq');
         log(`  * Found ${unsortedBasecalledFastqs.length} basecalled fastqs in ${prettyPath(global.config.run.basecalledPath)}`);
     }
 

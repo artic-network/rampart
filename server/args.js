@@ -16,7 +16,7 @@ parser.addArgument('--protocol', {help: "path to a directory containing protocol
 /* ----------------- CONFIG OPTIONS -------------------- */
 const config = parser.addArgumentGroup({title: 'Config commands', description: "Override options from config files"});
 config.addArgument('--title', {help: "experiment title"});
-config.addArgument('--basecalledDir', {help: "basecalled FASTQ directory (default: don't annotate FASTQs)"});
+config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedDir', {help: "destination directory for annotation CSVs (default: './annotations')"});
 config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"})
 

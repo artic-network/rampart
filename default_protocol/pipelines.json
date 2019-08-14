@@ -1,6 +1,8 @@
 {
-	"read-processor": {
-		"path": "pipelines/process_reads"
+	"annotation": {
+		"name": "Annotate reads",
+		"path": "pipelines/demux_map",
+		"config": "pipelines/demux_map/config.yaml"
 	},
 	"post-processing": [
 		{

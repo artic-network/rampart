@@ -14,7 +14,7 @@ const { addToParserQueue } = require("./annotationParser");
  * for RAMPART (i.e., barcode calls, reference matches and coodinates).
  */
 const annotationQueue = new Deque();
-annotationQueue.observeRangeChange(() => {demuxer();});
+annotationQueue.observeRangeChange(() => { annotator(); });
 const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
 
 /**
@@ -24,18 +24,24 @@ const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
  * @param relaxedDemuxing
  * @returns {Promise<any>}
  */
-const call_annotation_script = (fastqIn, fastqOut, relaxedDemuxing) => new Promise((resolve, reject) => {
-    let spawnArgs = [
-        '--verbosity', '0',
-            '-i', fastqIn,
-            '-o', fastqOut,
-            '--barcode_threshold', '80',
-            '--threads', '2', // '--check_reads', '10000',
-            '--barcode_diff', '5',
-            '--barcode_labels'
-        ];
+const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) => {
+    const pipelineConfig = [];
 
-    console.log('Annotation script: ' + spawnArgs.join(" "));
+    pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
+    pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
+    pipelineConfig.push(`filename_stem=${fastqFileStem}`);
+    if (global.config.pipelines.annotation.config) {
+        pipelineConfig.push(...global.config.pipelines.annotation.config)
+    }
+
+    let spawnArgs = [
+        '--snakefile', global.config.pipelines.annotation.path + "Snakefile",
+        '--configfile', global.config.pipelines.annotation.config,
+        '--cores', '2',
+        '--config', pipelineConfig.join(" ")
+    ];
+
+    verbose('Annotation script: snakemake ' + spawnArgs.join(" "));
 
     const annotationScript = spawn('snakemake', spawnArgs);
 
@@ -79,7 +85,7 @@ const annotator = async () => {
         isRunning = true;
         const fileToAnnotate = annotationQueue.shift();
         const fileToAnnotateBasename = path.basename(fileToAnnotate);
-        const fileToWrite = path.join(global.config.processedPath, fileToAnnotateBasename);
+        const fileToWrite = path.join(global.config.run.annotatedPath, fileToAnnotateBasename);
         try {
             verbose(`[annotator] queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
             await Promise.all([ /* fail fast */
@@ -96,8 +102,8 @@ const annotator = async () => {
 
             addToParserQueue([datastoreAddress, fileToWrite]);
         } catch (err) {
-          console.trace(err);
-          warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);
+            console.trace(err);
+            warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);
         }
         isRunning = false;
         annotator(); // recurse

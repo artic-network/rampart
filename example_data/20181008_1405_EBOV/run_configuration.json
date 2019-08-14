@@ -1,5 +1,6 @@
 {
   "name": "EBOV Validation Run",
+  "basecalledPath": "fastq/pass",
   "samples": [
     {
       "name": "Mayinga",
