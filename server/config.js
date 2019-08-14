@@ -97,7 +97,7 @@ const getInitialConfig = (args) => {
     const userProtocol = args.protocol || (process.env.RAMPART_PROTOCOL || undefined);
 
     if (userProtocol) {
-        const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd});
+        const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
 
         //verbose(`Protocol path: ${userProtocolPath}`);
 

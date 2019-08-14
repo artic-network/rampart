@@ -19,10 +19,8 @@ const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
 
 /**
  * Todo - this needs to be fixed to call the Snakemake pipeline
- * @param fastqIn
- * @param fastqOut
- * @param relaxedDemuxing
  * @returns {Promise<any>}
+ * @param fastqFileStem
  */
 const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) => {
     const pipelineConfig = [];
@@ -31,9 +29,9 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
     // pipelineConfig.push(`reference_path=${}`); need a reference path for the snakemake script
-    pipelineConfig.push(`annotation_path=${global.config.pipelines.annotation.path}`);
-    if (global.config.pipelines.annotation.config) {
-        pipelineConfig.push(...global.config.pipelines.annotation.config)
+    // pipelineConfig.push(`annotation_path=${global.config.pipelines.annotation.path}`);
+    if (global.config.pipelines.annotation.configOptions) {
+        pipelineConfig.push(...global.config.pipelines.annotation.configOptions)
     }
 
     let spawnArgs = [
@@ -86,12 +84,12 @@ const annotator = async () => {
     if (annotationQueue.length > 1 && !isRunning) {
         isRunning = true;
         const fileToAnnotate = annotationQueue.shift();
-        const fileToAnnotateBasename = path.basename(fileToAnnotate);
+        const fileToAnnotateBasename = path.basename(fileToAnnotate, '.fastq');
         const fileToWrite = path.join(global.config.run.annotatedPath, fileToAnnotateBasename);
         try {
             verbose(`[annotator] queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
             await Promise.all([ /* fail fast */
-                call_annotation_script(fileToAnnotate, fileToWrite),
+                call_annotation_script(fileToAnnotateBasename),
                 setReadTime(fileToAnnotate)
             ]);
             const timestamp = getReadTime(fileToAnnotateBasename);

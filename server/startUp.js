@@ -12,7 +12,7 @@ const getFilesFromDirectory = async (dir, extension) => {
     return fastqs
         .filter((j) => {
             const ext = extension;
-            return j.endsWith(`.${ext}`) || j.endsWith(`.${ext.toUpperCase()}`);
+            return j.endsWith(`.${ext}`);
         })
         .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
         .map((j) => path.join(dir, j));
