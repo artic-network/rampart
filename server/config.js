@@ -7,17 +7,6 @@ const fs = require('fs')
 const path = require('path')
 const { normalizePath, getAbsolutePath, verbose, log } = require("./utils");
 
-const ensurePathExists = (p, {make=false}={}) => {
-    if (!fs.existsSync(p)) {
-        if (make) {
-            log(`Creating path ${p}`);
-            fs.mkdirSync(p, {recursive: true})
-        } else {
-            throw new Error(`ERROR. Path ${p} doesn't exist.`);
-        }
-    }
-};
-
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
 const PROTOCOL_FILENAME= "protocol.json";
 const GENOME_CONFIG_FILENAME= "genome.json";
@@ -57,6 +46,17 @@ const RUN_CONFIG_FILENAME = "run_configuration.json";
  * `--barcodeNames`, `--title`, `--basecalledPath`
  *
  */
+
+function ensurePathExists(path, {make=false}={}) {
+    if (!fs.existsSync(path)) {
+        if (make) {
+            log(`Creating path ${path}`);
+            fs.mkdirSync(path, {recursive: true})
+        } else {
+            throw new Error(`ERROR. Path ${path} doesn't exist.`);
+        }
+    }
+};
 
 function readConfigFile(paths, fileName) {
     let config = {};

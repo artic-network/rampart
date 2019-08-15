@@ -18,16 +18,16 @@ const config = parser.addArgumentGroup({title: 'Config commands', description: "
 config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedPath', {help: "path to destination directory for annotation CSVs - will be created if it doesn't exist (default: './annotations')"});
-config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"})
-config.addArgument('--annotationConfig', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"})
+config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"});
+config.addArgument('--annotationConfig', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
 
 const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
 runtime.addArgument('--clearAnnotated', {action: "storeTrue", help: "remove any annotation files present when RAMPART starts up (force re-annotation of all FASTQs)"});
-runtime.addArgument('--simulateRealTime', {type: 'int', defaultValue: 10, help: "simulate real-time annotation with given delay between files"});
+runtime.addArgument('--simulateRealTime', {type: 'int', defaultValue: 0, help: "simulate real-time annotation with given delay between files (default none)"});
 
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});
-development.addArgument('--devClient', {action: "storeTrue", help: "don't serve build (client)"})
+development.addArgument('--devClient', {action: "storeTrue", help: "don't serve build (client)"});
 development.addArgument('--mockFailures', {action: "storeTrue", help: "stochastic failures (annotating / parsing)"});
 
 /* ----------------- DEPRECATED -------------------- */
