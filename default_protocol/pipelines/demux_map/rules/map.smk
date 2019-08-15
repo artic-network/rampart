@@ -16,7 +16,7 @@ rule parse_mapping:
         fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
         mapped= config["output_path"] + "/temp/{filename_stem}.paf"
     params:
-        path_to_script = config["pipeline_path"]
+        path_to_script = workflow.current_basedir
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
     shell:

@@ -1,11 +1,9 @@
-# file_stem: sample_reads #the stem of the fastq file you wish to run through the pipeline
+filename_stem: sample_reads #the stem of the fastq file you wish to run through the pipeline
 
 #Where is the data and where should it be put
 
-# protocol_path: path/to/protocol
-
-# input_path: path/to/data #where rampart will find the data
-# output_path: path/to/data #where rampart will put the data
+input_path: path/to/data #where rampart will find the data
+output_path: path/to/data #where rampart will put the data
 
 #For mapping
 references_file: references.fasta
