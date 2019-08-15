@@ -61,6 +61,8 @@ const startUp = async () => {
     }
     setEpochOffset();
 
+    // any annotation csv files that are already in the annotations folder are sent for parsing:
+
     /* sort the fastqs via these timestamps and push onto the appropriate deques */
     log(`  * Sorting available basecalled and annotation files based on read times`);
     unsortedAnnotationCSVs
@@ -70,9 +72,12 @@ const startUp = async () => {
             global.fastqsSeen.add(path.basename(f));
         });
 
+    // any basecalled fastq files that are already in the basecalled folder but without a matching annotations
+    // csv file are se.t for annotation:
+
     const annotationBasenames = unsortedAnnotationCSVs.map((name) => path.basename(name))
     unsortedBasecalledFastqs
-        .filter((fastqPath) => !annotationBasenames.includes(path.basename(fastqPath)))
+        .filter( (fastqPath) => !annotationBasenames.includes(path.basename(fastqPath, '.fastq')) )
         .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
         .forEach((f) => {
             addToAnnotationQueue(f);

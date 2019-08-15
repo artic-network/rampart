@@ -56,9 +56,9 @@ const annotationParser = async () => {
         isRunning = false;
         annotationParser(); // recurse
     }
-}
+};
 
 module.exports = {
     annotationParser,
     addToParsingQueue
-}
+};
