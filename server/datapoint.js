@@ -4,7 +4,7 @@
  */
 
 // todo combine this with the next function - a datapoint gets created when the annotations are parsed.
-const Datapoint = function(fastqName, barcodeDemuxCounts, timestamp) {
+const Datapoint = function(fastqName, annotations, barcodeDemuxCounts, timestamp) {
   this.data = {};
   this.timestamp = timestamp;
   this.fastqName = fastqName;

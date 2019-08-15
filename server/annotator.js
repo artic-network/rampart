@@ -3,7 +3,7 @@ const path = require('path');
 const Deque = require("collections/deque");
 const { setReadTime, getReadTime } = require("./readTimes");
 const { verbose, warn } = require("./utils");
-const { addToParserQueue } = require("./annotationParser");
+const { addToParsingQueue } = require("./annotationParser");
 
 /**
  * This file defines the deque handler, which processes FASTQ files
@@ -65,11 +65,12 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     );
 
     const err = [];
+    // Snakemakes put info on stderr so only show it if it returns an error code
     annotationScript.stderr.on(
         'data',
         (data) => {
             err.push(data.toString());
-            warn(data.toString());
+            // warn(data.toString());
         }
     );
 
@@ -78,6 +79,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
         if (code === 0) {
             resolve();
         } else {
+            err.forEach( (line) => warn(line) );
             reject();
         }
     });
@@ -113,7 +115,6 @@ const annotator = async () => {
         isRunning = true;
         const fileToAnnotate = annotationQueue.shift();
         const fileToAnnotateBasename = path.basename(fileToAnnotate, '.fastq');
-        const fileToWrite = path.join(global.config.run.annotatedPath, fileToAnnotateBasename);
         try {
             verbose(`[annotator] queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
             await Promise.all([ /* fail fast */
@@ -122,13 +123,15 @@ const annotator = async () => {
             ]);
             const timestamp = getReadTime(fileToAnnotateBasename);
 
+            const fileToParse = path.join(global.config.run.annotatedPath, fileToAnnotateBasename + '.csv');
+
             // AR - adding a data point in the data store now happens when the annotations are parsed.
             // const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
             // const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
 
             verbose(`[annotator] ${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
 
-            addToParserQueue([datastoreAddress, fileToWrite]);
+            addToParsingQueue(fileToParse);
         } catch (err) {
             console.trace(err);
             warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);

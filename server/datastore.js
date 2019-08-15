@@ -20,21 +20,13 @@ const Datastore = function() {
  * Add newly demuxed data to the datastore.
  * Creates anew datapoint & modifies the processedData accordingly.
  */
-Datastore.prototype.addDemuxedFastq = function(fileToDemux, barcodeDemuxCounts, timestamp) {
-  const datapoint = new Datapoint(fileToDemux, barcodeDemuxCounts, timestamp);
+Datastore.prototype.addAnnotations = function(fastqName, annotations) {
+  const datapoint = new Datapoint(fastqName, annotations);
   this.datapoints.push(datapoint);
-  const datapointAddress = this.datapoints.length-1;
-  this.processNewlyDemuxedDatapoint(datapoint);
-  return datapointAddress;
-};
 
-/**
- * Add newly mapped data to the datastore
- * Modifies the appropriate datapoint & modifies the processedData accordingly.
- */
-Datastore.prototype.addMappedFastq = function(datapointAddress, results) {
-  this.datapoints[datapointAddress].addMappedFastq(results);
-  this.processNewlyMappedDatapoint(this.datapoints[datapointAddress]);
+  // todo these should be combined into one...
+  this.processNewlyDemuxedDatapoint(datapoint);
+  this.processNewlyMappedDatapoint(datapoint);
 };
 
 Datastore.prototype.getBarcodesSeen = function() {
