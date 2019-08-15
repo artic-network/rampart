@@ -19,10 +19,10 @@ const ensurePathExists = (p, {make=false}={}) => {
 };
 
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
+const PROTOCOL_FILENAME= "protocol.json";
 const GENOME_CONFIG_FILENAME= "genome.json";
 const PRIMERS_CONFIG_FILENAME = "primers.json";
 const PIPELINES_CONFIG_FILENAME = "pipelines.json";
-const REFERENCES_FILENAME = "references.fasta";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
 
 /**
@@ -124,13 +124,13 @@ const getInitialConfig = (args) => {
     const config = {
         run: {
             title: `Started @ ${(new Date()).toISOString()}`,
-            barcodeToName: {},
             annotatedPath: "annotations",
             clearAnnotated: false,
             simulateRealTime: 0
         }
     };
 
+    config.protocol = readConfigFile(pathCascade, PROTOCOL_FILENAME);
     config.genome = readConfigFile(pathCascade, GENOME_CONFIG_FILENAME);
     config.primers = readConfigFile(pathCascade, PRIMERS_CONFIG_FILENAME);
     config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
@@ -140,25 +140,44 @@ const getInitialConfig = (args) => {
         config.run.title = args.title;
     }
 
-    if (args.barcodeNames) {
-        args.barcodeNames.forEach((raw, idx) => {
-            const [bc, name] = raw.split('=');
-            config.run.barcodeToName[bc] = {name, order: idx}
-        });
-    }
+    if (config.run.samples) {
+        config.run.barcodeNames = {};
 
-    if (config.run.barcodeToName) {
         // if barcode names have been specified then limit demuxing to only those barcodes...
         const limitBarcodesTo = [];
-        for (barcode in config.run.barcodeToName) {
-            const matches = barcode.match(/(\d\d?)/);
-            if (matches) {
-                limitBarcodesTo.push(matches[1]);
-            }
-        }
+        config.run.samples.forEach((sample, index) => {
+            sample.barcodes.forEach((barcode) => {
+                // find an integer in the barcode name
+                const matches = barcode.match(/(\d\d?)/);
+                if (matches) {
+                    limitBarcodesTo.push(matches[1]);
+                }
+                config.run.barcodeNames[barcode] = {name: sample.name, order: index};
+            })
+        });
+
         if (limitBarcodesTo.length > 0) {
             config.run.limitBarcodesTo = [...limitBarcodesTo];
         }
+    }
+
+    // override with any barcode names on the arguments
+    if (args.barcodeNames) {
+        if (!config.run.barcodeNames) {
+            config.run.barcodeNames = {};
+        }
+
+        const count = Object.keys(config.run.barcodeNames).length;
+        args.barcodeNames.forEach((raw, index) => {
+            const [barcode, name] = raw.split('=');
+            if (barcode in config.run.barcodeNames) {
+                // just override the name (not the order)
+                config.run.barcodeNames[barcode].name = name;
+            } else {
+                // add a new name at the end
+                config.run.barcodeNames[barcode] = {name, order: index + count}
+            }
+        });
     }
 
     // todo - check config objects for correctness
@@ -206,7 +225,15 @@ const getInitialConfig = (args) => {
         config.pipelines.annotation.requires.forEach( (requirement) => {
             const filepath = findConfigFile(pathCascade, requirement.file);
             config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${filepath}`);
+
+            if (!filepath) {
+                throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
+            }
         })
+    }
+
+    if (config.run.limitBarcodesTo) {
+        config.pipelines.annotation.configOptions.push(`barcodes=[${config.run.limitBarcodesTo.join(',')}]`);
     }
 
     if (args.annotationConfig) {

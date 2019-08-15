@@ -20,7 +20,7 @@ const getFilesFromDirectory = async (dir, extension) => {
 
 const startUp = async () => {
 
-    log("RAMPART starting up")
+    log("RAMPART starting up");
 
     if (global.config.run.basecalledPath && !fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
         throw new Error("[startUp] no basecalled dir / annotated dir");
@@ -68,7 +68,7 @@ const startUp = async () => {
         .forEach((f) => {
             addToParsingQueue(f);
             global.fastqsSeen.add(path.basename(f));
-        })
+        });
 
     const annotationBasenames = unsortedAnnotationCSVs.map((name) => path.basename(name))
     unsortedBasecalledFastqs
@@ -81,6 +81,6 @@ const startUp = async () => {
 
     log`RAMPART start up FINISHED\n`;
     return true;
-}
+};
 
-module.exports = {startUp}
+module.exports = {startUp};

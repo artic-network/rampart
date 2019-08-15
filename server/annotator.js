@@ -28,12 +28,11 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     // Snakemake will be called like this:
     //
     // pipeline_path, basecalled_path,
-    // snakemake --snakefile [pipeline_path]/Snakefile --configfile [pipeline_path]/config.yaml --cores 2 --config input_path=[basecalled_path] output_path=[annotations_path] protocol_path=[protocol_path]
+    // snakemake --snakefile [pipeline_path]/Snakefile --configfile [pipeline_path]/config.yaml --cores 2 --config input_path=[basecalled_path] output_path=[annotation_path] protocol_path=[protocol_path]
     //
     // [pipeline_path] is the location of the Snakefile and the default config file
     // [basecalled_path] is the location of the basecalled reads
-    // [annotations_path] is the location to write the annotation CSV files
-    // [protocol_path] is the location of the protocol where any auxiliary files (such as references.fasta) will be found.
+    // [annotation_path] is the location to write the annotation CSV files
     //
     // any other config key=value pairs can come from the --annotationConfig argument and these will override any of the above.
 

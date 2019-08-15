@@ -48,16 +48,16 @@ const fatal = (msg) => {
 
 const verbose = (msg) => {
   if (global.VERBOSE) {
-    console.log(chalk.greenBright(`[verbose]\t${msg}`));
+    console.log(chalk.green(`[verbose]\t${msg}`));
   }
 };
 
 const log = (msg) => {
-  console.log(chalk.blueBright(msg));
+  console.log(chalk.blue(msg));
 };
 
 const warn = (msg) => {
-  console.warn(chalk.yellowBright(`[warning]\t${msg}`));
+  console.warn(chalk.yellow(`[warning]\t${msg}`));
 };
 
 const sleep = (ms) => new Promise((resolve) =>
