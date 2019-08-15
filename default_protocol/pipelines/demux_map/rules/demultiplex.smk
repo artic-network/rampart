@@ -7,7 +7,8 @@ rule demultiplex_porechop:
         discard_middle=config["discard_middle"],
         no_split=config["no_split"],
         discard_unassigned=config["discard_unassigned"],
-        native_barcodes = config["demux_option"]
+        native_barcodes = config["demux_option"],
+        barcodes = barcode_string
     threads:
         2
     output:
@@ -20,6 +21,7 @@ rule demultiplex_porechop:
         "--threads 2 "
         "--barcode_diff 5 "
         "--barcode_labels "
+        "--limit-barcodes-to {params.barcodes}"
         "{params.require_two_barcodes} "
         "{params.discard_middle} "
         "{params.no_split} "

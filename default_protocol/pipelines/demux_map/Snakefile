@@ -1,7 +1,10 @@
 
-##### Config file #####
+##### Configuration #####
 
-# configfile: "config.yaml" #absolute path from annotation.js
+barcodes = config["barcodes"]
+barcode_string = ""
+for i in barcodes:
+    barcode_string+=" {}".format(i)
 
 ##### Target rules #####
 
