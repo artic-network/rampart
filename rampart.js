@@ -9,14 +9,14 @@ const Datastore = require("./server/datastore").default;
 const args = parser.parseArgs();
 if (args.verbose) global.VERBOSE = true;
 
-global.config = getInitialConfig(args)
+global.config = getInitialConfig(args);
 global.datastore = new Datastore();
 global.fastqsSeen = new Set();
 
 
 const main = async () => {
   server.run({devClient: args.devClient, ports: args.ports});
-  const success = await startUp()
+  const success = await startUp();
   if (success) await startBasecalledFilesWatcher();
 };
 
