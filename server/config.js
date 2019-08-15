@@ -150,7 +150,7 @@ const getInitialConfig = (args) => {
                 // find an integer in the barcode name
                 const matches = barcode.match(/(\d\d?)/);
                 if (matches) {
-                    limitBarcodesTo.push(matches[1]);
+                    limitBarcodesTo.push(parseInt(matches[1]));
                 }
                 config.run.barcodeNames[barcode] = {name: sample.name, order: index};
             })

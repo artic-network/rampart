@@ -46,9 +46,7 @@ const annotationParser = async () => {
         try {
             verbose(`[parser] queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
             const annotations = await parseAnnotations(fileToParse);
-
-            // todo add annotations to the datastore
-            // global.datastore.addAnnotations(annotations);
+            global.datastore.addAnnotations(fileToParse, annotations);
         } catch (err) {
             //console.trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);
