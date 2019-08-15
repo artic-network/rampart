@@ -1,5 +1,5 @@
 {
-  "name": "EBOV Validation Run",
+  "title": "EBOV Validation Run",
   "basecalledPath": "fastq/pass",
   "samples": [
     {
