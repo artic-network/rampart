@@ -79,5 +79,5 @@ if __name__ == '__main__':
 
     with open(str(args.report), "w") as csv_report:
 
-        csv_report.write("read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,num_matches,aln_block_len\n")
+        csv_report.write("read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len\n")
         parse_paf(args.paf_file,csv_report,args.reads)
