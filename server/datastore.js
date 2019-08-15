@@ -96,8 +96,8 @@ Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_cli
  * Barcode -> sample name
  */
 Datastore.prototype.getSampleName = function(barcode) {
-  if (global.config.barcodeToName[barcode] && global.config.barcodeToName[barcode].name) {
-    return global.config.barcodeToName[barcode].name;
+  if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
+    return global.config.run.barcodeNames[barcode].name;
    }
    return barcode;
 };
@@ -226,9 +226,9 @@ Datastore.prototype.getDataForClient = function() {
 
 Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
   const barcodes = [];
-  Object.keys(global.config.barcodeToName).forEach((key) => {
+  Object.keys(global.config.run.barcodeNames).forEach((key) => {
     if (key === sampleName) barcodes.push(key);
-    if (global.config.barcodeToName[key].name === sampleName) barcodes.push(key);
+    if (global.config.run.barcodeNames[key].name === sampleName) barcodes.push(key);
   });
 
   const matches = [];
