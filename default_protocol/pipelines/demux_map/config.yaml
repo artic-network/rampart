@@ -2,7 +2,7 @@
 
 #Where is the data and where should it be put
 
-# annotation_path: path/to/protocol
+# protocol_path: path/to/protocol
 
 # input_path: path/to/data #where rampart will find the data
 # output_path: path/to/data #where rampart will put the data

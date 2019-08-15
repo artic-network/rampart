@@ -2,7 +2,13 @@
 	"annotation": {
 		"name": "Annotate reads",
 		"path": "pipelines/demux_map",
-		"config": "pipelines/demux_map/config.yaml"
+		"config_file": "config.yaml",
+		"requires": [
+			{
+				"file": "references.fasta",
+				"config_key": "references_file"
+			}
+		]
 	},
 	"post-processing": [
 		{

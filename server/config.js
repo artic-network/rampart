@@ -136,15 +136,6 @@ const getInitialConfig = (args) => {
     config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
     config.run = { ...config.run, ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME) };
 
-    config.protocol = {};
-    config.protocol.references = findConfigFile(pathCascade, REFERENCES_FILENAME);
-
-    // override with command line arguments
-    if (args.references) {
-        config.protocol.references =  args.references;
-    }
-    config.protocol.references = getAbsolutePath(config.protocol.references, {relativeTo: process.cwd()});
-
     if (args.title) {
         config.run.title = args.title;
     }
@@ -208,15 +199,23 @@ const getInitialConfig = (args) => {
     }
 
     config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
-    config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config, {relativeTo: config.pipelines.path});
+    config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config_file, {relativeTo: config.pipelines.path});
+    config.pipelines.annotation.configOptions = [];
+
+    if (config.pipelines.annotation.requires) {
+        config.pipelines.annotation.requires.forEach( (requirement) => {
+            const filepath = findConfigFile(pathCascade, requirement.file);
+            config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${filepath}`);
+        })
+    }
 
     if (args.annotationConfig) {
         // add pass-through options to the annotation script
-        config.pipelines.annotation.configOptions = [...args.annotationConfig];
+        config.pipelines.annotation.configOptions.push(...args.annotationConfig);
     }
 
     ensurePathExists(config.pipelines.annotation.path);
-    ensurePathExists(config.pipelines.annotation.config);
+    ensurePathExists(config.pipelines.annotation.path + "Snakefile");
 
     return config;
 };

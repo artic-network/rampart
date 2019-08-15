@@ -1,0 +1,4 @@
+{
+  "name": "default RAMPART protocol",
+  "description": "demuxes reads using Porechop and then maps to a reference using MiniMap2"
+}

@@ -25,10 +25,20 @@ const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
 const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) => {
     const pipelineConfig = [];
 
+    // Snakemake will be called like this:
+    //
+    // pipeline_path, basecalled_path,
+    // snakemake --snakefile [pipeline_path]/Snakefile --configfile [pipeline_path]/config.yaml --cores 2 --config input_path=[basecalled_path] output_path=[annotations_path] protocol_path=[protocol_path]
+    //
+    // [pipeline_path] is the location of the Snakefile and the default config file
+    // [basecalled_path] is the location of the basecalled reads
+    // [annotations_path] is the location to write the annotation CSV files
+    // [protocol_path] is the location of the protocol where any auxiliary files (such as references.fasta) will be found.
+    //
+    // any other config key=value pairs can come from the --annotationConfig argument and these will override any of the above.
+
     pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
     pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
-    pipelineConfig.push(`references_file=${global.config.protocol.references}`);
-    pipelineConfig.push(`pipeline_path=${global.config.pipelines.annotation.path}`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
     if (global.config.pipelines.annotation.configOptions) {
         // optional additional configuration options from configuration files or arguments
@@ -37,7 +47,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
 
     let spawnArgs = [
         '--snakefile', global.config.pipelines.annotation.path + "Snakefile",
-        '--configfile', global.config.pipelines.annotation.config,
+        '--configfile', global.config.pipelines.annotation.path + global.config.pipelines.annotation.config_file,
         '--cores', '2',
         '--config', pipelineConfig.join(" ")
     ];
