@@ -29,9 +29,9 @@ The resulting CSV report includes the following header fields:
 - start_time
 - barcode
 - best_reference
+- ref_len
 - start_coords
 - end_coords
-- ref_len
 - num_matches
 - aln_block_len
 
