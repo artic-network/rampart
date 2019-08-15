@@ -75,7 +75,7 @@ const startUp = async () => {
     // any basecalled fastq files that are already in the basecalled folder but without a matching annotations
     // csv file are se.t for annotation:
 
-    const annotationBasenames = unsortedAnnotationCSVs.map((name) => path.basename(name));
+    const annotationBasenames = unsortedAnnotationCSVs.map((name) => path.basename(name, '.csv'));
     unsortedBasecalledFastqs
         .filter( (fastqPath) => !annotationBasenames.includes(path.basename(fastqPath, '.fastq')) )
         .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)

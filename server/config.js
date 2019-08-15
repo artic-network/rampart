@@ -192,13 +192,13 @@ const getInitialConfig = (args) => {
     if (args.basecalledDir) {
         config.run.basecalledPath = args.basecalledDir;
     }
-    config.run.basecalledPath = getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()});
+    config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
     verbose(`Basecalled path: ${config.run.basecalledPath}`);
 
     if (args.annotatedDir) {
         config.run.annotatedPath = args.annotatedDir;
     }
-    config.run.annotatedPath = getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()});
+    config.run.annotatedPath = normalizePath(getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()}));
 
     ensurePathExists(config.run.annotatedPath, {make: true});
     verbose(`Annotated path: ${config.run.annotatedPath}`);
