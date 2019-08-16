@@ -1,7 +1,14 @@
-input_path: path/to/data #where rampart will find the data (basecalled reads)
-output_path: path/to/default_output
+##### Where is the data? #####
+
+input_path: path/to/basecalled #where rampart will find the reads
+report_path: path/to/reports #where rampart will find the csv reports
+output_path: path/to/binned #where rampart will put the binned/ filtered files 
+
+##### Length filters #####
 
 min_length: 1
 max_length: 100000
 
-barcode: NBXX
+##### Barcodes to process #####
+
+barcodes: [BCXX,BCYY]
