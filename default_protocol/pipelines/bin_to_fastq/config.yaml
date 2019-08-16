@@ -1,7 +1,7 @@
 ##### Where is the data? #####
 
 input_path: path/to/basecalled #where rampart will find the reads
-report_path: path/to/reports #where rampart will find the csv reports
+annotated_path: path/to/csv #where rampart will find the csv reports
 output_path: path/to/binned #where rampart will put the binned/ filtered files 
 
 ##### Length filters #####
@@ -11,7 +11,7 @@ max_length: 100000
 
 ##### Barcodes to process #####
 
-# barcodes: [BCXX,BCYY]
+barcodes: [BCXX,BCYY]
 
 ##### Binning options #####
 
