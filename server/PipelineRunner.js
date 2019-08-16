@@ -11,10 +11,10 @@ class PipelineRunner {
     /**
      * Constructor
      */
-    constructor(name, snakefile, configfile, configOptions, queue = false) {
+    constructor(name, _snakefilePath, configfilePath, configOptions, queue = false) {
         this._name = name;
-        this._snakefile = snakefile;
-        this._configfile = configfile;
+        this._snakefilePath = _snakefilePath;
+        this._configfilePath = configfilePath;
 
         this._configOptions = configOptions;
 
@@ -22,7 +22,6 @@ class PipelineRunner {
         if (queue) {
             this._jobQueue = new Deque();
             this._jobQueue.observeRangeChange(() => {
-                // todo - will this also see jobs being removed from the queue causing an additional call?
                 this._runJobsInQueue();
             });
         }
@@ -77,7 +76,7 @@ class PipelineRunner {
 
             let spawnArgs = [
                 '--snakefile', this._snakefilePath + "Snakefile",
-                '--configfile', this._snakefilePath + this._configfile,
+                '--configfile', this._configfilePath + this._configfile,
                 // '--cores', '2',
                 '--config', ...pipelineConfig
             ];
@@ -110,7 +109,7 @@ class PipelineRunner {
             process.on('exit', (code, signal) => {
                 verbose(`[${this_name}]: pipeline finished with exit code ${code}`);
                 if (code === 0) {
-                    resolve();
+                     resolve();
                 } else {
                     err.forEach( (line) => warn(line) );
                     reject();
@@ -125,14 +124,14 @@ class PipelineRunner {
      * @private
      */
     async _runJobsInQueue() {
-        if (this._jobQueue.length > 0 && !this._isRunning) {
+        if (!this._isRunning && this._jobQueue.length > 0) {
             this._isRunning = true;
-            const fileToAnnotate = annotationQueue.shift();
-            const fileToAnnotateBasename = path.basename(fileToAnnotate, '.fastq');
+
+            verbose(`[${this_name}] queue length: ${this._jobQueue.length+1}`);
+
+            const job = this._jobQueue.shift();
             try {
-                verbose(`[pipeline] queue length: ${annotationQueue.length+1}. Beginning pipeline: ${fileToAnnotateBasename}`);
-                await this._runPipeline(fileToAnnotateBasename),
-                verbose(`[pipeline] ${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
+                await this._runPipeline(job);
             } catch (err) {
                 console.trace(err);
                 warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);

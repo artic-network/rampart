@@ -4,10 +4,10 @@
 
 ## How RAMPART works
 
-* MinKNOW (which uses `guppy`) produce basecalled fastqs
-* Rampart demuxes these using porechop, extracts read-times from the sequencing summaries
-* Maps twice, once to a single reference sequence to obtain co-ordinates, once against a panel of references to find the closest match.
-* Displayed in the browser (port 3001 by default)
+* MinKNOW (which uses `guppy`) produces basecalled reads as FASTQ files.
+* RAMPART watches for the appearance of these files and processes them using a provided pipeline.
+* The processing demuxes them (if required), and maps them to the closest reference.
+* The progress of the sequencing is then displayed in the browser (port 3001 by default)
 
 ---
 ## Information needed for RAMPART
