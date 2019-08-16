@@ -6,7 +6,8 @@ rule binlorry:
         barcodes= barcode_string,
         min_length= config["min_length"],
         max_length= config["max_length"],
-        outdir = config["output_path"]
+        outdir = config["output_path"],
+        bin_by_option= bin_string
     output:
         reads= expand(config["output_path"] + "/barcode_{barcode}.fastq", barcode=config["barcodes"]),
         report= expand(config["output_path"] + "/barcode_{barcode}.csv", barcode=config["barcodes"])
@@ -16,9 +17,9 @@ rule binlorry:
         "-o {params.outdir}/barcode "
         "-n {params.min_length} "
         "-x {params.max_length} "
-        "--bin-by barcode "
         "--filter-by barcode{params.barcodes} "
         "--out-report"
+        " {params.bin_by_option}"
 
 
 
