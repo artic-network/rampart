@@ -64,7 +64,7 @@ Check `porechop` is available on the command line by running `porechop -h`.
 
 ### Run example datasets
 We're done 🎉
-Why not [run some example datasets](examples.md) to get familiar with RAMPART and make sure everything's working.
+Why not [run some example datasets](old_examples.md) to get familiar with RAMPART and make sure everything's working.
 
 ---
 
@@ -128,7 +128,7 @@ npm run build
 ```
 
 We're done 🎉
-Why not [run some example datasets](examples.md) to get familiar with RAMPART and make sure everything's working.
+Why not [run some example datasets](old_examples.md) to get familiar with RAMPART and make sure everything's working.
 
 
 Testing porechop:

@@ -20,8 +20,9 @@ RAMPART is primarily designed to work with amplicon-based primer schemes (e.g. f
 
 ## Documentation
 
-* [Installation](docs/installation.md)
-* [Running pre-basecalled examples](docs/examples.md)
+* [Quick Start](docs/quickstart.md)
+* [Advanced Installation](docs/advanced.md)
+* [Running demos](docs/old_examples.md)
 * [Instructions for sequencing & basecalling](docs/sequencing.md)
 * [Technical details & file formats](docs/details.md)
 * [Developing](docs/developing.md)

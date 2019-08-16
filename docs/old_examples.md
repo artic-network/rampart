@@ -3,7 +3,7 @@
 
 Right now there are 2 pre-basecalled example datasets available in the GitHub repo.
 
-> NOTE: this assumes you have installed RAMPART by following [these instructions](installation.md)
+> NOTE: this assumes you have installed RAMPART by following [these instructions](old_installation.md)
 
 While it's possible to specify all options & files using the GUI in RAMPART, we provide the full command line options here for simplicity.
 
