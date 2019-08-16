@@ -13,7 +13,7 @@ sample_string = ""
 if config["sample"]:
     sample_string = config["sample"]
 else:
-    sample_string = "_".join(barcodes)
+    config["sample"] = "_".join(barcodes)
 
 ##### Target rules #####
 
