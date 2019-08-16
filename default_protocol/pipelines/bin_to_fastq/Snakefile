@@ -5,13 +5,15 @@ barcode_string = ""
 for i in barcodes:
     barcode_string+=" {}".format(i)
 
+bin_string = ""
+if config["bin_by"] != '':
+    bin_string = "--bin-by " + config["bin_by"]
 
 ##### Target rules #####
 
 rule all:
     input:
-        expand(config["outputPath"] + "/barcode_{barcode}.fastq",barcode=config["barcodes"])
-        #this is saving the binned fastq in its own separate directory within a directory called binned. Can change this. 
+        expand(config["output_path"] + "/barcode_{barcode}.fastq",barcode=config["barcodes"])
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
 
 ##### Modules #####

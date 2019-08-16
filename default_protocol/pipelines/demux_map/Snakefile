@@ -6,6 +6,7 @@ barcode_string = ""
 for i in barcodes:
     barcode_string+=" {}".format(i)
 
+
 ##### Target rules #####
 
 rule all:
