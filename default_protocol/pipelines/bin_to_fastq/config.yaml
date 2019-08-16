@@ -11,7 +11,8 @@ max_length: 100000
 
 ##### Barcodes to process #####
 
-barcodes: [BCXX,BCYY]
+sample: 
+barcodes: BCXX,BCYY
 
 ##### Binning options #####
 

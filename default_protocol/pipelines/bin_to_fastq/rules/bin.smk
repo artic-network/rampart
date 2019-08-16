@@ -1,23 +1,24 @@
 rule binlorry:
     input:
     params:
-        report_dir= config["report_path"],
         path_to_reads= config["input_path"],
-        barcodes= barcode_string,
+        report_dir= config["annotated_path"],
+        outdir = config["output_path"],
         min_length= config["min_length"],
         max_length= config["max_length"],
-        outdir = config["output_path"],
-        bin_by_option= bin_string
+        bin_by_option= bin_string,
+        barcodes = barcode_string,
+        sample=config["sample"]
     output:
-        reads= expand(config["output_path"] + "/barcode_{barcode}.fastq", barcode=config["barcodes"]),
-        report= expand(config["output_path"] + "/barcode_{barcode}.csv", barcode=config["barcodes"])
+        reads= config["output_path"] + "/binned_{sample}.fastq",
+        report= config["output_path"] + "/binned_{sample}.csv"
     shell:
         "binlorry -i {params.path_to_reads} "
         "-t {params.report_dir} "
-        "-o {params.outdir}/barcode "
+        "-o {params.outdir}/binned_{params.sample} "
         "-n {params.min_length} "
         "-x {params.max_length} "
-        "--filter-by barcode{params.barcodes} "
+        "--filter-by barcode {params.barcodes} "
         "--out-report"
         " {params.bin_by_option}"
 
