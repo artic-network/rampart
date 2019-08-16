@@ -11,9 +11,9 @@ class PipelineRunner {
     /**
      * Constructor
      */
-    constructor(name, _snakefilePath, configfilePath, configOptions, queue = false) {
+    constructor(name, snakefilePath, configfilePath, configOptions, queue = false) {
         this._name = name;
-        this._snakefilePath = _snakefilePath;
+        this._snakefilePath = snakefilePath;
         this._configfilePath = configfilePath;
 
         this._configOptions = configOptions;

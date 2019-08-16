@@ -3,6 +3,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { addToParsingQueue } = require("./annotationParser");
 const { addToAnnotationQueue } = require("./annotator");
+const { PipelineRunner } = require("./PipelineRunner");
 const readdir = promisify(fs.readdir);
 const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
 const { prettyPath, verbose, log, deleteFolderRecursive } = require('./utils');
@@ -87,6 +88,10 @@ const startUp = async () => {
         });
 
     log`RAMPART start up FINISHED\n`;
+
+    // testing an output pipeline:
+    //const binFastaPipeline = new PipelineRunner(name, snakefilePath, configfilePath, configOptions, queue);
+
     return true;
 };
 
