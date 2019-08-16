@@ -8,7 +8,7 @@ rule binlorry:
         max_length= config["max_length"],
         bin_by_option= bin_string,
         barcodes = barcode_string,
-        sample=config["sample"]
+        sample = sample_string
     output:
         reads= config["output_path"] + "/binned_{sample}.fastq",
         report= config["output_path"] + "/binned_{sample}.csv"
