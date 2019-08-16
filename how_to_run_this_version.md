@@ -33,7 +33,7 @@ This has a `run_configuration.json` file with all the configuration for the curr
     {
       "name": "Makona",
       "description": "",
-      "barcodes": [ "BC04" ]
+      "barcodes": [ "BC04" ]                                                                        
     },
     {
       "name": "Negative Control",
