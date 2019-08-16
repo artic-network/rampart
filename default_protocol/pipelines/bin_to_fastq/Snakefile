@@ -1,19 +1,25 @@
 ##### Configuration #####
 
-barcodes = config["barcodes"]
+barcodes = config["barcodes"].split(',')
 barcode_string = ""
 for i in barcodes:
     barcode_string+=" {}".format(i)
 
 bin_string = ""
-if config["bin_by"] != '':
+if config["bin_by"]:
     bin_string = "--bin-by " + config["bin_by"]
+
+sample_string = ""
+if config["sample"]:
+    sample_string = config["sample"]
+else:
+    config["sample"] = "_".join(barcodes)
 
 ##### Target rules #####
 
 rule all:
     input:
-        expand(config["output_path"] + "/barcode_{barcode}.fastq",barcode=config["barcodes"])
+        expand(config["output_path"] + "/binned_{sample}.fastq",sample=config["sample"])
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
 
 ##### Modules #####
