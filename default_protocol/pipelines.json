@@ -12,12 +12,17 @@
 	},
 	"post-processing": [
 		{
-			"name": "Bin reads",
-			"path": "pipelines/bin_reads"
+			"name": "Bin reads by barcode",
+			"path": "pipelines/bin_reads",
+			"config": "bin_by=barcode"
 		},
 		{
 			"name": "Build consensus",
 			"path": "pipelines/build_consensus"
+		},
+		{
+			"name": "Export reads",
+			"path": "pipelines/bin_reads"
 		}
 	]
 }
