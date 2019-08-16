@@ -16,4 +16,4 @@ dependencies:
   - pip:
     - msgpack==0.5.6
     - binlorry==0.1
-    - git+https://github.com/artic-network/Porechop.git
+    - git+https://github.com/artic-network/Porechop.git@v0.3.0pre
