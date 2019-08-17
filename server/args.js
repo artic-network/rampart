@@ -18,6 +18,7 @@ const config = parser.addArgumentGroup({title: 'Config commands', description: "
 config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedPath', {help: "path to destination directory for annotation CSVs - will be created if it doesn't exist (default: './annotations')"});
+config.addArgument('--referencesPath', {help: "path to a FASTA file containing a panel of reference sequences"});
 config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"});
 config.addArgument('--annotationConfig', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
 
@@ -32,7 +33,6 @@ development.addArgument('--mockFailures', {action: "storeTrue", help: "stochasti
 
 /* ----------------- DEPRECATED -------------------- */
 // const deprecated = parser.addArgumentGroup({title: 'Deprecated commands'});
-// config.addArgument('--referencePanelPath', {help: "FASTA reference panel"});
 // config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
 
 module.exports = {

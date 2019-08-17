@@ -222,14 +222,23 @@ const getInitialConfig = (args) => {
     config.pipelines.annotation.configOptions = [];
 
     if (config.pipelines.annotation.requires) {
+        // find any file that the pipeline requires
         config.pipelines.annotation.requires.forEach( (requirement) => {
-            const filepath = findConfigFile(pathCascade, requirement.file);
+            let filepath = findConfigFile(pathCascade, requirement.file);
+
+            if (requirement.config_key === 'references_file' && args.referencesPath) {
+                // override the references path if specified on the command line
+                filepath = getAbsolutePath(args.referencesPath, {relativeTo: process.cwd()});
+                ensurePathExists(filepath);
+            }
+
             config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${filepath}`);
 
             if (!filepath) {
                 throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
             }
-        })
+
+        });
     }
 
     if (config.run.limitBarcodesTo) {
