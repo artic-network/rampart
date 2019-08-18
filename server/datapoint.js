@@ -8,31 +8,29 @@
 * annotations is an array of objects with the following values for each read:
 *  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
 */
-const Datapoint = function(fastqName, annotations, barcodeDemuxCounts, timestamp) {
+const Datapoint = function(fastqName, annotations, timestamp) {
   this.data = {};
   this.timestamp = timestamp;
   this.fastqName = fastqName;
 
-  for (const [bc, demuxedCount] of Object.entries(barcodeDemuxCounts)) {
-    const barcode = this.getBarcodeName(bc);
-    this.data[barcode] = {
-      demuxedCount,
-      mappedCount: 0,
-      readPositions: [],
-      readLengths: [],
-      readTopRefHits: [],
-      refMatches: {},
-      fastqPosition: [],
-    };
-  }
-
   annotations.forEach((d, index) => {
 
     const barcode = this.getBarcodeName(d.barcode);
+
     if (!this.data[barcode]) {
-      throw new Error(`Mapping barcode "${barcode}" not one of the demuxed barcodes`)
+      this.data[barcode] = {
+        barcodeCount: 0,
+        mappedCount: 0,
+        readPositions: [],
+        readLengths: [],
+        readTopRefHits: [],
+        refMatches: {},
+        fastqPosition: [],
+      };
     }
+
     this.data[barcode].fastqPosition.push(index);
+    this.data[barcode].barcodeCount++;
     this.data[barcode].mappedCount++;
     this.data[barcode].readPositions.push([d.start_coords, d.end_coords]);
     this.data[barcode].readTopRefHits.push(d.best_reference);
@@ -40,7 +38,8 @@ const Datapoint = function(fastqName, annotations, barcodeDemuxCounts, timestamp
     if (!this.data[barcode].refMatches[d.best_reference]) {
       this.data[barcode].refMatches[d.best_reference] = [];
     }
-    this.data[barcode].refMatches[d.best_reference].push(d.num_matches);
+    const similarity = d.num_matches / d.aln_block_len;
+    this.data[barcode].refMatches[d.best_reference].push(similarity);
   });
 };
 
