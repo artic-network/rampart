@@ -109,18 +109,23 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
 
 let isRunning = false; // only want one annotation thread at a time!
 const annotator = async () => {
+
     // console.log("annotator watching deque with ", annotationQueue.length, "files")
+
     // waiting for >= 2 files here, as guppy continuously writes to files
     if (annotationQueue.length > 1 && !isRunning) {
         isRunning = true;
+
         const fileToAnnotate = annotationQueue.shift();
         const fileToAnnotateBasename = path.basename(fileToAnnotate, '.fastq');
+
         try {
             verbose(`[annotator] queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
             await Promise.all([ /* fail fast */
                 call_annotation_script(fileToAnnotateBasename),
                 setReadTime(fileToAnnotate)
             ]);
+
             const timestamp = getReadTime(fileToAnnotateBasename);
 
             const fileToParse = path.join(global.config.run.annotatedPath, fileToAnnotateBasename + '.csv');

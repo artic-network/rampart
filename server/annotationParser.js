@@ -46,7 +46,11 @@ const annotationParser = async () => {
         try {
             verbose(`[parser] queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
             const annotations = await parseAnnotations(fileToParse);
-            global.datastore.addAnnotations(fileToParse, annotations);
+
+            const filenameStem = path.basename(fileToParse, '.csv');
+
+            global.datastore.addAnnotations(filenameStem, annotations);
+
         } catch (err) {
             //console.trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);

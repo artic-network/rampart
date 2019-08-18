@@ -2,8 +2,12 @@
  * A Datapoint is currently the demuxing / mapping results from a single FASTQ file.
  * It contains getter & setter prototypes.
  */
-
-// todo combine this with the next function - a datapoint gets created when the annotations are parsed.
+/*
+* When mapping is successful we want to insert the data into the datastore
+*
+* annotations is an array of objects with the following values for each read:
+*  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
+*/
 const Datapoint = function(fastqName, annotations, barcodeDemuxCounts, timestamp) {
   this.data = {};
   this.timestamp = timestamp;
@@ -21,57 +25,45 @@ const Datapoint = function(fastqName, annotations, barcodeDemuxCounts, timestamp
       fastqPosition: [],
     };
   }
-}
 
-/**
- * When mapping is successful we want to insert the data into the datastore
- * @param {obj} results from mapper. Array of Arrays. Each array of length 5
- *    [0] {int} fastqPosition (0-based)
- *    [1] {str} barcode
- *    [2] {str} best reference
- *    [3] {int} mapping start pos
- *    [4] {int} mapping end pos (note: may be "less than" [2])
- *    [5] {float} mapping match frac
- */
-Datapoint.prototype.addMappedFastq = function(results) {
-  results.forEach((d) => {
-    const barcode = this.getBarcodeName(d[1]);
+  annotations.forEach((d, index) => {
+
+    const barcode = this.getBarcodeName(d.barcode);
     if (!this.data[barcode]) {
       throw new Error(`Mapping barcode "${barcode}" not one of the demuxed barcodes`)
     }
-    this.data[barcode].fastqPosition.push(d[0]);
+    this.data[barcode].fastqPosition.push(index);
     this.data[barcode].mappedCount++;
-    this.data[barcode].readPositions.push([d[3], d[4]]);
-    this.data[barcode].readTopRefHits.push(d[2]);
-    this.data[barcode].readLengths.push(Math.abs(d[4]-d[3]));
-    if (this.data[barcode].refMatches[d[2]]) {
-      this.data[barcode].refMatches[d[2]].push(d[5]);
-    } else {
-      this.data[barcode].refMatches[d[2]] = [d[5]];
+    this.data[barcode].readPositions.push([d.start_coords, d.end_coords]);
+    this.data[barcode].readTopRefHits.push(d.best_reference);
+    this.data[barcode].readLengths.push(d.read_len);
+    if (!this.data[barcode].refMatches[d.best_reference]) {
+      this.data[barcode].refMatches[d.best_reference] = [];
     }
+    this.data[barcode].refMatches[d.best_reference].push(d.num_matches);
   });
-}
+};
 
 Datapoint.prototype.getBarcodeName = function(barcode) {
   if (barcode === "none") return "noBarcode";
   return barcode;
-}
+};
 
 Datapoint.prototype.getBarcodes = function() {
   return Object.keys(this.data);
-}
+};
 
 Datapoint.prototype.getTimestamp = function() {
   return this.timestamp;
-}
+};
 
 Datapoint.prototype.getDemuxedCount = function(barcode) {
   return this.data[barcode].demuxedCount;
-}
+};
 
 Datapoint.prototype.getMappedCount = function(barcode) {
   return this.data[barcode].mappedCount;
-}
+};
 
 Datapoint.prototype.appendRefMatchCounts = function (barcode, refMatchCounts) {
   for (const [ref, values] of Object.entries(this.data[barcode].refMatches)) {
@@ -80,7 +72,7 @@ Datapoint.prototype.appendRefMatchCounts = function (barcode, refMatchCounts) {
     }
     refMatchCounts[ref] += values.length;
   }
-}
+};
 
 Datapoint.prototype.appendReadsToCoverage = function (barcode, coverage, genomeResolution) {
   for (const pos of this.data[barcode].readPositions) {
@@ -92,7 +84,7 @@ Datapoint.prototype.appendReadsToCoverage = function (barcode, coverage, genomeR
       coverage[i]++
     }
   }
-}
+};
 
 Datapoint.prototype.appendReadLengthCounts = function(barcode, readLengthCounts, readLengthResolution) {
   /* store them in `tmp` as key-value pairs so we can only keep the xvalues where we have data */
@@ -103,7 +95,7 @@ Datapoint.prototype.appendReadLengthCounts = function(barcode, readLengthCounts,
     }
     readLengthCounts[len]++
   })
-}
+};
 
 Datapoint.prototype.appendReferenceMatchCounts = function(barcode, refMatchesAcrossGenome, refNameToPanelIdx, genomeResolution) {
   this.data[barcode].readPositions.forEach((pos, idx) => {
@@ -116,7 +108,7 @@ Datapoint.prototype.appendReferenceMatchCounts = function(barcode, refMatchesAcr
       refMatchesAcrossGenome[refIdx][i]++
     }
   })
-}
+};
 
 Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minReadLen, maxReadLen) {
   const barcodeData = this.data[barcode];
@@ -125,8 +117,8 @@ Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minRead
     for (let i=0; i<barcodeData.readLengths.length; i++) {
       // MATCH FILTERS
       if (
-        barcodeData.readLengths[i] >= minReadLen && 
-        barcodeData.readLengths[i] <= maxReadLen
+          barcodeData.readLengths[i] >= minReadLen &&
+          barcodeData.readLengths[i] <= maxReadLen
       ) {
         fastqPositions.push(barcodeData.fastqPosition[i])
       }
@@ -134,6 +126,6 @@ Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minRead
     return [this.fastqName, fastqPositions]
   }
   return false;
-}
+};
 
 module.exports = { default: Datapoint };

@@ -17,16 +17,16 @@ const Datastore = function() {
 };
 
 /**
- * Add newly demuxed data to the datastore.
- * Creates anew datapoint & modifies the processedData accordingly.
+ * Add newly annotated data to the datastore.
+ * Creates a new datapoint & modifies the processedData accordingly.
+ *
+ * annotations is an array of objects with the following values for each read:
+ *  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
  */
-Datastore.prototype.addAnnotations = function(fastqName, annotations) {
-  const datapoint = new Datapoint(fastqName, annotations);
+Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
+  const datapoint = new Datapoint(fileNameStem, annotations);
   this.datapoints.push(datapoint);
-
-  // todo these should be combined into one...
-  this.processNewlyDemuxedDatapoint(datapoint);
-  this.processNewlyMappedDatapoint(datapoint);
+  this.processDatapoint(datapoint);
 };
 
 Datastore.prototype.getBarcodesSeen = function() {
@@ -39,7 +39,17 @@ Datastore.prototype.getBarcodesSeen = function() {
  * @param datapoint {Datapoint}
  * @param notify_client {bool} if true, then the client will be sent new data
  */
-Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, notify_client=true) {
+
+/*
+This is an amalgam of
+    Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, notify_client=true)
+    Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_client=true)
+    as the data point is processed once (after annotation).
+ */
+
+Datastore.prototype.processDatapoint = function(datapoint, notify_client=true) {
+  timerStart("processDatapoint");
+
   const barcodes = datapoint.getBarcodes();
   let newBarcodesSeen = false;
   barcodes.forEach((barcode) => {
@@ -54,24 +64,8 @@ Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, notify_cl
     }
     this.processedData[sampleName].demuxedCount += datapoint.getDemuxedCount(barcode);
   });
-  if (notify_client) {
-    global.NOTIFY_CLIENT_DATA_UPDATED()
-  }
-  if (newBarcodesSeen) {
-    updateConfigWithNewBarcodes();
-  }
-};
 
-
-/**
- * ammends this.processedData when a datapoint has had mapping info added
- * @param datapoint {Datapoint}
- * @param notify_client {bool} if true, then the client will be sent new data
- */
-Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_client=true) {
-  timerStart("processNewlyMappedDatapoint");
   const nGenomeSlices = Math.ceil(global.config.reference.length / this.viewOptions.genomeResolution);
-  const barcodes = datapoint.getBarcodes();
   const refNameToPanelIdx = {};
   global.config.referencePanel.forEach((obj, idx) => {refNameToPanelIdx[obj.name] = idx;});
 
@@ -85,9 +79,14 @@ Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_cli
     datapoint.appendReadLengthCounts(barcode, this.processedData[sampleName].readLengthCounts, this.viewOptions.readLengthResolution);
     datapoint.appendReferenceMatchCounts(barcode, this.processedData[sampleName].refMatchCountsAcrossGenome, refNameToPanelIdx, this.viewOptions.genomeResolution);
   });
-  timerEnd("processNewlyMappedDatapoint");
+
+  timerEnd("processDatapoint");
+
   if (notify_client) {
-    global.NOTIFY_CLIENT_DATA_UPDATED();
+    global.NOTIFY_CLIENT_DATA_UPDATED()
+  }
+  if (newBarcodesSeen) {
+    updateConfigWithNewBarcodes();
   }
 };
 
@@ -98,8 +97,8 @@ Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_cli
 Datastore.prototype.getSampleName = function(barcode) {
   if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
     return global.config.run.barcodeNames[barcode].name;
-   }
-   return barcode;
+  }
+  return barcode;
 };
 
 /**
@@ -137,9 +136,9 @@ Datastore.prototype.reprocessAllDatapoints = function() {
   this.datapoints.forEach((datapoint) => {
     this.processNewlyDemuxedDatapoint(datapoint, false);
     this.processNewlyMappedDatapoint(datapoint, false);
-  })
+  });
   global.NOTIFY_CLIENT_DATA_UPDATED();
-}
+};
 
 
 const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
@@ -158,12 +157,12 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
     }
   }
   const refsToDisplay = Object.keys(refsAboveThres)
-    .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
-    .slice(0, maxNum);
+      .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+      .slice(0, maxNum);
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatches;
-}
+};
 
 /**
  * Creates a summary of data (similar to `this.processedData`) to deliver to the client.
@@ -211,11 +210,11 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
     demuxedCount: Object.values((processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
     mappedCount: Object.values((processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
     temporal: summariseOverallTemporalData(summarisedData)
-  }
+  };
 
   timerEnd("collectSampleDataForClient");
   return [summarisedData, combinedData];
-}
+};
 
 Datastore.prototype.getDataForClient = function() {
   const [dataPerSample, combinedData] = collectSampleDataForClient(this.processedData, this.viewOptions);
@@ -258,14 +257,14 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
 // };
     // instead of converting to %age, just add the total in (so it can be calculated by the UI)
 const summariseRefMatches = function(refMatchCounts) {
-  const refMatches = {};
-  const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
-  for (const ref of Object.keys(refMatchCounts)) {
-    refMatches[ref] = refMatchCounts[ref];
-  }
-  refMatches['total'] = total;
-  return refMatches;
-};
+      const refMatches = {};
+      const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
+      for (const ref of Object.keys(refMatchCounts)) {
+        refMatches[ref] = refMatchCounts[ref];
+      }
+      refMatches['total'] = total;
+      return refMatches;
+    };
 
 
 const summariseTemporalData = function(temporalMap) {
@@ -317,8 +316,8 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
 
   for (let xIdx=0; xIdx<nGenomeSlices; xIdx++) {
     const totalReadsHere = refMatchCountsAcrossGenome
-      .map((gSlices) => gSlices[xIdx])
-      .reduce((a, b) => a+b)
+        .map((gSlices) => gSlices[xIdx])
+        .reduce((a, b) => a+b)
     let yPosition = 0;
     for (let refIdx=0; refIdx<nReferences; refIdx++) {
       /* require >10 reads to calc stream */
@@ -333,9 +332,9 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
 
 /**
  * We want to create an array of `[ [time, mappedCount], ... ]` for all barcodes combined.
- * 
- * This exists for each sample, however be aware that the time entries for individual barcodes 
- * may be different e.g. BC01 may have time=42, but BC02 may not, so we must "remember" the 
+ *
+ * This exists for each sample, however be aware that the time entries for individual barcodes
+ * may be different e.g. BC01 may have time=42, but BC02 may not, so we must "remember" the
  * value last seen and use this instead.
  */
 const summariseOverallTemporalData = (summarisedData) => {
@@ -352,8 +351,8 @@ const summariseOverallTemporalData = (summarisedData) => {
   }
 
   const temporal = [...timesSeen].map((n) => parseInt(n, 10))
-    .sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1)
-    .map((time) => ({time, mappedCount: 0}));
+      .sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1)
+      .map((time) => ({time, mappedCount: 0}));
 
   /* Loop over each sampleName */
   Object.keys(summarisedData).forEach((sampleName) => {
@@ -371,7 +370,6 @@ const summariseOverallTemporalData = (summarisedData) => {
   });
   return temporal;
 };
-
 
 
 /* adds temporal data to the temporalMap */
