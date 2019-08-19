@@ -5,7 +5,7 @@
  */
 const fs = require('fs')
 const path = require('path')
-const { normalizePath, getAbsolutePath, verbose, log } = require("./utils");
+const { normalizePath, getAbsolutePath, verbose, log, fatal } = require("./utils");
 
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
 const PROTOCOL_FILENAME= "protocol.json";
@@ -94,8 +94,9 @@ function assert(item, message) {
     }
 }
 
-const getInitialConfig = (args) => {
-
+const getInitialConfig = (args) => {    
+    
+    /* NOTE: as rampart becomes an executable on $PATH, this logic will need to change */
     if (!process.argv[1].endsWith('rampart.js')) {
         throw new Error(`ERROR. Can't get RAMPART path from argv[1]: ${process.argv[1]}`);
     }
@@ -113,9 +114,7 @@ const getInitialConfig = (args) => {
 
     if (userProtocol) {
         const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
-
         //verbose(`Protocol path: ${userProtocolPath}`);
-
         pathCascade.push(normalizePath(userProtocolPath));
     }
 
@@ -184,10 +183,17 @@ const getInitialConfig = (args) => {
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
 
-    if (args.basecalledDir) {
-        config.run.basecalledPath = args.basecalledDir;
+
+    if (args.basecalledPath) {
+        /* overwrite any JSON defined path with a command line arg */
+        config.run.basecalledPath = args.basecalledPath;
     }
-    config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
+    try {
+        config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
+    } catch (err) {
+        console.error(err.message)
+        fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
+    }
     verbose(`Basecalled path: ${config.run.basecalledPath}`);
 
     if (args.annotatedDir) {
