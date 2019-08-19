@@ -144,22 +144,16 @@ const getInitialConfig = (args) => {
         config.run.barcodeNames = {};
 
         // if barcode names have been specified then limit demuxing to only those barcodes...
-        const limitBarcodesTo = [];
         config.run.samples.forEach((sample, index) => {
             sample.barcodes.forEach((barcode) => {
-                // find an integer in the barcode name
-                const matches = barcode.match(/(\d\d?)/);
-                if (matches) {
-                    limitBarcodesTo.push(parseInt(matches[1]));
-                }
+                // // find an integer in the barcode name
+                // const matches = barcode.match(/(\d\d?)/);
+                // if (matches) {
+                //     limitBarcodesTo.push(parseInt(matches[1]));
+                // }
                 config.run.barcodeNames[barcode] = {name: sample.name, order: index};
             })
         });
-
-        if (limitBarcodesTo.length > 0) {
-            config.run.limitBarcodesTo = [...limitBarcodesTo];
-        }
-    }
 
     // override with any barcode names on the arguments
     if (args.barcodeNames) {
@@ -241,8 +235,8 @@ const getInitialConfig = (args) => {
         });
     }
 
-    if (config.run.limitBarcodesTo) {
-        config.pipelines.annotation.configOptions.push(`barcodes=[${config.run.limitBarcodesTo.join(',')}]`);
+    if (Object.keys(config.run.barcodeNames).length > 0) {
+        config.pipelines.annotation.configOptions.push(`barcodes=${Object.keys(config.run.barcodeNames).join(',')}`);
     }
 
     if (args.annotationConfig) {
