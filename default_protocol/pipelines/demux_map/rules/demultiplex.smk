@@ -21,7 +21,7 @@ rule demultiplex_porechop:
         "--threads 2 "
         "--barcode_diff 5 "
         "--barcode_labels "
-        "--limit-barcodes-to {params.barcodes}"
+        "--limit-barcodes-to {params.barcodes} "
         "{params.require_two_barcodes} "
         "{params.discard_middle} "
         "{params.no_split} "
