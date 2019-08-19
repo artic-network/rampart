@@ -65,6 +65,7 @@ Datastore.prototype.processDatapoint = function(datapoint, notify_client=true) {
     this.processedData[sampleName].demuxedCount += datapoint.getDemuxedCount(barcode);
   });
 
+  // todo the global config no longer has a reference sequence - the reference sequence length is given for each read
   const nGenomeSlices = Math.ceil(global.config.reference.length / this.viewOptions.genomeResolution);
   const refNameToPanelIdx = {};
   global.config.referencePanel.forEach((obj, idx) => {refNameToPanelIdx[obj.name] = idx;});
