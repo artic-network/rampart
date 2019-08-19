@@ -37,3 +37,6 @@ demuxed/
 
 # folder with temporary run-specific data
 /tmp/
+
+# snakemake stuff
+.snakemake/
