@@ -1,10 +1,10 @@
 
 ##### Configuration #####
 
-barcodes = config["barcodes"]
+barcodes = config["barcodes"].split(',')
 barcode_string = ""
 for i in barcodes:
-    barcode_string+=" {}".format(i)
+    barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
 
 
 ##### Target rules #####

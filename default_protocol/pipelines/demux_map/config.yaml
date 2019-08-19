@@ -22,4 +22,4 @@ demux_option: "--native_barcodes"
 
 ##### Expected barcodes #####
 
-barcodes: [01,02,03,04,05,06]
+barcodes: NB01,NB02,NB03,NB04,NB05,NB06
