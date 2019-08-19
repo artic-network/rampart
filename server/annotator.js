@@ -13,9 +13,11 @@ const { addToParsingQueue } = require("./annotationParser");
  * newly basecalled fastq files and provides all necessary annotations
  * for RAMPART (i.e., barcode calls, reference matches and coodinates).
  */
+
 const annotationQueue = new Deque();
-annotationQueue.observeRangeChange(() => { annotator(); });
-const addToAnnotationQueue = (thing) => annotationQueue.push(thing);
+
+annotationQueue.observeRangeChange( () => { annotator(); } );
+const addToAnnotationQueue = (fastqFile) => annotationQueue.push(fastqFile);
 
 /**
  * Todo - this needs to be fixed to call the Snakemake pipeline
@@ -112,7 +114,8 @@ const annotator = async () => {
 
     // console.log("annotator watching deque with ", annotationQueue.length, "files")
 
-    // waiting for >= 2 files here, as guppy continuously writes to files
+    // waiting for >= 2 files here, as guppy continuously writes to files and we don't know if it
+    // has finished until a new one appears.
     if (annotationQueue.length > 1 && !isRunning) {
         isRunning = true;
 
@@ -146,4 +149,4 @@ const annotator = async () => {
     }
 }
 
-module.exports = { annotator, addToAnnotationQueue };
+module.exports = { addToAnnotationQueue };

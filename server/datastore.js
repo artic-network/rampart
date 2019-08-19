@@ -48,7 +48,7 @@ This is an amalgam of
  */
 
 Datastore.prototype.processDatapoint = function(datapoint, notify_client=true) {
-  timerStart("processDatapoint");
+  // timerStart("processDatapoint");
 
   const barcodes = datapoint.getBarcodes();
   let newBarcodesSeen = false;
@@ -80,7 +80,7 @@ Datastore.prototype.processDatapoint = function(datapoint, notify_client=true) {
     datapoint.appendReferenceMatchCounts(barcode, this.processedData[sampleName].refMatchCountsAcrossGenome, refNameToPanelIdx, this.viewOptions.genomeResolution);
   });
 
-  timerEnd("processDatapoint");
+  // timerEnd("processDatapoint");
 
   if (notify_client) {
     global.NOTIFY_CLIENT_DATA_UPDATED()

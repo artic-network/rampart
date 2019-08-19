@@ -38,7 +38,7 @@ const startBasecalledFilesWatcher = async () => {
   /* overview:
    * we've already scanned the file for pre-existing fastqs and pushed them onto the deque
    * global.fastqsSeen contains the names of all of these (mainly for debugging purposes)
-   * dogfish writes fastqs into this directory in sequential order, i.e.
+   * guppy writes fastqs into this directory in sequential order, i.e.
    * when fastq_<n>.fastq appears, fastq_<n-1>.fastq can be processed
    * We watch for file creation then add the previous fastq to the deque
    */
