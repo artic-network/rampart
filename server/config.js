@@ -152,8 +152,9 @@ const getInitialConfig = (args) => {
                 //     limitBarcodesTo.push(parseInt(matches[1]));
                 // }
                 config.run.barcodeNames[barcode] = {name: sample.name, order: index};
-            })
+            });
         });
+    }
 
     // override with any barcode names on the arguments
     if (args.barcodeNames) {
