@@ -35,7 +35,7 @@ global.CONFIG_UPDATED = () => sendConfig();
  * client has just connected
  */
 const initialConnection = (socket) => {
-  if (!global.config.run.basecalledPath) {
+  if (!global.config.basecalledPath) {
     verbose("socket", "noBasecalledPath");
     return socket.emit("noBasecalledPath")
   }
