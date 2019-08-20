@@ -5,22 +5,22 @@
     {
       "name": "Mayinga",
       "description": "",
-      "barcodes": [ "BC01" ]
+      "barcodes": [ "NB01" ]
     },
     {
       "name": "Kikwit",
       "description": "",
-      "barcodes": [ "BC03" ]
+      "barcodes": [ "NB03" ]
     },
     {
       "name": "Makona",
       "description": "",
-      "barcodes": [ "BC04" ]
+      "barcodes": [ "NB04" ]
     },
     {
       "name": "Negative Control",
       "description": "",
-      "barcodes": [ "BC02" ]
+      "barcodes": [ "NB02" ]
     }
   ]
 }
