@@ -45,9 +45,14 @@ The config file can be in yaml or json format.
 To overwrite values via the command line:
 ```
 snakemake --snakefile pipelines/bin_to_fastq/Snakefile \
---config barcode=NBXX \
-output_path=examples/data/pipeline_output \
-input_path=examples/data/basecalled
+--configfile pipelines/bin_to_fastq/config.yaml \
+--config input_path=../artic-polio/data/basecalled \
+annotated_path=../artic-polio/data/test_rampart_pipeline \
+output_path=../artic-polio/data/test_rampart_binned \
+min_length=500 \
+max_length=1500 \
+barcodes=NB19,NB20 \
+sample=sample_19_20
 ```
 
 This pipeline will result in files produced in examples/data/pipeline_output under ``binned``.
