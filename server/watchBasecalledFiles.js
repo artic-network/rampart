@@ -11,7 +11,7 @@ const newFastqFileHandler = (newfile, details) => {
     if (global.fastqsSeen.has(basename)) {
       return;
     }
-    verbose(`[fastq watcher] new basecalled file => adding "${basename}" to annotation queue.`);
+    verbose("fastq watcher", `new basecalled file => adding "${basename}" to annotation queue.`);
     addToAnnotationQueue(newfile);
     global.fastqsSeen.add(basename);
 
@@ -29,7 +29,7 @@ const startWatcher = () => {
     depth: 1
   });
   log(`Started watching folder ${global.config.run.basecalledPath}`);
-  log(`(basecalled files created here will be annotated and loaded)`);
+  log(`(basecalled files created here will be annotated and loaded)\n`);
   watcher.on("add", newFastqFileHandler);
 }
 

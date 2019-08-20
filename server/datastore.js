@@ -3,18 +3,15 @@ const { timerStart, timerEnd } = require('./timers');
 const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed } = require("./config");
 
 /**
- * The main store of all demuxed & mapped data
+ * The main store of all annotated data
  * prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {
   this.datapoints = [];
   this.processedData = {};
-  this.viewOptions = {
-    genomeResolution: 20,
-    readLengthResolution: 10,
-  };
   this.barcodesSeen = new Set();
 };
+
 
 /**
  * Add newly annotated data to the datastore.
@@ -24,76 +21,52 @@ const Datastore = function() {
  *  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
  */
 Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
+  
+  /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
   const datapoint = new Datapoint(fileNameStem, annotations);
   this.datapoints.push(datapoint);
-  this.processDatapoint(datapoint);
-};
 
-Datastore.prototype.getBarcodesSeen = function() {
-  return [...this.barcodesSeen];
-};
-
-/**
- * ammends this.processedData when a new datapoint has been created (which will
- * not yet have mapping information)
- * @param datapoint {Datapoint}
- * @param notify_client {bool} if true, then the client will be sent new data
- */
-
-/*
-This is an amalgam of
-    Datastore.prototype.processNewlyDemuxedDatapoint = function(datapoint, notify_client=true)
-    Datastore.prototype.processNewlyMappedDatapoint = function(datapoint, notify_client=true)
-    as the data point is processed once (after annotation).
- */
-
-Datastore.prototype.processDatapoint = function(datapoint, notify_client=true) {
-  // timerStart("processDatapoint");
-
-  const barcodes = datapoint.getBarcodes();
+  /* step 2: update `processedData`, which is a summary of the run so far */
   let newBarcodesSeen = false;
-  barcodes.forEach((barcode) => {
+  datapoint.getBarcodes().forEach((barcode) => {
     if (!this.barcodesSeen.has(barcode)) {
       this.barcodesSeen.add(barcode);
       newBarcodesSeen=true;
     }
     const sampleName = this.getSampleName(barcode);
+
+    /* if we're encountering a sample name for the first time, then we must create the empty data struct */
     if (!this.processedData[sampleName]) {
-      /* initialise this.processedData for any new sample names / barcodes observed */
+      /* initialise this.processedData if a new sample name has been observed */
       this.processedData[sampleName] = this.initialiseProcessedData(this.processedData[sampleName]);
     }
-    this.processedData[sampleName].demuxedCount += datapoint.getDemuxedCount(barcode);
-  });
+    // this.initialiseMappingComponentsOfProcessedDataIfNeeded(this.processedData[sampleName]); /* TODO can we wrap this into the above if statement? */
 
-  // todo the global config no longer has a reference sequence - the reference sequence length is given for each read
-  const nGenomeSlices = Math.ceil(global.config.reference.length / this.viewOptions.genomeResolution);
-  const refNameToPanelIdx = {};
-  global.config.referencePanel.forEach((obj, idx) => {refNameToPanelIdx[obj.name] = idx;});
-
-  barcodes.forEach((barcode) => {
-    const sampleName = this.getSampleName(barcode);
-    this.initialiseMappingComponentsOfProcessedDataIfNeeded(this.processedData[sampleName], nGenomeSlices);
     this.processedData[sampleName].mappedCount += datapoint.getMappedCount(barcode);
+    /* modify the refMatchCounts to include these results */
     datapoint.appendRefMatchCounts(barcode, this.processedData[sampleName].refMatchCounts);
-    datapoint.appendReadsToCoverage(barcode, this.processedData[sampleName].coverage, this.viewOptions.genomeResolution);
-    appendTemporalData(barcode, datapoint.getTimestamp(), this.processedData[sampleName].mappedCount, this.processedData[sampleName].temporalMap, this.processedData[sampleName].coverage, nGenomeSlices);
-    datapoint.appendReadLengthCounts(barcode, this.processedData[sampleName].readLengthCounts, this.viewOptions.readLengthResolution);
-    datapoint.appendReferenceMatchCounts(barcode, this.processedData[sampleName].refMatchCountsAcrossGenome, refNameToPanelIdx, this.viewOptions.genomeResolution);
+    /* modify the coverage bins (for this sample) to include these results */
+    datapoint.appendReadsToCoverage(barcode, this.processedData[sampleName].coverage);
+
+    // TODO
+    // appendTemporalData(barcode, datapoint.getTimestamp(), this.processedData[sampleName].mappedCount, this.processedData[sampleName].temporalMap, this.processedData[sampleName].coverage, nGenomeSlices);
+
+    /* update the read length counts with new data */
+    datapoint.appendReadLengthCounts(barcode, this.processedData[sampleName].readLengthCounts);
+    /* update per-reference-match coverage stats with new data */
+    datapoint.appendRefMatchCoverages(barcode, this.processedData[sampleName].refMatchCoverages);
   });
 
-  // timerEnd("processDatapoint");
-
-  if (notify_client) {
-    global.NOTIFY_CLIENT_DATA_UPDATED()
-  }
-  if (newBarcodesSeen) {
-    updateConfigWithNewBarcodes();
-  }
+  /* step 3: trigger a server-client data update */
+  // global.NOTIFY_CLIENT_DATA_UPDATED()
+  // if (newBarcodesSeen) {
+  //   updateConfigWithNewBarcodes();
+  // }
 };
 
 
 /**
- * Barcode -> sample name
+ * Get Barcode -> sample name via the (global) config
  */
 Datastore.prototype.getSampleName = function(barcode) {
   if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
@@ -107,24 +80,27 @@ Datastore.prototype.getSampleName = function(barcode) {
  */
 Datastore.prototype.initialiseProcessedData = function() {
   const data = {};
-  data.demuxedCount = 0;
   data.mappedCount = 0;
   data.refMatchCounts = {};
-  data.coverage = [];
+  data.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
   data.temporalMap = {};
   data.readLengthCounts = {};
-  data.refMatchCountsAcrossGenome = [];
+  data.refMatchCoverages = {};
   return data;
 };
 
 /**
  * Initialise the processed data for a "new" sampleName
  */
-Datastore.prototype.initialiseMappingComponentsOfProcessedDataIfNeeded = function(data, nGenomeSlices) {
-  if (data.coverage.length) return // already initialised
-  data.coverage = Array.from(new Array(nGenomeSlices), () => 0);
-  data.refMatchCountsAcrossGenome = global.config.referencePanel.map(() => Array.from(new Array(nGenomeSlices), () => 0));
-};
+// Datastore.prototype.initialiseMappingComponentsOfProcessedDataIfNeeded = function(data) {
+//   if (data.coverage.length) {
+//     return; // already initialised
+//   }
+//   data.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
+//   data.refMatchCountsAcrossGenome = global.config.referencePanel.map(() => 
+//     Array.from(new Array(global.config.display.numCoverageBins), () => 0)
+//   );
+// };
 
 
 /**
@@ -171,7 +147,6 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
  *    [0] {object} Summarising each sample observed so far.
  *         properties: each `sampleName` (i.e. props of `this.processedData`)
  *         values: {object}, each with properties
- *            `demuxedCount` {int}
  *            `mappedCount` {int}
  *            `refMatches` {object} may have no keys, else keys: ref names, values: floats (percentages)
  *            `coverage` {array} may be length 0. array of coverage at positions.
@@ -181,7 +156,6 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
  *            `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}. Order matches global.config.referencePanel
  *    [1] {object} summarise the overall run (i.e. all samples/barcodes combined)
  *        properties:
- *        `demuxedCount` {int}
  *        `mappedCount` {int}
  *        `temporal` {}
  */
@@ -194,7 +168,6 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
   const summarisedData = {};
   for (const [sampleName, sampleData] of Object.entries(processedData)) {
     summarisedData[sampleName] = {
-      demuxedCount: sampleData.demuxedCount,
       mappedCount: sampleData.mappedCount,
       refMatches: refMatchesAcrossSamples[sampleName],
       coverage: sampleData.coverage,
@@ -208,7 +181,6 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
   // console.log("refMatchesAcrossGenome", refMatchesAcrossGenome)
 
   const combinedData = {
-    demuxedCount: Object.values((processedData)).map((d) => d.demuxedCount).reduce((pv, cv) => pv+cv, 0),
     mappedCount: Object.values((processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
     temporal: summariseOverallTemporalData(summarisedData)
   };

@@ -101,7 +101,7 @@ const setEpochOffset = async () => {
   }
 
   /* adjust entries in the epochMap accordingly (and shift to timeMap)*/
-  verbose(`epochOffset=${epochOffset}`);
+  verbose("timing", `epochOffset=${epochOffset}`);
   epochMap.forEach((tRaw, key) => {
     timeMap.set(key, parseInt((tRaw - epochOffset)/1000, 10));
   });

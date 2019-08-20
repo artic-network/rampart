@@ -66,7 +66,7 @@ function readConfigFile(paths, fileName) {
     paths.forEach( (path) => {
         const filePath = normalizePath(path) + fileName;
         if (fs.existsSync(filePath)) {
-            verbose(`Reading ${fileName} from ${path}`);
+            verbose("config", `Reading ${fileName} from ${path}`);
             config = { ...config, ...JSON.parse(fs.readFileSync(filePath))};
             config.path = normalizePath(path); // add the path of the final config file read - for relative paths
         }
@@ -101,10 +101,10 @@ const getInitialConfig = (args) => {
         throw new Error(`ERROR. Can't get RAMPART path from argv[1]: ${process.argv[1]}`);
     }
     const rampartPath = process.argv[1].substring(0, process.argv[1].length - 10);
-    //verbose(`RAMPART path: ${rampartPath}`);
+    //verbose("config", `RAMPART path: ${rampartPath}`);
 
     const defaultProtocolPath = getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: rampartPath});
-    //verbose(`Default protocol path: ${defaultProtocolPath}`);
+    //verbose("config", `Default protocol path: ${defaultProtocolPath}`);
 
     const pathCascade = [
         normalizePath(defaultProtocolPath) // always read config from the default protocol
@@ -114,7 +114,7 @@ const getInitialConfig = (args) => {
 
     if (userProtocol) {
         const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
-        //verbose(`Protocol path: ${userProtocolPath}`);
+        //verbose("config", `Protocol path: ${userProtocolPath}`);
         pathCascade.push(normalizePath(userProtocolPath));
     }
 
@@ -180,6 +180,8 @@ const getInitialConfig = (args) => {
     assert(config.genome.length, "Genome description missing length");
     assert(config.genome.genes, "Genome description missing genes");
 
+    config.genome.refPanel = {};
+
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
 
@@ -194,7 +196,7 @@ const getInitialConfig = (args) => {
         console.error(err.message)
         fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
     }
-    verbose(`Basecalled path: ${config.run.basecalledPath}`);
+    verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
 
     if (args.annotatedDir) {
         config.run.annotatedPath = args.annotatedDir;
@@ -202,20 +204,20 @@ const getInitialConfig = (args) => {
     config.run.annotatedPath = normalizePath(getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()}));
 
     ensurePathExists(config.run.annotatedPath, {make: true});
-    verbose(`Annotated path: ${config.run.annotatedPath}`);
+    verbose("config", `Annotated path: ${config.run.annotatedPath}`);
 
     if (args.clearAnnotated) {
         config.run.clearAnnotated = args.clearAnnotated;
     }
     if (config.run.clearAnnotated){
-        verbose("Clearing annotation directory");
+        verbose("config", "Flag: 'Clearing annotation directory' enabled");
     }
 
     if (args.simulateRealTime) {
         config.run.simulateRealTime = args.simulateRealTime;
     }
     if (config.run.simulateRealTime > 0){
-        verbose(`Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
+        verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
     config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
@@ -253,6 +255,12 @@ const getInitialConfig = (args) => {
 
     ensurePathExists(config.pipelines.annotation.path);
     ensurePathExists(config.pipelines.annotation.path + "Snakefile");
+
+    /* display options */
+    config.display = {
+      numCoverageBins: 10, /* how many bins we group the coverage stats into */
+      readLengthResolution: 10
+    }
 
     return config;
 };
@@ -309,7 +317,7 @@ const getInitialConfig = (args) => {
  * As we observe new ones, we must call this function
  */
 const updateConfigWithNewBarcodes = () => {
-    verbose("[updateConfigWithNewBarcodes]");
+    verbose("config", "updateConfigWithNewBarcodes");
     const newBarcodes = global.datastore.getBarcodesSeen()
         .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
     newBarcodes.forEach((bc) => {

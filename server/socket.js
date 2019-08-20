@@ -9,7 +9,7 @@ const { saveFastq } = require("./saveFastq");
  * Collect data (from global.datastore) and send to client
  */
 const sendData = () => {
-  verbose("[sendData]");
+  verbose("socket", "sendData");
   const data = global.datastore.getDataForClient();
   if (data === false) return;
   const {dataPerSample, combinedData, viewOptions} = data;
@@ -23,7 +23,7 @@ global.NOTIFY_CLIENT_DATA_UPDATED = () => sendData();
  * Send config over the socket
  */
 const sendConfig = () => {
-  verbose("[sendConfig]");
+  verbose("socket", "sendConfig");
   global.io.emit("infoMessage", `New config`);
   global.io.emit("config", global.config);
 };
@@ -36,7 +36,7 @@ global.CONFIG_UPDATED = () => sendConfig();
  */
 const initialConnection = (socket) => {
   if (!global.config.basecalledPath) {
-    verbose("[noBasecalledPath]");
+    verbose("socket", "noBasecalledPath");
     return socket.emit("noBasecalledPath")
   }
   sendConfig();
@@ -44,7 +44,7 @@ const initialConnection = (socket) => {
 };
 
 const setUpIOListeners = (socket) => {
-  verbose("[setUpIOListeners] (socket for client - server communication)");
+  verbose("socket", "setUpIOListeners (socket for client - server communication)");
 
   socket.on('config', (newConfig) => {
     try {
@@ -60,17 +60,17 @@ const setUpIOListeners = (socket) => {
   });
 
   socket.on('basecalledAndDemuxedPaths', async (clientData) => {
-    verbose("[basecalledAndDemuxedPaths]");
+    verbose("socket", "basecalledAndDemuxedPaths");
     global.config.basecalledPath = clientData.basecalledPath;
     global.config.annotatedPath = clientData.annotatedPath;
     const success = await startUp({emptyDemuxed: true}); // TODO
     if (success) {
-      verbose("[basecalledAndDemuxedPaths] success");
+      verbose("socket", "basecalledAndDemuxedPaths success");
       sendConfig();
       startBasecalledFilesWatcher();
 
     } else {
-      verbose("[basecalledAndDemuxedPaths] failed");
+      verbose("socket", "basecalledAndDemuxedPaths failed");
       setTimeout(() => socket.emit("noBasecalledPath"), 100);
     }
   });

@@ -6,7 +6,7 @@ const { addToAnnotationQueue } = require("./annotator");
 const { PipelineRunner } = require("./PipelineRunner");
 const readdir = promisify(fs.readdir);
 const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
-const { prettyPath, verbose, log, deleteFolderRecursive } = require('./utils');
+const { prettyPath, log, deleteFolderRecursive } = require('./utils');
 
 const getFilesFromDirectory = async (dir, extension) => {
     let fastqs = (await readdir(dir));
@@ -20,10 +20,9 @@ const getFilesFromDirectory = async (dir, extension) => {
 };
 
 const startUp = async () => {
-
     log("RAMPART starting up");
 
-    if (global.config.run.basecalledPath && !fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
+    if (!fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
         throw new Error("[startUp] no basecalled dir / annotated dir");
     }
 

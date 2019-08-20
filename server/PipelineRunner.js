@@ -81,7 +81,7 @@ class PipelineRunner {
                 '--config', ...pipelineConfig
             ];
 
-            verbose(`[${this_name}]: snakemake ` + spawnArgs.join(" "));
+            verbose("pipeline runner", `[${this_name}]: snakemake ` + spawnArgs.join(" "));
 
             const annotationScript = spawn('snakemake', spawnArgs);
 
@@ -91,7 +91,7 @@ class PipelineRunner {
                 'data',
                 (data) => {
                     out.push(data.toString());
-                    verbose(data.toString());
+                    verbose("pipeline runner", data.toString());
                 }
             );
 
@@ -107,7 +107,7 @@ class PipelineRunner {
             );
 
             process.on('exit', (code, signal) => {
-                verbose(`[${this_name}]: pipeline finished with exit code ${code}`);
+                verbose("pipeline runner", `[${this_name}]: pipeline finished with exit code ${code}`);
                 if (code === 0) {
                      resolve();
                 } else {
@@ -127,7 +127,7 @@ class PipelineRunner {
         if (!this._isRunning && this._jobQueue.length > 0) {
             this._isRunning = true;
 
-            verbose(`[${this_name}] queue length: ${this._jobQueue.length+1}`);
+            verbose("pipeline runner", `[${this_name}] queue length: ${this._jobQueue.length+1}`);
 
             const job = this._jobQueue.shift();
             try {

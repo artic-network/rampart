@@ -4,7 +4,7 @@ const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
 const { getReadTime } = require('./readTimes');
-const { prettyPath, warn, verbose } = require('./utils');
+const { prettyPath, warn, log, verbose } = require('./utils');
 
 /**
  * This file defines the global.parserQueue handler, which processes annotated
@@ -26,7 +26,7 @@ const addToParsingQueue = (filename) => parsingQueue.push(filename);
 async function parseAnnotations(fileToParse) {
     const annotations = await dsv.csvParse(fs.readFileSync(fileToParse).toString());
 
-    verbose(`[parser] parsed annotation file, ${prettyPath(fileToParse)}: ${annotations.length} lines`);
+    verbose("annotation parser", `parsed annotation file, ${prettyPath(fileToParse)}: ${annotations.length} lines`);
 
     return annotations;
 }
@@ -41,13 +41,13 @@ const annotationParser = async () => {
         const fileToParse = parsingQueue.shift();
 
         try {
-            verbose(`[parser] queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
+            verbose("annotation parser", `queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
+            const filenameStem = path.basename(fileToParse, '.csv');
+            log(`Parsing annotation for ${filenameStem}`)
+
             const annotations = await parseAnnotations(fileToParse);
 
-            const filenameStem = path.basename(fileToParse, '.csv');
-
             await global.datastore.addAnnotations(filenameStem, annotations);
-
         } catch (err) {
             //console.trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);

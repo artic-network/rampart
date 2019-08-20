@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const Deque = require("collections/deque");
 const { setReadTime, getReadTime } = require("./readTimes");
-const { verbose, warn } = require("./utils");
+const { verbose, log, warn } = require("./utils");
 const { addToParsingQueue } = require("./annotationParser");
 
 /**
@@ -53,7 +53,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
         '--config', ...pipelineConfig
     ];
 
-    verbose('Annotation script: snakemake ' + spawnArgs.join(" "));
+    log(`Annotating ${fastqFileStem}`)
 
     const annotationScript = spawn('snakemake', spawnArgs);
 
@@ -62,7 +62,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
         'data',
         (data) => {
             out.push(data.toString());
-            verbose(data.toString());
+            verbose("annotator", data.toString());
         }
     );
 
@@ -123,7 +123,7 @@ const annotator = async () => {
         const fileToAnnotateBasename = path.basename(fileToAnnotate, '.fastq');
 
         try {
-            verbose(`[annotator] queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
+            verbose("annotator", `queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
             await Promise.all([ /* fail fast */
                 call_annotation_script(fileToAnnotateBasename),
                 setReadTime(fileToAnnotate)
@@ -137,7 +137,7 @@ const annotator = async () => {
             // const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
             // const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
 
-            verbose(`[annotator] ${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
+            verbose("annotator", `${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
 
             addToParsingQueue(fileToParse);
         } catch (err) {
