@@ -55,4 +55,4 @@ barcodes=NB19,NB20 \
 sample=sample_19_20
 ```
 
-This pipeline will result in files produced in examples/data/pipeline_output under ``binned``.
+The above command will execute the snakemake bin_to_fastq pipeline, tells it where your input reads and reports are located, tells it where to output the data, gives it a read length range and tells it which barcodes it should include in the file, giving it a 'sample' name which will determine the output file name.
