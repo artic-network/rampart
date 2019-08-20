@@ -176,8 +176,6 @@ const getInitialConfig = (args) => {
     assert(config.genome.length, "Genome description missing length");
     assert(config.genome.genes, "Genome description missing genes");
 
-    config.genome.refPanel = {};
-
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
 
@@ -189,7 +187,7 @@ const getInitialConfig = (args) => {
     try {
         config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
     } catch (err) {
-        console.error(err.message)
+        console.error(err.message);
         fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
     }
     verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
@@ -324,9 +322,13 @@ const updateConfigWithNewBarcodes = () => {
     global.CONFIG_UPDATED();
 };
 
+/**
+ * todo - this should go in datastore so it is updated when new reference mappings appear
+ * @param refsToDisplay
+ */
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
     let changed = false;
-    global.config.referencePanel.forEach((info) => {
+    global.config.run.referencePanel.forEach((info) => {
         if (info.display && !refsToDisplay.includes(info.name)) {
             changed = true;
             info.display = false;

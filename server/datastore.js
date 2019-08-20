@@ -10,7 +10,8 @@ const Datastore = function() {
   this.datapoints = [];
   this.processedData = {};
   this.barcodesSeen = new Set();
-  
+  this.referencesPanel = {};
+
   /* Given barcodes (e.g. via config files) intiialise the data structures
   This means they will be displayed in the client, even if no reads have arrived for them */
   for (const barcode of Object.keys(global.config.run.barcodeNames)) {
@@ -183,7 +184,7 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
       temporal: summariseTemporalData(sampleData.temporalMap),
       readLengths: summariseReadLengths(sampleData.readLengthCounts, viewOptions.readLengthResolution),
-      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, viewOptions.genomeResolution)
+      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.run.referencePanel, viewOptions.genomeResolution)
     }
   }
 
@@ -292,7 +293,7 @@ const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referenc
   if (!refMatchCountsAcrossGenome.length) {
     return [];
   }
-  const nGenomeSlices = Math.ceil(global.config.reference.length / genomeResolution);
+  const nGenomeSlices = Math.ceil(global.config.genome.length / genomeResolution);
   const stream =  referencePanel.map(() => Array.from(new Array(nGenomeSlices), () => [0,0]));
   const nReferences = referencePanel.length;
 
