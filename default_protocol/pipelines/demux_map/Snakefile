@@ -5,6 +5,9 @@ barcodes = config["barcodes"].split(',')
 barcode_string = ""
 for i in barcodes:
     barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
+# trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
+config["output_path"] = config["output_path"].rstrip("/")
+config["input_path"] = config["input_path"].rstrip("/")
 
 
 ##### Target rules #####
