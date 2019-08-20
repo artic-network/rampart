@@ -61,10 +61,10 @@ class App extends Component {
   }
 
   registerServerListeners(socket) {
-    socket.on("noBasecalledPath", () => {
-      console.log("noBasecalledPath");
-      this.setState({mainPage: "chooseBasecalledDirectory"});
-    });
+    // socket.on("noBasecalledPath", () => {
+    //   console.log("noBasecalledPath");
+    //   this.setState({mainPage: "chooseBasecalledDirectory"});
+    // });
     socket.on("infoMessage", (infoMessage) => {
       this.setState({infoMessage});
     })
@@ -98,13 +98,7 @@ class App extends Component {
     })
     socket.on("config", (newConfig) => {
       console.log("App got new config:", newConfig);
-      /* certain changes to the config may necessitate an updating of viewOptions */
-      const newViewOptions = {};
-      const newState = {config: newConfig};
-      if (Object.keys(newViewOptions)) {
-        newState.viewOptions = Object.assign({}, this.state.viewOptions, newViewOptions);
-      }
-      this.setState(newState);
+      this.setState({config: newConfig});
     })
 
     socket.on("showWarningMessage", (warningMessage) => this.setState({warningMessage}));

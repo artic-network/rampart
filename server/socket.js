@@ -1,8 +1,8 @@
 const fs = require('fs')
 const { modifyConfig } = require("./config");
 const { verbose, warn } = require("./utils");
-const { startUp } = require("./startUp");
-const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
+// const { startUp } = require("./startUp");
+// const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 const { saveFastq } = require("./saveFastq");
 
 /**
@@ -32,13 +32,10 @@ global.CONFIG_UPDATED = () => sendConfig();
 
 
 /**
- * client has just connected
+ * Client has just connected -- send current state of config + data
  */
 const initialConnection = (socket) => {
-  if (!global.config.basecalledPath) {
-    verbose("socket", "noBasecalledPath");
-    return socket.emit("noBasecalledPath")
-  }
+  verbose("socket", "initial connection")
   sendConfig();
   sendData();
 };
@@ -57,29 +54,6 @@ const setUpIOListeners = (socket) => {
     }
     sendData(); /* as the barcode -> names may have changed */
     sendConfig();
-  });
-
-  socket.on('basecalledAndDemuxedPaths', async (clientData) => {
-    verbose("socket", "basecalledAndDemuxedPaths");
-    global.config.basecalledPath = clientData.basecalledPath;
-    global.config.annotatedPath = clientData.annotatedPath;
-    const success = await startUp({emptyDemuxed: true}); // TODO
-    if (success) {
-      verbose("socket", "basecalledAndDemuxedPaths success");
-      sendConfig();
-      startBasecalledFilesWatcher();
-
-    } else {
-      verbose("socket", "basecalledAndDemuxedPaths failed");
-      setTimeout(() => socket.emit("noBasecalledPath"), 100);
-    }
-  });
-
-  socket.on("doesPathExist", (data) => {
-    return socket.emit("doesPathExist", {
-      path: data.path,
-      exists: fs.existsSync(data.path)
-    });
   });
 
   socket.on("saveDemuxedReads", (data) => {

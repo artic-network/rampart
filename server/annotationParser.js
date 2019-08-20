@@ -39,19 +39,20 @@ const annotationParser = async () => {
         isRunning = true;
 
         const fileToParse = parsingQueue.shift();
-
+        const filenameStem = path.basename(fileToParse, '.csv');
+        let annotations;
+        
+        verbose("annotation parser", `queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
+        log(`Parsing annotation for ${filenameStem}`)
+        
         try {
-            verbose("annotation parser", `queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
-            const filenameStem = path.basename(fileToParse, '.csv');
-            log(`Parsing annotation for ${filenameStem}`)
-
-            const annotations = await parseAnnotations(fileToParse);
-
-            await global.datastore.addAnnotations(filenameStem, annotations);
+            annotations = await parseAnnotations(fileToParse);
         } catch (err) {
             //console.trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);
         }
+        
+        await global.datastore.addAnnotations(filenameStem, annotations);
 
         isRunning = false;
 

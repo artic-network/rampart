@@ -67,8 +67,9 @@ Datapoint.prototype.getMappedCount = function(barcode) {
   return this.data[barcode].mappedCount;
 };
 
-Datapoint.prototype.appendRefMatchCounts = function (barcode, refMatchCounts) {
+Datapoint.prototype.appendRefMatchCounts = function (barcode, refMatchCounts, referencesSeen) {
   for (const [ref, values] of Object.entries(this.data[barcode].refMatches)) {
+    referencesSeen.add(ref);
     if (!refMatchCounts[ref]) {
       refMatchCounts[ref] = 0;
     }

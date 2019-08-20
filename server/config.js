@@ -176,7 +176,7 @@ const getInitialConfig = (args) => {
     assert(config.genome.length, "Genome description missing length");
     assert(config.genome.genes, "Genome description missing genes");
 
-    config.genome.refPanel = {};
+    config.genome.referencePanel = [];
 
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
@@ -315,28 +315,52 @@ const getInitialConfig = (args) => {
  * be notified.
  */
 const updateConfigWithNewBarcodes = () => {
-    verbose("config", "updateConfigWithNewBarcodes");
     const newBarcodes = global.datastore.getBarcodesSeen()
-        .filter((bc) => !Object.keys(global.config.barcodeToName).includes(bc));
+        .filter((bc) => !Object.keys(global.config.run.barcodeNames).includes(bc));
+    if (!newBarcodes.length) {
+        return;
+    }
+    verbose("config", `new barcodes seen! ${newBarcodes.join(" & ")}`);
     newBarcodes.forEach((bc) => {
-        global.config.barcodeToName[bc] = {name: undefined, order: 0}
+        global.config.run.barcodeNames[bc] = {name: undefined, order: 0}
     });
     global.CONFIG_UPDATED();
 };
 
+/**
+ * RAMPART doesn't know what references are out there, we can only add them as we see them
+ * This updates the config store of the references, and triggers a client update if there are changes
+ * @param {set} referencesSeen 
+ */
+const updateReferencesSeen = (referencesSeen) => {
+    const changes = [];
+    const referencesInConfig = new Set([...global.config.genome.referencePanel.map((x) => x.name)]);
+    referencesSeen.forEach((ref) => {
+        if (!referencesInConfig.has(ref)) {
+            global.config.genome.referencePanel.push({name: ref, description: "to do", display: false});
+            changes.push(ref);
+        }
+    })
+    if (changes.length) {
+        verbose("config", `new references seen: ${changes.join(" & ")}`);
+        global.CONFIG_UPDATED();
+    }
+}
+
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
     let changed = false;
-    global.config.referencePanel.forEach((info) => {
-        if (info.display && !refsToDisplay.includes(info.name)) {
+    for (const [ref, info] of Object.entries(global.config.genome.referencePanel)) {
+        if (info.display && !refsToDisplay.includes(ref)) {
             changed = true;
             info.display = false;
         }
-        if (!info.display && refsToDisplay.includes(info.name)) {
+        if (!info.display && refsToDisplay.includes(ref)) {
             changed = true;
             info.display = true;
         }
-    });
+    };
     if (changed) {
+        verbose("config", `updated which refs in the reference panel should be displayed`);
         global.CONFIG_UPDATED();
     }
 };
@@ -344,7 +368,7 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
 
 module.exports = {
     getInitialConfig,
-    // modifyConfig,
     updateConfigWithNewBarcodes,
-    updateWhichReferencesAreDisplayed
+    updateWhichReferencesAreDisplayed,
+    updateReferencesSeen
 };

@@ -1,6 +1,6 @@
 const Datapoint = require("./datapoint").default;
 const { timerStart, timerEnd } = require('./timers');
-const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed } = require("./config");
+const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
 
 /**
  * The main store of all annotated data
@@ -36,11 +36,10 @@ Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
   this.datapoints.push(datapoint);
 
   /* step 2: update `processedData`, which is a summary of the run so far */
-  let newBarcodesSeen = false;
+  const referencesSeen = new Set();
   datapoint.getBarcodes().forEach((barcode) => {
     if (!this.barcodesSeen.has(barcode)) {
       this.barcodesSeen.add(barcode);
-      newBarcodesSeen=true;
     }
     const sampleName = this.getSampleName(barcode);
 
@@ -49,11 +48,10 @@ Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
       /* initialise this.processedData if a new sample name has been observed */
       this.processedData[sampleName] = this.initialiseProcessedData();
     }
-    // this.initialiseMappingComponentsOfProcessedDataIfNeeded(this.processedData[sampleName]); /* TODO can we wrap this into the above if statement? */
 
     this.processedData[sampleName].mappedCount += datapoint.getMappedCount(barcode);
     /* modify the refMatchCounts to include these results */
-    datapoint.appendRefMatchCounts(barcode, this.processedData[sampleName].refMatchCounts);
+    datapoint.appendRefMatchCounts(barcode, this.processedData[sampleName].refMatchCounts, referencesSeen);
     /* modify the coverage bins (for this sample) to include these results */
     datapoint.appendReadsToCoverage(barcode, this.processedData[sampleName].coverage);
 
@@ -66,11 +64,10 @@ Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
     datapoint.appendRefMatchCoverages(barcode, this.processedData[sampleName].refMatchCoverages);
   });
 
-  /* step 3: trigger a server-client data update */
-  // global.NOTIFY_CLIENT_DATA_UPDATED()
-  // if (newBarcodesSeen) {
-  //   updateConfigWithNewBarcodes();
-  // }
+  /* step 3: trigger server-client data updates as needed */
+  updateConfigWithNewBarcodes();
+  updateReferencesSeen(referencesSeen);
+  global.NOTIFY_CLIENT_DATA_UPDATED()
 };
 
 
@@ -126,10 +123,20 @@ Datastore.prototype.reprocessAllDatapoints = function() {
   global.NOTIFY_CLIENT_DATA_UPDATED();
 };
 
+Datastore.prototype.getBarcodesSeen = function() {
+  return [...this.barcodesSeen];
+}
 
+/**
+ * Choose which references should be displayed
+ * we only want to report references over some threshold so that
+ * the display is not cluttered with too many rows in the heatmap
+ * TODO: make this threshold / number taken definable by the client
+ * @param {object} processedData see datastore.processedData
+ * @param {int} threshold at least 1 sample must have over this perc of reads mapping to include
+ * @param {int} maxNum max num of references to return
+ */
 const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
-  /* we only want to report references over a threshold
-  TODO: make this threshold / number taken definable by the client */
   const refMatches = {};
   const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
   for (const [sampleName, sampleData] of Object.entries(processedData)) {
@@ -162,7 +169,7 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
  *            `maxCoverage` {int}
  *            `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
  *            `readLengths` {Object} keys: `xyValues`, array of [int, int]
- *            `refMatchesAcrossGenome` {Array of Array of Array of 2 numeric}. Order matches global.config.referencePanel
+ *            `refMatchCoveragesStream` {Array of Array of Array of 2 numeric}. Order matches ??? TODO
  *    [1] {object} summarise the overall run (i.e. all samples/barcodes combined)
  *        properties:
  *        `mappedCount` {int}
@@ -182,8 +189,8 @@ const collectSampleDataForClient = function(processedData, viewOptions) {
       coverage: sampleData.coverage,
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
       temporal: summariseTemporalData(sampleData.temporalMap),
-      readLengths: summariseReadLengths(sampleData.readLengthCounts, viewOptions.readLengthResolution),
-      refMatchesAcrossGenome: createReferenceMatchStream(sampleData.refMatchCountsAcrossGenome, global.config.referencePanel, viewOptions.genomeResolution)
+      readLengths: summariseReadLengths(sampleData.readLengthCounts),
+      refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
     }
   }
 
@@ -257,7 +264,8 @@ const summariseTemporalData = function(temporalMap) {
  * Turn `readLengthCounts` into an array of xy values for visualisation
  * NOTE: due to the way we draw lines, we need padding zeros! (else the d3 curve will join up points)
  */
-const summariseReadLengths = function(readLengthCounts, readLengthResolution) {
+const summariseReadLengths = function(readLengthCounts) {
+  const readLengthResolution = global.config.display.readLengthResolution;
   const xValues = Object.keys(readLengthCounts).map((n) => parseInt(n, 10)).sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
   const counts = xValues.map((x) => readLengthCounts[x]);
   const readLengths = {};
@@ -288,25 +296,28 @@ const summariseReadLengths = function(readLengthCounts, readLengthResolution) {
  *      xi = [y1, y2, ..., ym] where m is the number of pivots (i.e. x points)
  *            yi = [z1, z2]: the (y0, y1) values of the reference at that pivot point.
  */
-const createReferenceMatchStream = function(refMatchCountsAcrossGenome, referencePanel, genomeResolution) {
-  if (!refMatchCountsAcrossGenome.length) {
+const createReferenceMatchStream = function(refMatchCoverages) {
+  if (!Object.keys(refMatchCoverages).length) {
     return [];
   }
-  const nGenomeSlices = Math.ceil(global.config.reference.length / genomeResolution);
-  const stream =  referencePanel.map(() => Array.from(new Array(nGenomeSlices), () => [0,0]));
-  const nReferences = referencePanel.length;
+  const nBins = global.config.display.numCoverageBins;
+  const stream = global.config.genome.referencePanel.map(() => Array.from(new Array(nBins), () => [0,0]));
 
-  for (let xIdx=0; xIdx<nGenomeSlices; xIdx++) {
-    const totalReadsHere = refMatchCountsAcrossGenome
-        .map((gSlices) => gSlices[xIdx])
+  for (let xIdx=0; xIdx<nBins; xIdx++) {
+    const totalReadsHere = Object.values(refMatchCoverages)
+        .map((coverageBins) => coverageBins[xIdx])
         .reduce((a, b) => a+b)
+
     let yPosition = 0;
-    for (let refIdx=0; refIdx<nReferences; refIdx++) {
-      /* require >10 reads to calc stream */
-      const percHere = totalReadsHere > 10 ? refMatchCountsAcrossGenome[refIdx][xIdx] / totalReadsHere : 0
-      stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
-      yPosition += +percHere;
-    }
+    global.config.genome.referencePanel.forEach((refInfo, refIdx) => {
+        let percHere = 0;
+        /* require >10 reads to calc stream & this ref must have been seen for this sample */
+        if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
+            percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
+        }
+        stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
+        yPosition += +percHere;
+    })
   }
 
   return stream;
