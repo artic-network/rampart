@@ -139,8 +139,8 @@ const getInitialConfig = (args) => {
         config.run.title = args.title;
     }
 
+    config.run.barcodeNames = {};
     if (config.run.samples) {
-        config.run.barcodeNames = {};
 
         // if barcode names have been specified then limit demuxing to only those barcodes...
         config.run.samples.forEach((sample, index) => {
@@ -157,10 +157,6 @@ const getInitialConfig = (args) => {
 
     // override with any barcode names on the arguments
     if (args.barcodeNames) {
-        if (!config.run.barcodeNames) {
-            config.run.barcodeNames = {};
-        }
-
         const count = Object.keys(config.run.barcodeNames).length;
         args.barcodeNames.forEach((raw, index) => {
             const [barcode, name] = raw.split('=');
@@ -312,9 +308,11 @@ const getInitialConfig = (args) => {
 //     }
 // };
 
+
 /**
- * The config only knows about the barcodes seen by the data so far.
- * As we observe new ones, we must call this function
+ * The config contains a list of "seen" barcodes which the client therefore knows about.
+ * If we observe a new barcode, then the config needs updating, and the client needs to
+ * be notified.
  */
 const updateConfigWithNewBarcodes = () => {
     verbose("config", "updateConfigWithNewBarcodes");

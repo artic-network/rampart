@@ -10,6 +10,15 @@ const Datastore = function() {
   this.datapoints = [];
   this.processedData = {};
   this.barcodesSeen = new Set();
+  
+  /* Given barcodes (e.g. via config files) intiialise the data structures
+  This means they will be displayed in the client, even if no reads have arrived for them */
+  for (const barcode of Object.keys(global.config.run.barcodeNames)) {
+    this.barcodesSeen.add(barcode);
+    const sampleName = this.getSampleName(barcode)
+    this.processedData[sampleName] = this.initialiseProcessedData();
+  }
+
 };
 
 
@@ -38,7 +47,7 @@ Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
     /* if we're encountering a sample name for the first time, then we must create the empty data struct */
     if (!this.processedData[sampleName]) {
       /* initialise this.processedData if a new sample name has been observed */
-      this.processedData[sampleName] = this.initialiseProcessedData(this.processedData[sampleName]);
+      this.processedData[sampleName] = this.initialiseProcessedData();
     }
     // this.initialiseMappingComponentsOfProcessedDataIfNeeded(this.processedData[sampleName]); /* TODO can we wrap this into the above if statement? */
 
