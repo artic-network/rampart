@@ -55,13 +55,6 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
     menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
   }
 
-
-  /* TMP - TODO - variables that are in flux */
-  const logYAxis = viewOptions.logYAxis;
-  const sampleColours = viewOptions.sampleColours;
-  console.log(coverageData)
-
-
   /* ----------------- C H A R T S ----------------------- */
   const charts = {
     coverage: (
@@ -71,8 +64,8 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchCoveragesStream}
-        logYAxis={logYAxis}
-        sampleColours={sampleColours}
+        logYAxis={viewOptions.logYAxis}
+        sampleColours={viewOptions.sampleColours}
         fillIn={true}
         config={config}
         key="coveragePlot"

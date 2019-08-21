@@ -137,12 +137,20 @@ Datastore.prototype.getBarcodesSeen = function() {
  * @param {int} maxNum max num of references to return
  */
 const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
-  const refMatches = {};
+  const refMatchesAcrossSamples = {};
   const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
   for (const [sampleName, sampleData] of Object.entries(processedData)) {
-    /* summarise ref matches for _all_ references */
-    refMatches[sampleName] = summariseRefMatches(sampleData.refMatchCounts);
-    for (const [refName, perc] of Object.entries(refMatches[sampleName])) {
+    /* calculate the percentage mapping for this sample across all references to compare with threshold */
+    refMatchesAcrossSamples[sampleName] = {};
+    const refMatchPercs = {};
+    const total = Object.values(sampleData.refMatchCounts).reduce((pv, cv) => cv+pv, 0);
+    for (const ref of Object.keys(sampleData.refMatchCounts)) {
+      refMatchPercs[ref] = sampleData.refMatchCounts[ref] / total * 100;
+      refMatchesAcrossSamples[sampleName][ref] = sampleData.refMatchCounts[ref];
+    }
+    refMatchesAcrossSamples[sampleName].total = total;
+
+    for (const [refName, perc] of Object.entries(refMatchPercs)) {
       if (perc > threshold) {
         if (refsAboveThres[refName] === undefined) refsAboveThres[refName]=0;
         refsAboveThres[refName]++;
@@ -154,7 +162,7 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
       .slice(0, maxNum);
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
-  return refMatches;
+  return refMatchesAcrossSamples;
 };
 
 /**
@@ -232,28 +240,6 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
 
   return matches;
 };
-
-/**
- * Convert the refMatchCounts (obj of refName -> count) to object of refName -> %
- */
-// const summariseRefMatches = function(refMatchCounts) {
-//   const refMatches = {};
-//   const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
-//   for (const ref of Object.keys(refMatchCounts)) {
-//     refMatches[ref] = refMatchCounts[ref] / total * 100;
-//   }
-//   return refMatches;
-// };
-    // instead of converting to %age, just add the total in (so it can be calculated by the UI)
-const summariseRefMatches = function(refMatchCounts) {
-      const refMatches = {};
-      const total = Object.values(refMatchCounts).reduce((pv, cv) => cv+pv, 0);
-      for (const ref of Object.keys(refMatchCounts)) {
-        refMatches[ref] = refMatchCounts[ref];
-      }
-      refMatches['total'] = total;
-      return refMatches;
-    };
 
 
 const summariseTemporalData = function(temporalMap) {

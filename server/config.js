@@ -355,14 +355,14 @@ const updateReferencesSeen = (referencesSeen) => {
 
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
     let changed = false;
-    for (const [ref, info] of Object.entries(global.config.genome.referencePanel)) {
-        if (info.display && !refsToDisplay.includes(ref)) {
+    for (const refInfo of Object.values(global.config.genome.referencePanel)) {
+        if (refInfo.display && !refsToDisplay.includes(refInfo.name)) {
             changed = true;
-            info.display = false;
+            refInfo.display = false;
         }
-        if (!info.display && refsToDisplay.includes(ref)) {
+        if (!refInfo.display && refsToDisplay.includes(refInfo.name)) {
             changed = true;
-            info.display = true;
+            refInfo.display = true;
         }
     };
     if (changed) {

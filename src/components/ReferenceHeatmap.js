@@ -187,17 +187,17 @@ class ReferenceHeatmap extends React.Component {
     }
     redraw() {
         /* currently redo everything, but we could make this much much smarter */
-        const names = Object.keys(this.props.data).filter((name) => name!=="all");
+        const sampleNames = Object.keys(this.props.data).filter((name) => name!=="all");
         const referencePanel = this.props.referencePanel.filter((info) => info.display);
         const chartGeom = this.state.chartGeom;
-        const cellDims = calcCellDims(chartGeom, names.length, referencePanel.length);
+        const cellDims = calcCellDims(chartGeom, sampleNames.length, referencePanel.length);
         const scales = calcScales(
             chartGeom,
-            names.length,           // number of columns
+            sampleNames.length,     // number of columns
             referencePanel.length   // number of rows
         );
         drawHeatMap({
-            names,
+            names: sampleNames,
             referencePanel,
             data: this.props.data,
             svg: this.state.svg,
