@@ -17,7 +17,9 @@ const { addToParsingQueue } = require("./annotationParser");
 const annotationQueue = new Deque();
 
 annotationQueue.observeRangeChange( () => { annotator(); } );
-const addToAnnotationQueue = (fastqFile) => annotationQueue.push(fastqFile);
+const addToAnnotationQueue = (fastqFile) => {
+    annotationQueue.push(fastqFile);
+};
 
 /**
  * Todo - this needs to be fixed to call the Snakemake pipeline

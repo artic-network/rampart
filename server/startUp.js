@@ -64,7 +64,7 @@ const startUp = async () => {
     // any annotation csv files that are already in the annotations folder are sent for parsing:
 
     /* sort the fastqs via these timestamps and push onto the appropriate deques */
-    log(`  * Sorting available basecalled and annotation files based on read times`);
+    log(`  * Sorting available basecalnew references seenled and annotation files based on read times`);
     unsortedAnnotationCSVs
         .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
         .forEach((f) => {
@@ -76,14 +76,23 @@ const startUp = async () => {
     // csv file are se.t for annotation:
 
     const annotationBasenames = unsortedAnnotationCSVs.map((name) => path.basename(name, '.csv'));
+    const basecalledBasenames = unsortedBasecalledFastqs
+        .filter( (fastqPath) => {
+            const b = path.basename(fastqPath, '.fastq');
+            return !annotationBasenames.includes(b)
+        } );
+
+    unsortedBasecalledFastqs
+        .filter( (fastqPath) => annotationBasenames.includes(path.basename(fastqPath, '.fastq')) )
+        .forEach((f) => {
+            global.fastqsSeen.add(path.basename(f))
+        });
+
     unsortedBasecalledFastqs
         .filter( (fastqPath) => !annotationBasenames.includes(path.basename(fastqPath, '.fastq')) )
-        .sort((a, b) => getReadTime(a)>getReadTime(b) ? 1 : -1)
+        .sort((a, b) => getReadTime(a) > getReadTime(b) ? 1 : -1)
         .forEach((f) => {
             addToAnnotationQueue(f);
-
-            // todo - do we need fastqsSeen?
-            global.fastqsSeen.add(path.basename(f))
         });
 
     log`RAMPART start up FINISHED\n`;
