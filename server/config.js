@@ -255,7 +255,7 @@ const getInitialConfig = (args) => {
 
     /* display options */
     config.display = {
-      numCoverageBins: 10, /* how many bins we group the coverage stats into */
+      numCoverageBins: 1000, /* how many bins we group the coverage stats into */
       readLengthResolution: 10
     }
 
