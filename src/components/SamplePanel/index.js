@@ -12,7 +12,7 @@ import SaveDemuxedReads from "./saveDemuxedReadsModal";
  *    It also helps when we change the size of them (e.g. expand) them to simply get
  *    them to reinitialise with new dimensions
  */
-const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, canExpand, socket}) => {
+const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [expanded, setExpanded] = useState(false);
@@ -154,7 +154,6 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         sampleName={sampleName}
         sampleData={sampleData}
         sampleColour={sampleColour}
-        enableUserInteraction={canExpand}
         menuItems={menuItems}
         handleClick={toggleExpanded}
         isExpanded={expanded}

@@ -22,17 +22,14 @@ const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
  * InfoRow -- the thin line of text / icons at the top of a sample panel
  * the info row is rendered when the panel is collapsed and when open
  */
-const InfoRow = ({sampleName, sampleData, sampleColour, enableUserInteraction, menuItems, handleClick, isExpanded}) => {
+const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, isExpanded}) => {
   const summaryTitle = `${sampleName}`;
   const summaryText = `${sampleData.demuxedCount} reads demuxed, ${sampleData.mappedCount} mapped.`;
 
   return (
     <div className="infoRow" style={{color: sampleColour}}>
       <div>
-          {enableUserInteraction ? (
-            <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
-          ) : null
-          }
+        <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
         <span>{summaryTitle}</span>
       </div>
 
