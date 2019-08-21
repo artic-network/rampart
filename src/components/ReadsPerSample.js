@@ -69,8 +69,6 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
         Sample: ${samples[i]}
         <br/>
         ${d} mapped reads
-        <br/>
-        ${data[samples[i]].demuxedCount} demuxed reads
       `);
   }
   function handleMouseOut() {
