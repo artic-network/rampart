@@ -56,12 +56,10 @@ const availableColours = [
  * When we have gone across this, we repeat the progress at a higher index.
  * Loops around so that while colours will eventually repeat, they will never be undefined.
  */
-const getInitialReferenceColours = (n) => {
+const getNthReferenceColour = (n) => {
   let whichPanelIdx = 6; /* start at the 7th set of available colours */
   let inPanelIdx = 2; /* start at the 2nd entry of each panel */
-  const ret = new Array(n);
   for (let i = 0; i<n; i++) {
-    ret[i] = availableColours[whichPanelIdx][inPanelIdx];
     whichPanelIdx++;
     if (whichPanelIdx === 11) {
       whichPanelIdx=6;
@@ -69,10 +67,10 @@ const getInitialReferenceColours = (n) => {
     }
     if (inPanelIdx > 9) inPanelIdx -= 10;
   }
-  return ret;
+  return availableColours[whichPanelIdx][inPanelIdx];
 }
 
 
 module.exports = {
-  getInitialReferenceColours
+  getNthReferenceColour
 };

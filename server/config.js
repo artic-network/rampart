@@ -4,8 +4,9 @@
  * @type {module:fs}
  */
 const fs = require('fs')
-const path = require('path')
+// const path = require('path')
 const { normalizePath, getAbsolutePath, verbose, log, fatal } = require("./utils");
+const { getNthReferenceColour } = require("./colours");
 
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
 const PROTOCOL_FILENAME= "protocol.json";
@@ -337,7 +338,12 @@ const updateReferencesSeen = (referencesSeen) => {
     const referencesInConfig = new Set([...global.config.genome.referencePanel.map((x) => x.name)]);
     referencesSeen.forEach((ref) => {
         if (!referencesInConfig.has(ref)) {
-            global.config.genome.referencePanel.push({name: ref, description: "to do", display: false});
+            global.config.genome.referencePanel.push({
+              name: ref,
+              description: "to do",
+              colour: getNthReferenceColour(global.config.genome.referencePanel.length),
+              display: false
+            });
             changes.push(ref);
         }
     })

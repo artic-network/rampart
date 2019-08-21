@@ -9,7 +9,7 @@ export const getLeftRightTop = (that, scales) => {
 }
 
 /* draw the genes (annotations) */
-export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hoverSelection) => {
+export const drawGenomeAnnotation = (svg, chartGeom, scales, genes, amplicons, hoverSelection) => {
   // svg.selectAll(".gene").remove(); /* only added once, don't need to remove what's not there */
 
   function handleAmpliconMove(d, i) {
@@ -28,13 +28,12 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hove
       .style("right", right)
       .style("top", top)
       .style("visibility", "visible")
-      .html(`Gene ${d}<br/> ${referenceData.genes[d].start} - ${referenceData.genes[d].end}`);
+      .html(`Gene ${d}<br/> ${genes[d].start} - ${genes[d].end}`);
     }
   function handleMouseOut() {
     hoverSelection.style("visibility", "hidden");
   }
 
-  const amplicons = referenceData.amplicons;
   const ampliconRoof = chartGeom.height - chartGeom.spaceBottom + 20; /* all primers & genes below this */
   const ampliconHeight = 8;
   if (amplicons) {
@@ -57,8 +56,7 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, referenceData, hove
   const geneRoof = ampliconRoof + 2*ampliconHeight + 5;
   const calcYOfGene = (name) => genes[name].strand === 1 ? geneRoof : geneRoof+geneHeight;
 
-  const genes = referenceData.genes;
-  const geneNames = Object.keys(referenceData.genes);
+  const geneNames = Object.keys(genes);
 
   const genesSel = svg.selectAll(".gene")
     .data(geneNames)

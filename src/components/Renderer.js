@@ -20,7 +20,7 @@ const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openCon
   }
   const elements = [];
   /* we want to render the "overall" progress in a special panel */
-
+  console.log(viewOptions)
   elements.push(
       <OverallSummary
       viewOptions={viewOptions}
@@ -29,8 +29,9 @@ const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openCon
       reference={config.reference}
       referencePanel={config.referencePanel}
       key={"overall"}
+      config={config}
       />
-  );
+  );  
 
   /* For each sample name we want to render a panel */
   Object.keys(dataPerSample).forEach((name) => {

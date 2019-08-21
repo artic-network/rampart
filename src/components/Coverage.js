@@ -32,34 +32,34 @@ class CoveragePlot extends React.Component {
     }
     redraw () {
         this.state.svg.selectAll("*").remove();
-        const xScale = calcXScale(this.state.chartGeom, this.props.reference.length);
+        const xScale = calcXScale(this.state.chartGeom, this.props.config.genome.length);
         const yScale = this.state.showReferenceMatches ?
             calcYScale(this.state.chartGeom, 100) :
-            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.props.viewOptions.logYAxis});
+            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.props.logYAxis});
         const scales = {x: xScale, y: yScale};
         /* draw the axes & genome annotation*/
         const ySuffix = this.state.showReferenceMatches ? "%" : "x";
         drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", ySuffix});
-        drawGenomeAnnotation(this.state.svg, this.state.chartGeom, scales, this.props.reference, this.state.hoverSelection);
+        drawGenomeAnnotation(this.state.svg, this.state.chartGeom, scales, this.props.config.genome.genes, this.props.config.primers.amplicons, this.state.hoverSelection);
+        const basesPerBin = this.props.config.genome.length / this.props.config.display.numCoverageBins;
         if (this.state.showReferenceMatches) {
           drawStream({
             svg: this.state.svg,
-            scales,
+            scales,  
             stream: this.props.referenceStream,
-            referencePanel: this.props.referencePanel,
+            referencePanel: this.props.config.genome.referencePanel,
             hoverSelection: this.state.hoverSelection,
-            genomeResolution: this.props.viewOptions.genomeResolution
+            basesPerBin
           }); 
         } else {
             const data = Object.keys(this.props.coverage)
                 .filter((name) => name!=="all")
                 .map((name) => ({
                     name,
-                    xyValues: this.props.coverage[name].coverage.map((cov, idx) => [idx*this.props.viewOptions.genomeResolution, cov]),
-                    colour: this.props.viewOptions.sampleColours[name]
+                    xyValues: this.props.coverage[name].coverage.map((cov, idx) => [parseInt(idx*basesPerBin, 10), cov]),
+                    colour: this.props.sampleColours[name]
                 }));
             const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${yValue}x`);
-
             drawSteps({
                 svg: this.state.svg,
                 chartGeom: this.state.chartGeom,
@@ -79,9 +79,10 @@ class CoveragePlot extends React.Component {
         this.setState({svg, chartGeom, hoverWidth, hoverSelection});
     }
     componentDidUpdate() {
-        if (this.props.viewOptions.genomeResolution) {
-            this.redraw();
-        }
+      this.redraw();
+        // if (this.props.viewOptions.genomeResolution) {
+        //     this.redraw();
+        // }
     }
     render() {
         return (

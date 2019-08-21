@@ -23,7 +23,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel, viewOptions}) => {
+const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel, viewOptions, config}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -43,9 +43,10 @@ const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel,
         width={chartToDisplay === "coverage" ? "85%" : "35%"}
         canShowReferenceMatches={false}
         coverage={dataPerSample}
-        reference={reference}
-        viewOptions={viewOptions}
+        logYAxis={viewOptions.logYAxis}
+        sampleColours={viewOptions.sampleColours}
         key="cov"
+        config={config}
         renderProp={ chartToDisplay === "coverage" ? 
           (<ContractChart handleClick={() => goToChart(false)}/>) :
           (<ExpandChart handleClick={() => goToChart("coverage")}/>)
@@ -80,20 +81,20 @@ const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel,
         }
       />
     ),
-    referenceHeatmap: (
-      <ReferenceHeatmap
-        className="graphContainer"
-        width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
-        title="Reference Matches"
-        data={dataPerSample}
-        referencePanel={referencePanel}
-        key="refHeatmap"
-        renderProp={ chartToDisplay === "referenceHeatmap" ? 
-          (<ContractChart handleClick={() => goToChart(false)}/>) :
-          (<ExpandChart handleClick={() => goToChart("referenceHeatmap")}/>)
-        }
-      />
-    )
+    // referenceHeatmap: (
+    //   <ReferenceHeatmap
+    //     className="graphContainer"
+    //     width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
+    //     title="Reference Matches"
+    //     data={dataPerSample}
+    //     referencePanel={referencePanel}
+    //     key="refHeatmap"
+    //     renderProp={ chartToDisplay === "referenceHeatmap" ? 
+    //       (<ContractChart handleClick={() => goToChart(false)}/>) :
+    //       (<ExpandChart handleClick={() => goToChart("referenceHeatmap")}/>)
+    //     }
+    //   />
+    // )
   }
 
   const renderGraphs = () => {
@@ -103,10 +104,10 @@ const OverallSummary = ({combinedData, dataPerSample, reference, referencePanel,
       ];
     }
     const els = [];
-    if (reference) els.push(charts.coverage);
+    els.push(charts.coverage);
     if (combinedData.temporal.length > 1) els.push(charts.readsOverTime);
     els.push(charts.readsPerSample);
-    if (referencePanel) els.push(charts.referenceHeatmap);
+    // if (referencePanel) els.push(charts.referenceHeatmap);
     return els;
   }
 

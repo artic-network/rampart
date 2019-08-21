@@ -15,7 +15,7 @@ import SaveDemuxedReads from "./saveDemuxedReadsModal";
 const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
@@ -56,6 +56,12 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
   }
 
 
+  /* TMP - TODO - variables that are in flux */
+  const logYAxis = viewOptions.logYAxis;
+  const sampleColours = viewOptions.sampleColours;
+  console.log(coverageData)
+
+
   /* ----------------- C H A R T S ----------------------- */
   const charts = {
     coverage: (
@@ -64,11 +70,11 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         width={(showSinglePanel === "coverage" || !singleRow) ? "100%" : "40%"}
         canShowReferenceMatches={true}
         coverage={coverageData}
-        referenceStream={sampleData.refMatchesAcrossGenome}
-        referencePanel={config.referencePanel}
-        reference={reference}
-        viewOptions={viewOptions}
+        referenceStream={sampleData.refMatchCoveragesStream}
+        logYAxis={logYAxis}
+        sampleColours={sampleColours}
         fillIn={true}
+        config={config}
         key="coveragePlot"
       />
     ),

@@ -1,7 +1,7 @@
 import { mouse } from "d3-selection";
 import { area } from "d3-shape";
 
-export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection, genomeResolution}) => {
+export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection, basesPerBin}) => {
     console.log("drawStream", {svg, scales, stream, referencePanel, hoverSelection})
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
@@ -11,7 +11,7 @@ export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection,
         /* find index of `d` which mouse is currently over */
         const idx = Math.floor(((mouseX - scales.x.range()[0]) / (scales.x.range()[1] - scales.x.range()[0]))*d.length)
 
-        let html = `<p>@ ${idx*genomeResolution}bp:</p>`;
+        let html = `<p>@ ${idx*basesPerBin}bp:</p>`;
         stream.forEach((dd, ii) => {
           const percMatch = parseInt((dd[idx][1] - dd[idx][0]) * 100, 10);
           if (percMatch > 5) {
@@ -34,7 +34,7 @@ export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection,
     }
 
     const areaObj = area()
-        .x((d, i) => scales.x(i*genomeResolution))
+        .x((d, i) => scales.x(i*basesPerBin))
         .y0((d) => scales.y(d[0]*100))
         .y1((d) => scales.y(d[1]*100));
 
