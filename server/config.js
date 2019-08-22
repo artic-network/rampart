@@ -5,7 +5,7 @@
  */
 const fs = require('fs')
 // const path = require('path')
-const { normalizePath, getAbsolutePath, verbose, log, fatal } = require("./utils");
+const { normalizePath, getAbsolutePath, verbose, log, warn, fatal } = require("./utils");
 const { getNthReferenceColour } = require("./colours");
 
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
@@ -189,11 +189,12 @@ const getInitialConfig = (args) => {
     }
     try {
         config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
+        verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
     } catch (err) {
         console.error(err.message)
-        fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
+        // fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
+        warn(`No directory of basecalled reads specified in startup configuration`)
     }
-    verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
 
     if (args.annotatedDir) {
         config.run.annotatedPath = args.annotatedDir;
@@ -235,7 +236,8 @@ const getInitialConfig = (args) => {
             config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${filepath}`);
 
             if (!filepath) {
-                throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
+                // throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
+               warn(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
             }
 
         });

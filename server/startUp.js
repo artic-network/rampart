@@ -22,6 +22,15 @@ const getFilesFromDirectory = async (dir, extension) => {
 const startUp = async () => {
     log("RAMPART starting up");
 
+    if (!global.config.run.basecalledPath) {
+        // todo - get basecalledPath from user interface
+        throw new Error("[startUp] basecalled path not specified");
+    }
+    if (!global.config.pipelines.annotation.requires[0].path) {
+        // todo - get references path from user interface
+        throw new Error("[startUp] references.fasta path not specified");
+    }
+
     if (!fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
         throw new Error("[startUp] no basecalled dir / annotated dir");
     }
