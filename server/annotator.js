@@ -43,6 +43,14 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
     pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
+
+    if (config.pipelines.annotation.requires) {
+        // find any file that the pipeline requires
+        config.pipelines.annotation.requires.forEach( (requirement) => {e
+            config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${requirement.path}`);
+        } );
+    }
+
     if (global.config.pipelines.annotation.configOptions) {
         // optional additional configuration options from configuration files or arguments
         pipelineConfig.push(...global.config.pipelines.annotation.configOptions)

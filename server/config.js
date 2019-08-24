@@ -234,7 +234,6 @@ const getInitialConfig = (args) => {
             }
 
             requirement.path = filepath;
-            config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${filepath}`);
 
             if (!filepath) {
                 // throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
