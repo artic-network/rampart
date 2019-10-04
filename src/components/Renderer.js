@@ -19,34 +19,17 @@ const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openCon
     );
   }
   const elements = [];
+
   /* we want to render the "overall" progress in a special panel */
-
-  const mappingDataAvailable = config.reference && config.referencePanel.length;
-
-  if (mappingDataAvailable) {
-    elements.push(
+  elements.push(
       <OverallSummary
-        viewOptions={viewOptions}
-        combinedData={combinedData}
-        dataPerSample={dataPerSample}
-        reference={config.reference}
-        referencePanel={config.referencePanel}
-        key={"overall"}
+      viewOptions={viewOptions}
+      combinedData={combinedData}
+      dataPerSample={dataPerSample}
+      key={"overall"}
+      config={config}
       />
-    );
-  } else {
-    elements.push(
-      <div key="msg" className="centerHorizontally">
-        <h3 style={{maxWidth: "50vw"}}>
-          {`Please specify mapping references via config panel, without these we cannot display nice things!`}
-        </h3>
-        <button className="modernButton" onClick={openConfigSidebar}>
-          <div><IoMdSettings/><span>open config</span></div>
-        </button>
-      </div>
-    )
-  }
-
+  );  
 
   /* For each sample name we want to render a panel */
   Object.keys(dataPerSample).forEach((name) => {
@@ -58,7 +41,6 @@ const RenderPanels = ({dataPerSample, combinedData, viewOptions, config, openCon
         key={name}
         viewOptions={viewOptions}
         reference={config.reference}
-        canExpand={mappingDataAvailable}
         socket={socket}
         config={config}
       />

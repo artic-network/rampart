@@ -12,10 +12,10 @@ import SaveDemuxedReads from "./saveDemuxedReadsModal";
  *    It also helps when we change the size of them (e.g. expand) them to simply get
  *    them to reinitialise with new dimensions
  */
-const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, canExpand, socket}) => {
+const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
@@ -55,7 +55,6 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
     menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
   }
 
-
   /* ----------------- C H A R T S ----------------------- */
   const charts = {
     coverage: (
@@ -64,11 +63,11 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         width={(showSinglePanel === "coverage" || !singleRow) ? "100%" : "40%"}
         canShowReferenceMatches={true}
         coverage={coverageData}
-        referenceStream={sampleData.refMatchesAcrossGenome}
-        referencePanel={config.referencePanel}
-        reference={reference}
-        viewOptions={viewOptions}
+        referenceStream={sampleData.refMatchCoveragesStream}
+        logYAxis={viewOptions.logYAxis}
+        sampleColours={viewOptions.sampleColours}
         fillIn={true}
+        config={config}
         key="coveragePlot"
       />
     ),
@@ -154,7 +153,6 @@ const Panel = ({sampleName, sampleData, sampleColour, config, viewOptions, refer
         sampleName={sampleName}
         sampleData={sampleData}
         sampleColour={sampleColour}
-        enableUserInteraction={canExpand}
         menuItems={menuItems}
         handleClick={toggleExpanded}
         isExpanded={expanded}

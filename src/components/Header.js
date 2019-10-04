@@ -44,7 +44,7 @@ class Header extends React.Component {
     //   )
     // }
 
-    const readsMsg = this.props.combinedData ? `${this.props.combinedData.demuxedCount} reads demuxed, ${this.props.combinedData.mappedCount} reads mapped.` : "No data yet";
+    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped.` : "No data yet";
     return (
       <div>
         <h2 style={{margin: "2px"}}>{this.props.config.title}</h2>

@@ -1,0 +1,28 @@
+{
+	"annotation": {
+		"name": "Annotate reads",
+		"path": "pipelines/demux_map",
+		"config_file": "config.yaml",
+		"requires": [
+			{
+				"file": "references.fasta",
+				"config_key": "references_file"
+			}
+		]
+	},
+	"post-processing": [
+		{
+			"name": "Bin reads by barcode",
+			"path": "pipelines/bin_reads",
+			"config": "bin_by=barcode"
+		},
+		{
+			"name": "Build consensus",
+			"path": "pipelines/build_consensus"
+		},
+		{
+			"name": "Export reads",
+			"path": "pipelines/bin_reads"
+		}
+	]
+}

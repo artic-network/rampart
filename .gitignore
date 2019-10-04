@@ -23,17 +23,21 @@ yarn-error.log*
 
 real_time_reads/
 datasets/
-.vscode/
 coordinate_reference.fasta
 
-#don't commit demuxed reads...
+#don't commit demuxed or annotated reads...
 demuxed/
+annotations/
 
 # editor configs etc
-RAMPART.code-workspace
-RAMPART.iml
-RAMPART.iws
-RAMPART.ipr
+*.code-workspace
+*.iml
+*.iws
+*.ipr
+.vscode/
 
 # folder with temporary run-specific data
 /tmp/
+
+# snakemake stuff
+.snakemake/

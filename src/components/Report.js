@@ -125,7 +125,6 @@ const ReadCounts = ({data, config}) => {
       <thead className="sideways">
         <tr>
           <th/>
-          <th>n(demuxed)</th>
           <th>n(mapped)</th>
           <th className="spaceLeft">Min Len</th>
           <th>Max Len</th>
@@ -139,7 +138,6 @@ const ReadCounts = ({data, config}) => {
           return (
             <tr key={name}>
               <th>{name}</th>
-              <td>{data[name].demuxedCount || 0}</td>
               <td>{data[name].mappedCount || 0}</td>
               <td className="spaceLeft">{readLengths.min}</td>
               <td>{readLengths.max}</td>

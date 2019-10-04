@@ -1,0 +1,25 @@
+##### Fastq file stem #####
+
+filename_stem: sample_reads 
+
+##### Where is the data? #####
+
+input_path: path/to/data #where rampart will find the data
+output_path: path/to/data #where rampart will put the data
+
+##### Mapping reference panel #####
+
+references_file: references.fasta
+
+##### Porechop options #####
+
+require_two_barcodes: "--require_two_barcodes"
+discard_middle: "--discard_middle"
+no_split: "--no_split"
+discard_unassigned: "" #default keep unassigned, change to --discard_unassigned if you don't want to see unbarcoded reads
+demux_option: "--native_barcodes"
+
+
+##### Expected barcodes #####
+
+barcodes: NB01,NB02,NB03,NB04,NB05,NB06

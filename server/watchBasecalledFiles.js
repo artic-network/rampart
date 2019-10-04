@@ -2,7 +2,7 @@ const chokidar = require('chokidar');
 const fs = require('fs');
 const path = require('path');
 const { sleep, verbose, log } = require('./utils');
-const { addToDemuxQueue } = require("./demuxer");
+const { addToAnnotationQueue } = require("./annotator");
 
 const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
@@ -11,8 +11,8 @@ const newFastqFileHandler = (newfile, details) => {
     if (global.fastqsSeen.has(basename)) {
       return;
     }
-    verbose(`[fastq watcher] new basecalled file => adding "${basename}" to demux queue.`);
-    addToDemuxQueue(newfile);
+    verbose("fastq watcher", `new basecalled file => adding "${basename}" to annotation queue.`);
+    addToAnnotationQueue(newfile);
     global.fastqsSeen.add(basename);
 
   } catch (err) {
@@ -22,14 +22,14 @@ const newFastqFileHandler = (newfile, details) => {
 }
 
 const startWatcher = () => {
-  const watcher = chokidar.watch(global.config.basecalledPath, {
+  const watcher = chokidar.watch(global.config.run.basecalledPath, {
     ignored: /(^|[/\\])\../,
     interval: 1000,
     persistent: true,
     depth: 1
   });
-  log(`Started watching folder ${global.config.basecalledPath}`);
-  log(`(basecalled files created here will be demuxed)`);
+  log(`Started watching folder ${global.config.run.basecalledPath}`);
+  log(`(basecalled files created here will be annotated and loaded)\n`);
   watcher.on("add", newFastqFileHandler);
 }
 
@@ -38,13 +38,13 @@ const startBasecalledFilesWatcher = async () => {
   /* overview:
    * we've already scanned the file for pre-existing fastqs and pushed them onto the deque
    * global.fastqsSeen contains the names of all of these (mainly for debugging purposes)
-   * dogfish writes fastqs into this directory in sequential order, i.e.
+   * guppy writes fastqs into this directory in sequential order, i.e.
    * when fastq_<n>.fastq appears, fastq_<n-1>.fastq can be processed
    * We watch for file creation then add the previous fastq to the deque
    */
 
   while (true) {
-    if (fs.existsSync(global.config.basecalledPath)) {
+    if (fs.existsSync(global.config.run.basecalledPath)) {
       startWatcher();
       break;
     }

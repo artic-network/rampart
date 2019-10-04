@@ -11,33 +11,29 @@ const parser = new argparse.ArgumentParser({
 });
 parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
 parser.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
+parser.addArgument('--protocol', {help: "path to a directory containing protocol config files"});
 
 /* ----------------- CONFIG OPTIONS -------------------- */
-const config = parser.addArgumentGroup({title: 'Config commands', description: "These options can all be specified in the GUI"});
-config.addArgument('--basecalledDir', {help: "basecalled directory"});
-config.addArgument('--demuxedDir', {help: "demuxed directory"});
+const config = parser.addArgumentGroup({title: 'Config commands', description: "Override options from config files"});
 config.addArgument('--title', {help: "experiment title"});
-config.addArgument('--referencePanelPath', {help: "FASTA reference panel"});
-config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
-config.addArgument('--barcodeNames', {nargs: '+', metavar: 'barcode=name', help: "e.g. BC01=kikwit. Can have more than one."})
-config.addArgument('--nativeBarcodes', {action: "storeTrue", help: "Demultiplex with native barcodes."})
-config.addArgument('--rapidBarcodes', {action: "storeTrue", help: "Demultiplex with rapid/PCR barcodes."})
-config.addArgument('--limitBarcodesTo', {nargs: "+", metavar: 'barcode_number', help: "Specify a list of barcode numbers to limit demuxing to."})
-config.addArgument('--discardUnassigned', {action: "storeTrue", help: "Don't include un-barcoded reads."})
-config.addArgument('--discardMiddle', {action: "storeTrue", help: "Look for barcodes in the middle of reads and discard them."})
+config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
+config.addArgument('--annotatedPath', {help: "path to destination directory for annotation CSVs - will be created if it doesn't exist (default: './annotations')"});
+config.addArgument('--referencesPath', {help: "path to a FASTA file containing a panel of reference sequences"});
+config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"});
+config.addArgument('--annotationConfig', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
+
+const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
+runtime.addArgument('--clearAnnotated', {action: "storeTrue", help: "remove any annotation files present when RAMPART starts up (force re-annotation of all FASTQs)"});
+runtime.addArgument('--simulateRealTime', {type: 'int', defaultValue: 0, help: "simulate real-time annotation with given delay between files (default none)"});
 
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});
-development.addArgument('--emptyDemuxed', {action: "storeTrue", help: "remove any demuxed files present when rampart starts up"});
-development.addArgument('--devClient', {action: "storeTrue", help: "Don't serve built client -- i.e. have `npm run start` running from another terminal. You cannot change the ports with this mode!"})
-development.addArgument('--mockFailures', {action: "storeTrue", help: "stochastic failures (mapping / demuxing / basecalling)"});
-
+development.addArgument('--devClient', {action: "storeTrue", help: "don't serve build (client)"});
+development.addArgument('--mockFailures', {action: "storeTrue", help: "stochastic failures (annotating / parsing)"});
 
 /* ----------------- DEPRECATED -------------------- */
-const deprecated = parser.addArgumentGroup({title: 'Deprecated commands'});
-deprecated.addArgument('--startWithDemuxedReads', {action: "storeTrue", help: "Development flag."});
-deprecated.addArgument('--relaxedDemuxing', {action: "storeTrue", help: "Development flag -- don't require matching barcodes to demux."});
-
+// const deprecated = parser.addArgumentGroup({title: 'Deprecated commands'});
+// config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
 
 module.exports = {
   parser
