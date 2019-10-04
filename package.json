@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.3.0",
+  "version": "1.0.0pre1",
   "main": "src/electron.js",
   "private": true,
   "dependencies": {
