@@ -14,7 +14,7 @@ const Datapoint = function(fileNameStem, annotations) {
   this.fastqName = fileNameStem;
 
   annotations.forEach((d, index) => {
-    const barcode = d.barcode === "none" ? "noBarcode" : d.barcode;
+    const barcode = d.barcode === "none" ? "unassigned" : d.barcode;
 
     if (!this.data[barcode]) {
       this.data[barcode] = {

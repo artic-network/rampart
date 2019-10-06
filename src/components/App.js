@@ -85,8 +85,8 @@ class App extends Component {
       newSamples.forEach((name, idx) => {
         newViewOptions.sampleColours[name] = newColours[idx];
       })
-      if (newSamples.includes("noBarcode")) {
-        newViewOptions.sampleColours.noBarcode = "#979797";
+      if (newSamples.includes("unassigned")) {
+        newViewOptions.sampleColours.unassigned = "#979797";
       }
 
       this.setState({

@@ -10,7 +10,7 @@ const Datastore = function() {
   this.datapoints = [];
   this.processedData = {};
   this.barcodesSeen = new Set();
-  
+
   /* Given barcodes (e.g. via config files) intiialise the data structures
   This means they will be displayed in the client, even if no reads have arrived for them */
   for (const barcode of Object.keys(global.config.run.barcodeNames)) {
@@ -30,7 +30,7 @@ const Datastore = function() {
  *  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
  */
 Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
-  
+
   /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
   const datapoint = new Datapoint(fileNameStem, annotations);
   this.datapoints.push(datapoint);
@@ -38,9 +38,8 @@ Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
   /* step 2: update `processedData`, which is a summary of the run so far */
   const referencesSeen = new Set();
   datapoint.getBarcodes().forEach((barcode) => {
-    if (!this.barcodesSeen.has(barcode)) {
-      this.barcodesSeen.add(barcode);
-    }
+    this.barcodesSeen.add(barcode);
+
     const sampleName = this.getSampleName(barcode);
 
     /* if we're encountering a sample name for the first time, then we must create the empty data struct */
@@ -299,13 +298,13 @@ const createReferenceMatchStream = function(refMatchCoverages) {
 
     let yPosition = 0;
     global.config.genome.referencePanel.forEach((refInfo, refIdx) => {
-        let percHere = 0;
-        /* require >10 reads to calc stream & this ref must have been seen for this sample */
-        if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
-            percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
-        }
-        stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
-        yPosition += +percHere;
+      let percHere = 0;
+      /* require >10 reads to calc stream & this ref must have been seen for this sample */
+      if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
+        percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
+      }
+      stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
+      yPosition += +percHere;
     })
   }
 
