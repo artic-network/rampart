@@ -220,7 +220,7 @@ const getInitialConfig = (args) => {
 
     config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
     config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config_file, {relativeTo: config.pipelines.path});
-    config.pipelines.annotation.configOptions = [];
+    config.pipelines.annotation.configOptions = {};
 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
@@ -243,13 +243,27 @@ const getInitialConfig = (args) => {
         });
     }
 
-    if (Object.keys(config.run.barcodeNames).length > 0) {
-        config.pipelines.annotation.configOptions.push(`barcodes=${Object.keys(config.run.barcodeNames).join(',')}`);
+    // Add any annotationOptions from the protocol config file
+    if (config.protocol.annotationOptions) {
+        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.protocol.annotationOptions };
     }
 
+    // Add any annotationOptions options from the run config file
+    if (config.run.annotationOptions) {
+        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.run.annotationOptions };
+    }
+
+    if (Object.keys(config.run.barcodeNames).length > 0) {
+        config.pipelines.annotation.configOptions["barcodes"] = Object.keys(config.run.barcodeNames).join(',');
+    }
+
+    // Add any annotationOptions options from the command line
     if (args.annotationConfig) {
         // add pass-through options to the annotation script
-        config.pipelines.annotation.configOptions.push(...args.annotationConfig);
+        args.annotationConfig.forEach( value => {
+            const values = value.split("=");
+            config.pipelines.annotation.configOptions[values[0]] = (values.length > 1 ? values[1] : "");
+        });
     }
 
     ensurePathExists(config.pipelines.annotation.path);

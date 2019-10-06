@@ -47,13 +47,15 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
         config.pipelines.annotation.requires.forEach( (requirement) => {
-            config.pipelines.annotation.configOptions.push(`${requirement.config_key}=${requirement.path}`);
+            pipelineConfig.push(`${requirement.config_key}=${requirement.path}`);
         } );
     }
 
     if (global.config.pipelines.annotation.configOptions) {
         // optional additional configuration options from configuration files or arguments
-        pipelineConfig.push(...global.config.pipelines.annotation.configOptions)
+        Object.keys(global.config.pipelines.annotation.configOptions).forEach( key => {
+            pipelineConfig.push(`${key}=${global.config.pipelines.annotation.configOptions[key]}`);
+        });
     }
 
     let spawnArgs = [
