@@ -161,7 +161,7 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
       .filter( a => a !== "unmapped")
       .slice(0, maxNum);
 
-  refsToDisplay.push("u nmapped");
+  refsToDisplay.push("unmapped");
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatchesAcrossSamples;
