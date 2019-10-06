@@ -59,7 +59,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     let spawnArgs = [
         '--snakefile', global.config.pipelines.annotation.path + "Snakefile",
         '--configfile', global.config.pipelines.annotation.path + global.config.pipelines.annotation.config_file,
-        '--cores', '2',
+        // '--cores', '2',
         '--config', ...pipelineConfig
     ];
 
