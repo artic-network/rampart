@@ -64,6 +64,11 @@ const sleep = (ms) => new Promise((resolve) =>
   setTimeout(resolve, ms)
 );
 
+const trace = (err) => {
+    if (global.VERBOSE) {
+        console.trace(err);
+    }
+}
 
 const prettyPath = (path) => {
   if (path.split("/").length > 3) {
@@ -82,5 +87,6 @@ module.exports = {
   log,
   warn,
   verbose,
+  trace,
   deleteFolderRecursive
 };
