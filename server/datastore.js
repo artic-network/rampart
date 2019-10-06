@@ -158,10 +158,10 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
   }
   const refsToDisplay = Object.keys(refsAboveThres)
       .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
-      .filter( a => a !== "Unmapped")
+      .filter( a => a !== "unmapped")
       .slice(0, maxNum);
 
-  refsToDisplay.push("Unmapped");
+  refsToDisplay.push("u nmapped");
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatchesAcrossSamples;
@@ -222,7 +222,7 @@ Datastore.prototype.getDataForClient = function() {
 };
 
 
-Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
+Datastore.prototype.collectFastqFilesAndIndices = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
   const barcodes = [];
   Object.keys(global.config.run.barcodeNames).forEach((key) => {
     if (key === sampleName) barcodes.push(key);

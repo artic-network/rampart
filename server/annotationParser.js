@@ -30,7 +30,7 @@ async function parseAnnotations(fileToParse) {
 
     annotations.forEach( row => {
         if (row.best_reference === "*" || row.best_reference === "") {
-            row.best_reference = "Unmapped";
+            row.best_reference = "unmapped";
         }
     });
 

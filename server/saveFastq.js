@@ -13,7 +13,7 @@ const saveFastq = ({sampleName, outputDirectory, filters}) => {
   }
 
   global.io.emit("infoMessage", `Saving demuxed FASTQ`);
-  const matches = global.datastore.collectFastqFilesAndIndicies({sampleName, ...filters});
+  const matches = global.datastore.collectFastqFilesAndIndices({sampleName, ...filters});
 
   for (const [fastqName, fastqLines] of matches) {
     if (!fastqLines.length) return;

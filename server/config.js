@@ -182,7 +182,11 @@ const getInitialConfig = (args) => {
     assert(config.genome.length, "Genome description missing length");
     assert(config.genome.genes, "Genome description missing genes");
 
-    config.genome.referencePanel = [];
+    config.genome.referencePanel = [{
+        name: "unmapped",
+        description: "Reads that didn't map to any reference",
+        display: true
+    }];
 
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
@@ -278,7 +282,7 @@ const getInitialConfig = (args) => {
     config.display = {
       numCoverageBins: 1000, /* how many bins we group the coverage stats into */
       readLengthResolution: 10
-    }
+    };
 
     return config;
 };
@@ -356,7 +360,7 @@ const updateReferencesSeen = (referencesSeen) => {
     const changes = [];
     const referencesInConfig = new Set([...global.config.genome.referencePanel.map((x) => x.name)]);
     referencesSeen.forEach((ref) => {
-        if (!referencesInConfig.has(ref)) {
+        if (ref !== "unmapped" && !referencesInConfig.has(ref)) {
             global.config.genome.referencePanel.push({
               name: ref,
               description: "to do",
@@ -365,12 +369,12 @@ const updateReferencesSeen = (referencesSeen) => {
             });
             changes.push(ref);
         }
-    })
+    });
     if (changes.length) {
         verbose("config", `new references seen: ${changes.join(" & ")}`);
         global.CONFIG_UPDATED();
     }
-}
+};
 
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
     let changed = false;
@@ -383,7 +387,7 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
             changed = true;
             refInfo.display = true;
         }
-    };
+    }
     if (changed) {
         verbose("config", `updated which refs in the reference panel should be displayed`);
         global.CONFIG_UPDATED();
