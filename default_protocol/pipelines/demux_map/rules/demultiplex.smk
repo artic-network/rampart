@@ -15,8 +15,8 @@ rule demultiplex_porechop:
         temp(config["output_path"] + "/temp/{filename_stem}.fastq")
     shell:
         "porechop --verbosity 0 "
-        "-i {input} "
-        "-o {output} "
+        "-i {input:q} "
+        "-o {output:q} "
         "--barcode_threshold 60 "
         "--threads 2 "
         "--barcode_diff 5 "

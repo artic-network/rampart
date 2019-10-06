@@ -40,8 +40,8 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     //
     // any other config key=value pairs can come from the --annotationConfig argument and these will override any of the above.
 
-    pipelineConfig.push(`input_path=${global.config.run.basecalledPath}`);
-    pipelineConfig.push(`output_path=${global.config.run.annotatedPath}`);
+    pipelineConfig.push(`input_path="${global.config.run.basecalledPath}"`);
+    pipelineConfig.push(`output_path="${global.config.run.annotatedPath}"`);
     pipelineConfig.push(`filename_stem=${fastqFileStem}`);
 
     if (config.pipelines.annotation.requires) {
@@ -99,28 +99,6 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
     });
 });
 
-// /**
-//  * When demuxing is successful we have "some" data -- the barcode counts
-//  * @param {string} demuxedFastqPath
-//  * @returns {Promise} resolves with an object of barcode {str} -> demuxed counts {int}
-//  */
-// const getBarcodeDemuxCounts = (demuxedFastqPath) => new Promise((resolve, reject) => {
-//   // console.log(demuxedFastqPath)
-//   const getBarcodes = spawn('./server/getBarcodesFromDemuxedFastq.py', [demuxedFastqPath]);
-//   getBarcodes.stdout.on('data', (stdout) => {
-//     const data = String(stdout).split(/\s+/);
-//     const barcodeDemuxCounts = {};
-//     for (let i = 1; i < data.length; i+=2) {
-//       barcodeDemuxCounts[data[i]] = parseInt(data[i-1], 10);
-//     }
-//     resolve(barcodeDemuxCounts);
-//   });
-//   getBarcodes.on('close', (code) => {
-//     reject(code);
-//   });
-// });
-
-
 let isRunning = false; // only want one annotation thread at a time!
 const annotator = async () => {
 
@@ -144,10 +122,6 @@ const annotator = async () => {
             const timestamp = getReadTime(fileToAnnotateBasename);
 
             const fileToParse = path.join(global.config.run.annotatedPath, fileToAnnotateBasename + '.csv');
-
-            // AR - adding a data point in the data store now happens when the annotations are parsed.
-            // const barcodeDemuxCounts = await getBarcodeDemuxCounts(fastqToWrite);
-            // const datastoreAddress = global.datastore.addDemuxedFastq(fileToAnnotateBasename, timestamp);
 
             verbose("annotator", `${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
 
