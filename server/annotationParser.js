@@ -49,7 +49,7 @@ const annotationParser = async () => {
         let annotations;
         
         verbose("annotation parser", `queue length: ${parsingQueue.length+1}. Parsing ${prettyPath(fileToParse)}`);
-        log(`Parsing annotation for ${filenameStem}`)
+        verbose(`Parsing annotation for ${filenameStem}`)
         
         try {
             annotations = await parseAnnotations(fileToParse);

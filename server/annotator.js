@@ -63,7 +63,7 @@ const call_annotation_script = (fastqFileStem) => new Promise((resolve, reject) 
         '--config', ...pipelineConfig
     ];
 
-    log(`Annotating ${fastqFileStem}`);
+    verbose(`Annotating ${fastqFileStem}`);
 
     const annotationScript = spawn('snakemake', spawnArgs);
 
