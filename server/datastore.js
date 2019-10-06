@@ -3,7 +3,7 @@ const { timerStart, timerEnd } = require('./timers');
 const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
 
 /**
- * The main store of all annotated data
+ * The main store of all annotated data.
  * prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {

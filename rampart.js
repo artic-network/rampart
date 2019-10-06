@@ -16,7 +16,7 @@ const main = async () => {
 
         global.config = getInitialConfig(args);
         global.datastore = new Datastore();
-        global.fastqsSeen = new Set();
+        global.filesSeen = new Set(); /* files (basenames) seen (FASTQ or CSV) */
 
         server.run({devClient: args.devClient, ports: args.ports});
 
