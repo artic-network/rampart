@@ -62,16 +62,21 @@ function ensurePathExists(path, {make=false}={}) {
 function readConfigFile(paths, fileName) {
     let config = {};
 
-    // iterate over the paths and if a file exists, read it on top of the
-    // existing configuration object.
-    paths.forEach( (path) => {
-        const filePath = normalizePath(path) + fileName;
-        if (fs.existsSync(filePath)) {
-            verbose("config", `Reading ${fileName} from ${path}`);
-            config = { ...config, ...JSON.parse(fs.readFileSync(filePath))};
-            config.path = normalizePath(path); // add the path of the final config file read - for relative paths
-        }
-    });
+    try {
+        // iterate over the paths and if a file exists, read it on top of the
+        // existing configuration object.
+        paths.forEach((path) => {
+            const filePath = normalizePath(path) + fileName;
+            if (fs.existsSync(filePath)) {
+                verbose("config", `Reading ${fileName} from ${path}`);
+                config = {...config, ...JSON.parse(fs.readFileSync(filePath))};
+                config.path = normalizePath(path); // add the path of the final config file read - for relative paths
+            }
+        });
+    } catch (err) {
+        throw new Error(`Error reading file "${fileName}": ${err.message}`);
+    }
+
     return config;
 }
 
