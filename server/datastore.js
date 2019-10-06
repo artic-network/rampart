@@ -159,7 +159,10 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
   }
   const refsToDisplay = Object.keys(refsAboveThres)
       .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+      .filter( a => a !== "Unmapped")
       .slice(0, maxNum);
+
+  refsToDisplay.push("Unmapped");
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatchesAcrossSamples;

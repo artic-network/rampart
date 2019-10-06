@@ -28,6 +28,12 @@ async function parseAnnotations(fileToParse) {
 
     verbose("annotation parser", `parsed annotation file, ${prettyPath(fileToParse)}: ${annotations.length} lines`);
 
+    annotations.forEach( row => {
+        if (row.best_reference === "*" || row.best_reference === "") {
+            row.best_reference = "Unmapped";
+        }
+    });
+
     return annotations;
 }
 
