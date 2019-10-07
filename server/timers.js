@@ -29,7 +29,7 @@ const timerEnd = (name) => {
     dbsingle[name][1]++;
     dbsingle[name][2] += thisTook;
     const msg = ` #${dbsingle[name][1]} time: ${thisTook}ms. average: ${parseInt(dbsingle[name][2] / dbsingle[name][1], 10)}ms.`;
-    verbose(`Timer ${name}`, (thisTook > 20 ? chalk.black.bgYellowBright(msg): chalk.black.bgBlack(msg)));
+    verbose(`Timer ${name}`, (thisTook > 20 ? chalk.black.bgYellowBright(msg): chalk.black.bgGreenBright(msg)));
   } else {
     endBeforeStartError(name);
   }

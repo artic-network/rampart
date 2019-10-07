@@ -21,9 +21,11 @@ class PipelineRunner {
         this._name = name;
         this._snakefile = snakefile;
         this._configfile = configfile;
-        this._onSuccess = onSuccess; // calback
+        this._onSuccess = onSuccess; // callback
 
         this._configOptions = configOptions;
+
+        this._processedCount = 0;
 
         this._isRunning = false;
         if (queue) {
@@ -125,10 +127,10 @@ class PipelineRunner {
             );
 
             process.on('exit', (code, signal) => {
-                verbose(`pipeline (${this._name})`, `pipeline finished with exit code ${code}`);
                 if (code === 0) {
-                     resolve();
+                    resolve();
                 } else {
+                    warn(`pipeline (${this._name})`, `pipeline finished with exit code ${code}`);
                     err.forEach( (line) => warn(line) );
                     reject();
                 }
@@ -142,21 +144,26 @@ class PipelineRunner {
      * @private
      */
     async _runJobsInQueue() {
-        if (!this._isRunning && this._jobQueue.length > 0) {
-            this._isRunning = true;
+        if (this._jobQueue.length > 0) {
+            if (!this._isRunning) {
+                this._isRunning = true;
 
-            verbose(`pipeline (${this._name})`, `queue length: ${this._jobQueue.length+1}`);
+                verbose(`pipeline (${this._name})`, `queue length: ${this._jobQueue.length + 1}, processed ${this._processedCount} files`);
 
-            const job = this._jobQueue.shift();
-            try {
-                await this._runPipeline(job);
-                this._onSuccess(job);
-            } catch (err) {
-                trace(err);
+                const job = this._jobQueue.shift();
+                try {
+                    await this._runPipeline(job);
+                    this._processedCount += 1;
+                    this._onSuccess(job);
+                } catch (err) {
+                    trace(err);
+                }
+                this._isRunning = false;
+
+                this._runJobsInQueue(); // recurse
             }
-            this._isRunning = false;
-
-            this._runJobsInQueue(); // recurse
+        } else {
+            verbose(`pipeline (${this._name})`, `queue empty, processed ${this._processedCount} files`);
         }
     };
 

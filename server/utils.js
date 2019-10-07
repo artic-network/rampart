@@ -48,7 +48,7 @@ const fatal = (msg) => {
 
 const verbose = (caller, msg) => {
   if (global.VERBOSE) {
-    console.log(chalk.green(`[verbose]    ${`[${caller}]`.padEnd(23)}${msg}`));
+    console.log(chalk.green(`[verbose]  ${`[${caller}]`.padEnd(25)}${msg}`));
   }
 };
 
@@ -57,7 +57,7 @@ const log = (msg) => {
 };
 
 const warn = (msg) => {
-  console.warn(chalk.yellow(`[warning]\t${msg}`));
+  console.warn(chalk.yellow(`[warning]  ${msg}`));
 };
 
 const sleep = (ms) => new Promise((resolve) =>
