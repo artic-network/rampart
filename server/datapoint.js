@@ -14,12 +14,23 @@ const { UNASSIGNED_LABEL } = require('./config');
  *                            end_coords,num_matches,aln_block_len
  * @param {Integer} timestamp timestamp representing this set of reads
  */
-const Datapoint = function(fileNameStem, annotations, timestamp) {
+const Datapoint = function(fileNameStem, annotations) {
     this.data = {};
-    this.timestamp = timestamp;
     this.fastqName = fileNameStem;
 
+    this.startTime = undefined;
+    this.endTime = undefined;
+
     annotations.forEach((d, index) => {
+        d.start_time = (new Date(d.start_time)).getTime();
+
+        if (!this.startTime || d.start_time < this.startTime) {
+            this.startTime = d.start_time;
+        }
+        if (!this.endTime || d.start_time > this.endTime) {
+            this.endTime = d.start_time;
+        }
+
         const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
 
         if (!this.data[barcode]) {
@@ -78,7 +89,7 @@ Datapoint.prototype.getBarcodes = function() {
 };
 
 Datapoint.prototype.getTimestamp = function() {
-    return this.timestamp;
+    return this.startTime;
 };
 
 

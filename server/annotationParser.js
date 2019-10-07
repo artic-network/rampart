@@ -31,8 +31,7 @@ async function parseAnnotations(fileToParse) {
             row.best_reference = UNMAPPED_LABEL;
         }
     });
-    const time = getTimeFromAnnotatedCSV(annotations);
-    return {annotations, time};
+    return annotations;
 }
 
 /**
@@ -47,19 +46,19 @@ const annotationParser = async () => {
 
         const fileToParse = parsingQueue.shift();
         const filenameStem = path.basename(fileToParse, '.csv');
-        let annotations, time;
+        let annotations;
 
         verbose("annotation parser", `Parsing annotation for ${filenameStem}`)
         verbose("annotation parser", `${parsingQueue.length} files remain in queue`);
 
         try {
-            ({annotations, time} = await parseAnnotations(fileToParse));
+            annotations = await parseAnnotations(fileToParse);
         } catch (err) {
             trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);
         }
 
-        await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations, time);
+        await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations);
 
         isRunning = false;
 

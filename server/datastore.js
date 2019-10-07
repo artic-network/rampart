@@ -43,16 +43,17 @@ Datastore.prototype.timestampObserved = function(timestamp) {
  * Side effect 2: Updates `this.dataPerSample` as needed.
  * Side effect 3: trigger server-client data updates.
  *
+ * @param fileNameStem
  * @param {Array} annotations annotations is an array of objects with the following values for each read:
  *                            `read_name`,`read_len`,`start_time`,`barcode`,`best_reference`,`ref_len`,
  *                            `start_coords`,`end_coords`,`num_matches`,`aln_block_len`
  */
-Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations, timestamp) {
+Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations) {
 
   /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
-  const datapoint = new Datapoint(fileNameStem, annotations, timestamp);
+  const datapoint = new Datapoint(fileNameStem, annotations);
   this.datapoints.push(datapoint);
-  this.timestampObserved(timestamp);
+  this.timestampObserved(datapoint.getTimestamp());
 
   /* step 2: update `dataPerSample`, which is a summary of the run so far */
   const referencesSeen = new Set();
