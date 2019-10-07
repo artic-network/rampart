@@ -360,6 +360,7 @@ th.rotate {
   border: 1px solid gray;
   border-radius: 5px;
   border-left: 5px solid gray;
+  overflow: hidden;
 }
 .panelContainer.collapsed {
   height: 30px;
