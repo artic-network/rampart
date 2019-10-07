@@ -164,7 +164,7 @@ Datastore.prototype.getDataForClient = function() {
 
   /* Part I - summarise each sample (i.e. each sample name, i.e. this.dataPerSample */
   const summarisedData = {};
-  const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample);
+  const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample, global.config.display.referenceMapCountThreshold, global.config.display.maxReferencePanelSize);
   for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
     summarisedData[sampleName] = {
       mappedCount: sampleData.mappedCount,

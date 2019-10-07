@@ -103,8 +103,8 @@ function assert(item, message) {
     }
 }
 
-const getInitialConfig = (args) => {    
-    
+const getInitialConfig = (args) => {
+
     /* NOTE: as rampart becomes an executable on $PATH, this logic will need to change */
     if (!process.argv[1].endsWith('rampart.js')) {
         throw new Error(`ERROR. Can't get RAMPART path from argv[1]: ${process.argv[1]}`);
@@ -205,7 +205,7 @@ const getInitialConfig = (args) => {
     } catch (err) {
         console.error(err.message)
         // fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
-        warn(`No directory of basecalled reads specified in startup configuration`)
+        fatal(`No directory of basecalled reads specified in startup configuration`)
     }
 
     if (args.annotatedDir) {
@@ -249,7 +249,7 @@ const getInitialConfig = (args) => {
 
             if (!filepath) {
                 // throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
-               warn(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
+                warn(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
             }
 
         });
@@ -283,9 +283,21 @@ const getInitialConfig = (args) => {
 
     /* display options */
     config.display = {
-      numCoverageBins: 1000, /* how many bins we group the coverage stats into */
-      readLengthResolution: 10
+        numCoverageBins: 1000, /* how many bins we group the coverage stats into */
+        readLengthResolution: 10,
+        referenceMapCountThreshold: 5,
+        maxReferencePanelSize: 10
     };
+
+    // Add any display options from the protocol config file
+    if (config.protocol.display) {
+        config.display = { ...config.display, ...config.protocol.displayOptions };
+    }
+
+    // Add any display options options from the run config file
+    if (config.run.displayOptions) {
+        config.display = { ...config.display, ...config.run.displayOptions };
+    }
 
     return config;
 };
@@ -357,7 +369,7 @@ const updateConfigWithNewBarcodes = () => {
 /**
  * RAMPART doesn't know what references are out there, we can only add them as we see them
  * This updates the config store of the references, and triggers a client update if there are changes
- * @param {set} referencesSeen 
+ * @param {set} referencesSeen
  */
 const updateReferencesSeen = (referencesSeen) => {
     const changes = [];
@@ -365,10 +377,10 @@ const updateReferencesSeen = (referencesSeen) => {
     referencesSeen.forEach((ref) => {
         if (ref !== UNMAPPED_LABEL && !referencesInConfig.has(ref)) {
             global.config.genome.referencePanel.push({
-              name: ref,
-              description: "to do",
-              colour: getNthReferenceColour(global.config.genome.referencePanel.length),
-              display: false
+                name: ref,
+                description: "to do",
+                colour: getNthReferenceColour(global.config.genome.referencePanel.length),
+                display: false
             });
             changes.push(ref);
         }

@@ -4,7 +4,7 @@ const { UNASSIGNED_LABEL } = require('./config');
  * A Datapoint is the annotated results from a single annotated (CSV) file
  * which is generated from a single FASTQ file. A `Datapoint` object contains
  * various getter & setter prototypes.
- * 
+ *
  * TODO: this should be modified such that a `Datapoint` object is created for
  * each individual read, rather than each FASTQ/CSV.
  *
@@ -15,49 +15,58 @@ const { UNASSIGNED_LABEL } = require('./config');
  * @param {Integer} timestamp timestamp representing this set of reads
  */
 const Datapoint = function(fileNameStem, annotations, timestamp) {
-  this.data = {};
-  this.timestamp = timestamp;
-  this.fastqName = fileNameStem;
+    this.data = {};
+    this.timestamp = timestamp;
+    this.fastqName = fileNameStem;
 
-  annotations.forEach((d, index) => {
-    const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
+    annotations.forEach((d, index) => {
+        const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
 
-    if (!this.data[barcode]) {
-      this.data[barcode] = {
-        barcodeCount: 0,
-        mappedCount: 0,
-        readPositions: [],
-        readLengths: [],
-        readTopRefHits: [],
-        refMatches: {},
-        fastqPosition: [],
-      };
-    }
+        if (!this.data[barcode]) {
+            this.data[barcode] = {
+                barcodeCount: 0,
+                mappedCount: 0,
+                readPositions: [],
+                readLengths: [],
+                readTopRefHits: [],
+                refMatches: {},
+                fastqPosition: [],
+            };
+        }
 
-    this.data[barcode].fastqPosition.push(index);
-    this.data[barcode].barcodeCount++;
-    this.data[barcode].mappedCount++;
+        this.data[barcode].fastqPosition.push(index);
+        this.data[barcode].barcodeCount++;
+        this.data[barcode].mappedCount++;
 
-    /* where the read mapped on the reference */
-    const negStrand = d.start_coords > d.end_coords;
-    const readPosition = {
-      startBase: negStrand ? d.end_coords : d.start_coords,
-      endBase: negStrand ? d.start_coords : d.end_coords,
-      strand: negStrand ? "-" : "+"
-    };
-    readPosition.startFrac = readPosition.startBase / d.ref_len;
-    readPosition.endFrac = readPosition.endBase / d.ref_len;
-    this.data[barcode].readPositions.push(readPosition);
+        // coerce into integers
+        d.start_coords = parseInt(d.start_coords, 10);
+        d.end_coords = parseInt(d.end_coords, 10);
+        d.ref_len = parseInt(d.ref_len, 10);
+        d.read_len = parseInt(d.read_len, 10);
+        d.num_matches = parseInt(d.num_matches, 10);
+        d.aln_block_len = parseInt(d.aln_block_len, 10);
 
-    this.data[barcode].readTopRefHits.push(d.best_reference);
-    this.data[barcode].readLengths.push(d.read_len);
-    if (!this.data[barcode].refMatches[d.best_reference]) {
-      this.data[barcode].refMatches[d.best_reference] = [];
-    }
-    const similarity = d.num_matches / d.aln_block_len;
-    this.data[barcode].refMatches[d.best_reference].push(similarity);
+        /* where the read mapped on the reference */
+        const negStrand = d.start_coords > d.end_coords;
+        const readPosition = {
+            startBase: negStrand ? d.end_coords : d.start_coords,
+            endBase: negStrand ? d.start_coords : d.end_coords,
+            strand: negStrand ? "-" : "+"
+        };
+        readPosition.startFrac = readPosition.startBase / d.ref_len;
+        readPosition.endFrac = readPosition.endBase / d.ref_len;
 
-  });
+        this.data[barcode].readPositions.push(readPosition);
+
+        this.data[barcode].readTopRefHits.push(d.best_reference);
+        this.data[barcode].readLengths.push(d.read_len);
+        if (!this.data[barcode].refMatches[d.best_reference]) {
+            this.data[barcode].refMatches[d.best_reference] = [];
+        }
+        const similarity = d.num_matches / d.aln_block_len;
+        this.data[barcode].refMatches[d.best_reference].push(similarity);
+
+    });
 };
 
 Datapoint.prototype.getDataForBarcode = function(barcode) {
@@ -65,30 +74,30 @@ Datapoint.prototype.getDataForBarcode = function(barcode) {
 }
 
 Datapoint.prototype.getBarcodes = function() {
-  return Object.keys(this.data);
+    return Object.keys(this.data);
 };
 
 Datapoint.prototype.getTimestamp = function() {
-  return this.timestamp;
+    return this.timestamp;
 };
 
 
 Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minReadLen, maxReadLen) {
-  const barcodeData = this.data[barcode];
-  if (barcodeData) {
-    const fastqPositions = [];
-    for (let i=0; i<barcodeData.readLengths.length; i++) {
-      // MATCH FILTERS
-      if (
-          barcodeData.readLengths[i] >= minReadLen &&
-          barcodeData.readLengths[i] <= maxReadLen
-      ) {
-        fastqPositions.push(barcodeData.fastqPosition[i])
-      }
+    const barcodeData = this.data[barcode];
+    if (barcodeData) {
+        const fastqPositions = [];
+        for (let i=0; i<barcodeData.readLengths.length; i++) {
+            // MATCH FILTERS
+            if (
+                barcodeData.readLengths[i] >= minReadLen &&
+                barcodeData.readLengths[i] <= maxReadLen
+            ) {
+                fastqPositions.push(barcodeData.fastqPosition[i])
+            }
+        }
+        return [this.fastqName, fastqPositions]
     }
-    return [this.fastqName, fastqPositions]
-  }
-  return false;
+    return false;
 };
 
 module.exports = { default: Datapoint };
