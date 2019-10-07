@@ -4,7 +4,7 @@ const getInitialConfig = require("./server/config").getInitialConfig;
 const { processExistingData, validateConfig } = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;
-const { fatal } = require('./server/utils');
+const { fatal, trace } = require('./server/utils');
 const { setUpAnnotationRunner } = require("./server/annotator");
 
 const main = async () => {
@@ -13,7 +13,7 @@ const main = async () => {
         if (args.verbose) global.VERBOSE = true;
         
         global.config = getInitialConfig(args);
-        validateConfig(); // will throw if config is invalid
+        await validateConfig(); // will throw if config is invalid
         global.datastore = new Datastore();
         global.filesSeen = new Set(); /* files (basenames) seen (FASTQ or CSV) */
         global.annotationRunner = setUpAnnotationRunner();
@@ -24,7 +24,7 @@ const main = async () => {
         await startBasecalledFilesWatcher();
 
     } catch (err) {
-        console.trace(err);
+        trace(err);
         fatal(`Fatal error: ${err.message}`);
     }
 };
