@@ -4,17 +4,24 @@
  */
 const { spawn } = require('child_process');
 const Deque = require("collections/deque");
-const { verbose, warn } = require("./utils");
+const { verbose, warn, trace } = require("./utils");
 
 class PipelineRunner {
 
     /**
      * Constructor
+     * @property {String} name
+     * @property {String} snakefile (absolute) path to the snakemake file
+     * @property {String} configfile (absolute) path to the snakemake config file
+     * @property {Array} configOptions list of config options to be passed to snakemake via `--config`
+     * @property {Function} onSuccess callback when snakemake is successful. Arguments: `job`
+     * @property {Boolean} queue
      */
-    constructor(name, snakefilePath, configfilePath, configOptions, queue = false) {
+    constructor(name, snakefile, configfile, configOptions, onSuccess, queue = false) {
         this._name = name;
-        this._snakefilePath = snakefilePath;
-        this._configfilePath = configfilePath;
+        this._snakefile = snakefile;
+        this._configfile = configfile;
+        this._onSuccess = onSuccess; // calback
 
         this._configOptions = configOptions;
 
@@ -39,6 +46,7 @@ class PipelineRunner {
         this._isRunning = true;
         await this._runPipeline(job);
         this._isRunning = false;
+        this._onSuccess(job);
     }
 
     /**
@@ -47,8 +55,20 @@ class PipelineRunner {
      * @returns {Promise<void>}
      */
     async addToQueue(job) {
-        if (!this._jobQueue) {
-            throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
+        try {
+            if (!this._jobQueue) {
+                throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
+            }
+            const requiredProperties = ["inputPath", "outputPath", "filenameStem"];
+            requiredProperties.forEach((p) => {
+                if (!job.hasOwnProperty(p)) {
+                    throw new Error(`Jobs submitted to the ${this._name} pipeline must have properties ${requiredProperties.join(", ")}.`)
+                }
+            })
+        } catch (err) {
+            trace(err);
+            warn(err.message);
+            return;
         }
         this._jobQueue.push(job);
     }
@@ -75,23 +95,21 @@ class PipelineRunner {
             }
 
             let spawnArgs = [
-                '--snakefile', this._snakefilePath + "Snakefile",
-                '--configfile', this._configfilePath + this._configfile,
-                // '--cores', '2',
+                '--snakefile', this._snakefile,
+                '--configfile', this._configfile,
                 '--config', ...pipelineConfig
             ];
 
-            verbose("pipeline runner", `[${this_name}]: snakemake ` + spawnArgs.join(" "));
+            // verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
-            const annotationScript = spawn('snakemake', spawnArgs);
-
+            const process = spawn('snakemake', spawnArgs);
 
             const out = [];
             process.stdout.on(
                 'data',
                 (data) => {
                     out.push(data.toString());
-                    verbose("pipeline runner", data.toString());
+                    verbose(`pipeline (${this._name})`, data.toString());
                 }
             );
 
@@ -107,7 +125,7 @@ class PipelineRunner {
             );
 
             process.on('exit', (code, signal) => {
-                verbose("pipeline runner", `[${this_name}]: pipeline finished with exit code ${code}`);
+                verbose(`pipeline (${this._name})`, `pipeline finished with exit code ${code}`);
                 if (code === 0) {
                      resolve();
                 } else {
@@ -127,18 +145,18 @@ class PipelineRunner {
         if (!this._isRunning && this._jobQueue.length > 0) {
             this._isRunning = true;
 
-            verbose("pipeline runner", `[${this_name}] queue length: ${this._jobQueue.length+1}`);
+            verbose(`pipeline (${this._name})`, `queue length: ${this._jobQueue.length+1}`);
 
             const job = this._jobQueue.shift();
             try {
                 await this._runPipeline(job);
+                this._onSuccess(job);
             } catch (err) {
-                console.trace(err);
-                warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);
+                trace(err);
             }
             this._isRunning = false;
 
-            this._start(); // recurse
+            this._runJobsInQueue(); // recurse
         }
     };
 

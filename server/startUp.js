@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 const { addToParsingQueue } = require("./annotationParser");
-const { addToAnnotationQueue } = require("./annotator");
 const readdir = promisify(fs.readdir);
 const { prettyPath, log } = require('./utils');
 
@@ -69,7 +68,7 @@ const processExistingData = async () => {
         });
     }
 
-    /* For those FASTQs without a corresponding annotated CSV, add them to the `annotationQueue`
+    /* For those FASTQs without a corresponding annotated CSV, add them to `global.annotationRunner`
     and to `globals.filesSeen` */
     /* TODO - we could sort these based on time stamps if we wished */
     pathsOfBasecalledFastqs.forEach((f) => {
@@ -77,7 +76,11 @@ const processExistingData = async () => {
         if (global.filesSeen.has(basename)) {
             return; /* annotated CSV present (added above) */
         }
-        addToAnnotationQueue(f);
+        global.annotationRunner.addToQueue({
+            inputPath: global.config.run.basecalledPath,
+            outputPath: global.config.run.annotatedPath,
+            filenameStem: basename
+        });
         global.filesSeen.add(basename);
     })
 

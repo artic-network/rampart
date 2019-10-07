@@ -2,7 +2,6 @@ const chokidar = require('chokidar');
 const fs = require('fs');
 const path = require('path');
 const { sleep, verbose, log } = require('./utils');
-const { addToAnnotationQueue } = require("./annotator");
 
 const newFastqFileHandler = (newfile, details) => {
   if (!newfile.endsWith(".fastq")) return;
@@ -12,7 +11,13 @@ const newFastqFileHandler = (newfile, details) => {
       return;
     }
     verbose("fastq watcher", `new basecalled file => adding "${basename}" to annotation queue.`);
-    addToAnnotationQueue(newfile);
+
+    global.annotationRunner.addToQueue({
+        inputPath: global.config.run.basecalledPath,
+        outputPath: global.config.run.annotatedPath,
+        filenameStem: basename
+    });
+
     global.filesSeen.add(basename);
   } catch (err) {
     console.log(err);

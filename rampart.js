@@ -5,18 +5,18 @@ const { processExistingData, validateConfig } = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;
 const { fatal } = require('./server/utils');
+const { setUpAnnotationRunner } = require("./server/annotator");
 
 const main = async () => {
     try {
         const args = parser.parseArgs();
         if (args.verbose) global.VERBOSE = true;
         
-        /* make some globals available everywhere */
         global.config = getInitialConfig(args);
         validateConfig(); // will throw if config is invalid
         global.datastore = new Datastore();
         global.filesSeen = new Set(); /* files (basenames) seen (FASTQ or CSV) */
-        // global.
+        global.annotationRunner = setUpAnnotationRunner();
 
         server.run({devClient: args.devClient, ports: args.ports});
 
