@@ -1,3 +1,5 @@
+const { UNASSIGNED_LABEL } = require('./config');
+
 /**
  * A Datapoint is the annotated results from a single annotated (CSV) file
  * which is generated from a single FASTQ file. A `Datapoint` object contains
@@ -18,7 +20,7 @@ const Datapoint = function(fileNameStem, annotations, timestamp) {
   this.fastqName = fileNameStem;
 
   annotations.forEach((d, index) => {
-    const barcode = d.barcode === "none" ? "unassigned" : d.barcode;
+    const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
 
     if (!this.data[barcode]) {
       this.data[barcode] = {

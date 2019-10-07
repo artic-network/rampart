@@ -2,6 +2,7 @@ const Datapoint = require("./datapoint").default;
 const SampleData = require("./sampleData").default;
 const { timerStart, timerEnd } = require('./timers');
 const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
+const { UNMAPPED_LABEL } = require('./config');
 
 /**
  * The main store of all annotated data.
@@ -126,10 +127,10 @@ const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
   }
   const refsToDisplay = Object.keys(refsAboveThres)
       .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
-      .filter( a => a !== "unmapped")
+      .filter( a => a !== UNMAPPED_LABEL)
       .slice(0, maxNum);
 
-  refsToDisplay.push("unmapped");
+  refsToDisplay.push(UNMAPPED_LABEL);
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatchesAcrossSamples;

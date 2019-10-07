@@ -15,6 +15,9 @@ const PRIMERS_CONFIG_FILENAME = "primers.json";
 const PIPELINES_CONFIG_FILENAME = "pipelines.json";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
 
+const UNMAPPED_LABEL = "unmapped";
+const UNASSIGNED_LABEL = "unassigned"
+
 /**
  * Create initial config file from command line arguments - Note that
  * No data has been processed at this point.
@@ -183,7 +186,7 @@ const getInitialConfig = (args) => {
     assert(config.genome.genes, "Genome description missing genes");
 
     config.genome.referencePanel = [{
-        name: "unmapped",
+        name: UNMAPPED_LABEL,
         description: "Reads that didn't map to any reference",
         display: true
     }];
@@ -360,7 +363,7 @@ const updateReferencesSeen = (referencesSeen) => {
     const changes = [];
     const referencesInConfig = new Set([...global.config.genome.referencePanel.map((x) => x.name)]);
     referencesSeen.forEach((ref) => {
-        if (ref !== "unmapped" && !referencesInConfig.has(ref)) {
+        if (ref !== UNMAPPED_LABEL && !referencesInConfig.has(ref)) {
             global.config.genome.referencePanel.push({
               name: ref,
               description: "to do",
@@ -399,5 +402,7 @@ module.exports = {
     getInitialConfig,
     updateConfigWithNewBarcodes,
     updateWhichReferencesAreDisplayed,
-    updateReferencesSeen
+    updateReferencesSeen,
+    UNMAPPED_LABEL,
+    UNASSIGNED_LABEL
 };

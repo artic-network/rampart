@@ -7,6 +7,7 @@ const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
 const { warn, trace, verbose } = require('./utils');
 const { getTimeFromAnnotatedCSV } = require('./readTimes');
+const { UNMAPPED_LABEL } = require('./config');
 
 const parsingQueue = new Deque();
 let isRunning = false; // prevent this being called by parsingQueue.observeRangeChange() when parsingQueue.shift is called
@@ -27,7 +28,7 @@ async function parseAnnotations(fileToParse) {
     );
     annotations.forEach((row) => {
         if (row.best_reference === "*" || row.best_reference === "") {
-            row.best_reference = "unmapped";
+            row.best_reference = UNMAPPED_LABEL;
         }
     });
     const time = getTimeFromAnnotatedCSV(annotations);
