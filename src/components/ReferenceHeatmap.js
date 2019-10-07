@@ -115,7 +115,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
         const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
-        const mapString = referencePanel[d.refIdx].name !== "unmapped" ?
+        const mapString = referencePanel[d.refIdx].name != "unmapped" ?
             `map to ${referencePanel[d.refIdx].name}` : `were not mapped to any reference`;
         select(infoRef)
             .style("left", left)
