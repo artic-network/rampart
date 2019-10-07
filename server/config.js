@@ -62,16 +62,21 @@ function ensurePathExists(path, {make=false}={}) {
 function readConfigFile(paths, fileName) {
     let config = {};
 
-    // iterate over the paths and if a file exists, read it on top of the
-    // existing configuration object.
-    paths.forEach( (path) => {
-        const filePath = normalizePath(path) + fileName;
-        if (fs.existsSync(filePath)) {
-            verbose("config", `Reading ${fileName} from ${path}`);
-            config = { ...config, ...JSON.parse(fs.readFileSync(filePath))};
-            config.path = normalizePath(path); // add the path of the final config file read - for relative paths
-        }
-    });
+    try {
+        // iterate over the paths and if a file exists, read it on top of the
+        // existing configuration object.
+        paths.forEach((path) => {
+            const filePath = normalizePath(path) + fileName;
+            if (fs.existsSync(filePath)) {
+                verbose("config", `Reading ${fileName} from ${path}`);
+                config = {...config, ...JSON.parse(fs.readFileSync(filePath))};
+                config.path = normalizePath(path); // add the path of the final config file read - for relative paths
+            }
+        });
+    } catch (err) {
+        throw new Error(`Error reading file "${fileName}": ${err.message}`);
+    }
+
     return config;
 }
 
@@ -177,7 +182,11 @@ const getInitialConfig = (args) => {
     assert(config.genome.length, "Genome description missing length");
     assert(config.genome.genes, "Genome description missing genes");
 
-    config.genome.referencePanel = [];
+    config.genome.referencePanel = [{
+        name: "unmapped",
+        description: "Reads that didn't map to any reference",
+        display: true
+    }];
 
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
@@ -220,7 +229,7 @@ const getInitialConfig = (args) => {
 
     config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
     config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config_file, {relativeTo: config.pipelines.path});
-    config.pipelines.annotation.configOptions = [];
+    config.pipelines.annotation.configOptions = {};
 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
@@ -243,13 +252,27 @@ const getInitialConfig = (args) => {
         });
     }
 
-    if (Object.keys(config.run.barcodeNames).length > 0) {
-        config.pipelines.annotation.configOptions.push(`barcodes=${Object.keys(config.run.barcodeNames).join(',')}`);
+    // Add any annotationOptions from the protocol config file
+    if (config.protocol.annotationOptions) {
+        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.protocol.annotationOptions };
     }
 
+    // Add any annotationOptions options from the run config file
+    if (config.run.annotationOptions) {
+        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.run.annotationOptions };
+    }
+
+    if (Object.keys(config.run.barcodeNames).length > 0) {
+        config.pipelines.annotation.configOptions["barcodes"] = Object.keys(config.run.barcodeNames).join(',');
+    }
+
+    // Add any annotationOptions options from the command line
     if (args.annotationConfig) {
         // add pass-through options to the annotation script
-        config.pipelines.annotation.configOptions.push(...args.annotationConfig);
+        args.annotationConfig.forEach( value => {
+            const values = value.split("=");
+            config.pipelines.annotation.configOptions[values[0]] = (values.length > 1 ? values[1] : "");
+        });
     }
 
     ensurePathExists(config.pipelines.annotation.path);
@@ -259,7 +282,7 @@ const getInitialConfig = (args) => {
     config.display = {
       numCoverageBins: 1000, /* how many bins we group the coverage stats into */
       readLengthResolution: 10
-    }
+    };
 
     return config;
 };
@@ -267,47 +290,47 @@ const getInitialConfig = (args) => {
 /**
  * update the config file via GUI provided data
  */
-const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
+// const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
-    /* if client is sending us the references file */
-    if (refFasta) {
-        if (global.config.referencePanelPath) {
-            throw new Error("Shouldn't be able to supply a reference panel fasta when referencePanelPath exists");
-        }
-        newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
-        fs.writeFileSync(newConfig.referencePanelPath, refFasta);
-        newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
-    }
+//     /* if client is sending us the references file */
+//     if (refFasta) {
+//         if (global.config.referencePanelPath) {
+//             throw new Error("Shouldn't be able to supply a reference panel fasta when referencePanelPath exists");
+//         }
+//         newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
+//         fs.writeFileSync(newConfig.referencePanelPath, refFasta);
+//         newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
+//     }
 
-    /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
-    if (refJsonString || refJsonPath) {
-        if (global.config.referenceConfigPath) {
-            throw new Error("Shouldn't be able to supply a reference config JSON when referenceConfigPath exists");
-        }
+//     /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
+//     if (refJsonString || refJsonPath) {
+//         if (global.config.referenceConfigPath) {
+//             throw new Error("Shouldn't be able to supply a reference config JSON when referenceConfigPath exists");
+//         }
 
-        if (refJsonPath) {
-            ensurePathExists(refJsonPath);
-            newConfig.referenceConfigPath = refJsonPath;
-        } else {
-            newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
-            fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
-        }
+//         if (refJsonPath) {
+//             ensurePathExists(refJsonPath);
+//             newConfig.referenceConfigPath = refJsonPath;
+//         } else {
+//             newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
+//             fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
+//         }
 
-        /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
-        newConfig.reference = JSON.parse(fs.readFileSync(newConfig.referenceConfigPath)).reference;
+//         /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
+//         newConfig.reference = JSON.parse(fs.readFileSync(newConfig.referenceConfigPath)).reference;
 
-        /* the python mapping script needs a FASTA of the main reference */
-        newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
-    }
+//         /* the python mapping script needs a FASTA of the main reference */
+//         newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
+//     }
 
-    global.config = Object.assign({}, global.config, newConfig);
+//     global.config = Object.assign({}, global.config, newConfig);
 
-    if (refFasta || refJsonPath || refJsonString) {
-        /* try to start the mapper, which may not be running due to insufficent
-        config information. It will exit gracefully if required */
-        mapper();
-    }
-};
+//     if (refFasta || refJsonPath || refJsonString) {
+//         /* try to start the mapper, which may not be running due to insufficent
+//         config information. It will exit gracefully if required */
+//         mapper();
+//     }
+// };
 
 
 /**
@@ -337,7 +360,7 @@ const updateReferencesSeen = (referencesSeen) => {
     const changes = [];
     const referencesInConfig = new Set([...global.config.genome.referencePanel.map((x) => x.name)]);
     referencesSeen.forEach((ref) => {
-        if (!referencesInConfig.has(ref)) {
+        if (ref !== "unmapped" && !referencesInConfig.has(ref)) {
             global.config.genome.referencePanel.push({
               name: ref,
               description: "to do",
@@ -346,12 +369,12 @@ const updateReferencesSeen = (referencesSeen) => {
             });
             changes.push(ref);
         }
-    })
+    });
     if (changes.length) {
         verbose("config", `new references seen: ${changes.join(" & ")}`);
         global.CONFIG_UPDATED();
     }
-}
+};
 
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
     let changed = false;
@@ -364,7 +387,7 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
             changed = true;
             refInfo.display = true;
         }
-    };
+    }
     if (changed) {
         verbose("config", `updated which refs in the reference panel should be displayed`);
         global.CONFIG_UPDATED();

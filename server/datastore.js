@@ -1,67 +1,75 @@
 const Datapoint = require("./datapoint").default;
+const SampleData = require("./sampleData").default;
 const { timerStart, timerEnd } = require('./timers');
-const { updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
+const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
 
 /**
- * The main store of all annotated data
- * prototypes provide the interface for data in and data out.
+ * The main store of all annotated data.
+ * Prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {
+  /* datapoints are essentially the raw data */
   this.datapoints = [];
-  this.processedData = {};
+  /* processed data is per sample name & designed so that new data is added without requiring
+  any expensive recompute */
+  this.dataPerSample = {};
   this.barcodesSeen = new Set();
-  
-  /* Given barcodes (e.g. via config files) intiialise the data structures
+
+  this.timestampAdjustment = undefined;
+  /* Given barcodes (e.g. via config files) intialise the data structures
   This means they will be displayed in the client, even if no reads have arrived for them */
   for (const barcode of Object.keys(global.config.run.barcodeNames)) {
     this.barcodesSeen.add(barcode);
     const sampleName = this.getSampleName(barcode)
-    this.processedData[sampleName] = this.initialiseProcessedData();
+    this.dataPerSample[sampleName] = new SampleData();
   }
 
 };
 
+/**
+ * this prototype should be called every time any timestamp is seen.
+ * It ensures `this.timestampAdjustment` is the earliest timestamp
+ */
+Datastore.prototype.timestampObserved = function(timestamp) {
+    if (!this.timestampAdjustment || this.timestampAdjustment > timestamp) {
+        this.timestampAdjustment = timestamp;
+    }
+}
 
 /**
  * Add newly annotated data to the datastore.
- * Creates a new datapoint & modifies the processedData accordingly.
+ * Side effect 1: Adds a new datapoint to `this.datapoints`. (1 FASTQ == 1 CSV == 1 DATAPOINT).
+ * Side effect 2: Updates `this.dataPerSample` as needed.
+ * Side effect 3: trigger server-client data updates.
  *
- * annotations is an array of objects with the following values for each read:
- *  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
+ * @param {Array} annotations annotations is an array of objects with the following values for each read:
+ *                            `read_name`,`read_len`,`start_time`,`barcode`,`best_reference`,`ref_len`,
+ *                            `start_coords`,`end_coords`,`num_matches`,`aln_block_len`
  */
-Datastore.prototype.addAnnotations = function(fileNameStem, annotations) {
-  
-  /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
-  const datapoint = new Datapoint(fileNameStem, annotations);
-  this.datapoints.push(datapoint);
+Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations, timestamp) {
 
-  /* step 2: update `processedData`, which is a summary of the run so far */
+  /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
+  const datapoint = new Datapoint(fileNameStem, annotations, timestamp);
+  this.datapoints.push(datapoint);
+  this.timestampObserved(timestamp);
+
+  /* step 2: update `dataPerSample`, which is a summary of the run so far */
   const referencesSeen = new Set();
   datapoint.getBarcodes().forEach((barcode) => {
-    if (!this.barcodesSeen.has(barcode)) {
-      this.barcodesSeen.add(barcode);
-    }
+    this.barcodesSeen.add(barcode);
+    const barcodeData = datapoint.getDataForBarcode(barcode);
     const sampleName = this.getSampleName(barcode);
-
-    /* if we're encountering a sample name for the first time, then we must create the empty data struct */
-    if (!this.processedData[sampleName]) {
-      /* initialise this.processedData if a new sample name has been observed */
-      this.processedData[sampleName] = this.initialiseProcessedData();
+    /* initialise this.dataPerSample[sampleName] if a new sample name has been observed */
+    if (!this.dataPerSample[sampleName]) {
+      this.dataPerSample[sampleName] = new SampleData();
     }
-
-    this.processedData[sampleName].mappedCount += datapoint.getMappedCount(barcode);
-    /* modify the refMatchCounts to include these results */
-    datapoint.appendRefMatchCounts(barcode, this.processedData[sampleName].refMatchCounts, referencesSeen);
-    /* modify the coverage bins (for this sample) to include these results */
-    datapoint.appendReadsToCoverage(barcode, this.processedData[sampleName].coverage);
-
-    // TODO
-    // appendTemporalData(barcode, datapoint.getTimestamp(), this.processedData[sampleName].mappedCount, this.processedData[sampleName].temporalMap, this.processedData[sampleName].coverage, nGenomeSlices);
-
-    /* update the read length counts with new data */
-    datapoint.appendReadLengthCounts(barcode, this.processedData[sampleName].readLengthCounts);
-    /* update per-reference-match coverage stats with new data */
-    datapoint.appendRefMatchCoverages(barcode, this.processedData[sampleName].refMatchCoverages);
+    const sampleData = this.dataPerSample[sampleName];
+    sampleData.updateMappedCount(barcodeData);
+    sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
+    sampleData.updateCoverage(barcodeData);
+    sampleData.updateReadLengthCounts(barcodeData);
+    sampleData.updateRefMatchCoverages(barcodeData); /* update per-reference-match coverage stats */
+    sampleData.updateTemporalData(barcodeData, datapoint.getTimestamp());
   });
 
   /* step 3: trigger server-client data updates as needed */
@@ -81,47 +89,6 @@ Datastore.prototype.getSampleName = function(barcode) {
   return barcode;
 };
 
-/**
- * Initialise the processed data for a "new" sampleName
- */
-Datastore.prototype.initialiseProcessedData = function() {
-  const data = {};
-  data.mappedCount = 0;
-  data.refMatchCounts = {};
-  data.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
-  data.temporalMap = {};
-  data.readLengthCounts = {};
-  data.refMatchCoverages = {};
-  return data;
-};
-
-/**
- * Initialise the processed data for a "new" sampleName
- */
-// Datastore.prototype.initialiseMappingComponentsOfProcessedDataIfNeeded = function(data) {
-//   if (data.coverage.length) {
-//     return; // already initialised
-//   }
-//   data.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
-//   data.refMatchCountsAcrossGenome = global.config.referencePanel.map(() => 
-//     Array.from(new Array(global.config.display.numCoverageBins), () => 0)
-//   );
-// };
-
-
-/**
- * For instance, if the barcode -> sample name mapping has changed
- * or if the genome resolution has changed etc.
- */
-Datastore.prototype.reprocessAllDatapoints = function() {
-  console.log("reprocessAllDatapoints")
-  this.processedData = {};
-  this.datapoints.forEach((datapoint) => {
-    this.processNewlyDemuxedDatapoint(datapoint, false);
-    this.processNewlyMappedDatapoint(datapoint, false);
-  });
-  global.NOTIFY_CLIENT_DATA_UPDATED();
-};
 
 Datastore.prototype.getBarcodesSeen = function() {
   return [...this.barcodesSeen];
@@ -132,14 +99,14 @@ Datastore.prototype.getBarcodesSeen = function() {
  * we only want to report references over some threshold so that
  * the display is not cluttered with too many rows in the heatmap
  * TODO: make this threshold / number taken definable by the client
- * @param {object} processedData see datastore.processedData
+ * @param {object} dataPerSample see datastore.dataPerSample
  * @param {int} threshold at least 1 sample must have over this perc of reads mapping to include
  * @param {int} maxNum max num of references to return
  */
-const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
+const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
   const refMatchesAcrossSamples = {};
   const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
-  for (const [sampleName, sampleData] of Object.entries(processedData)) {
+  for (const [sampleName, sampleData] of Object.entries(dataPerSample)) {
     /* calculate the percentage mapping for this sample across all references to compare with threshold */
     refMatchesAcrossSamples[sampleName] = {};
     const refMatchPercs = {};
@@ -159,68 +126,72 @@ const whichReferencesToDisplay = (processedData, threshold=5, maxNum=10) => {
   }
   const refsToDisplay = Object.keys(refsAboveThres)
       .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+      .filter( a => a !== "unmapped")
       .slice(0, maxNum);
+
+  refsToDisplay.push("unmapped");
 
   updateWhichReferencesAreDisplayed(refsToDisplay);
   return refMatchesAcrossSamples;
 };
 
 /**
- * Creates a summary of data (similar to `this.processedData`) to deliver to the client.
- * @returns {Array}
- *    [0] {object} Summarising each sample observed so far.
- *         properties: each `sampleName` (i.e. props of `this.processedData`)
- *         values: {object}, each with properties
- *            `mappedCount` {int}
- *            `refMatches` {object} may have no keys, else keys: ref names, values: floats (percentages)
- *            `coverage` {array} may be length 0. array of coverage at positions.
- *            `maxCoverage` {int}
- *            `temporal` {Array of Obj} each obj has keys `time`, `mappedCount`, `over10x`, `over100x`, `over1000x`
- *            `readLengths` {Object} keys: `xyValues`, array of [int, int]
- *            `refMatchCoveragesStream` {Array of Array of Array of 2 numeric}. Order matches ??? TODO
- *    [1] {object} summarise the overall run (i.e. all samples/barcodes combined)
- *        properties:
- *        `mappedCount` {int}
- *        `temporal` {}
+ * Creates a summary of all data to deliver to the client.
+ * @returns {{
+ *   dataPerSample                            {Object}  data per sample name,
+ *   dataPerSample[<SampleName>].mappedCount  {numeric}
+ *   dataPerSample[<SampleName>].refMatches   {Object}  keys: ref names, values: floats (percentages)
+ *   dataPerSample[<SampleName>].coverage     {Array}   coverage at positions across genome
+ *   dataPerSample[<SampleName>].maxCoverage  {numeric} 
+ *   dataPerSample[<SampleName>].temporal     {Array}   List of time points in chronological order
+ *   dataPerSample[<SampleName>].temporal[<idx>]             {Object}   data related to a time point
+ *   dataPerSample[<SampleName>].temporal[<idx>].time        {number}   (adjusted) timestamp
+ *   dataPerSample[<SampleName>].temporal[<idx>].mappedCount {number}
+ *   dataPerSample[<SampleName>].temporal[<idx>].over10x     {number}   % of genome over 10x coverage
+ *   dataPerSample[<SampleName>].temporal[<idx>].over100x    {number}   % of genome over 100x coverage
+ *   dataPerSample[<SampleName>].temporal[<idx>].over1000x   {number}   % of genome over 1000x coverage
+ *   dataPerSample[<SampleName>].readLengths  {Object}
+ *   dataPerSample[<SampleName>].readLengths.xyValues  {Array} 
+ *   dataPerSample[<SampleName>].refMatchCoveragesStream  {Array} TODO
+ *   combinedData              {Object}  summary of all data
+ *   combinedData.mappedCount  {numeric}
+ *   combinedData.temporal     {Array} TODO
+ * }}
  */
-const collectSampleDataForClient = function(processedData, viewOptions) {
-  timerStart("collectSampleDataForClient");
+Datastore.prototype.getDataForClient = function() {
+  timerStart("getDataForClient");
 
-  const refMatchesAcrossSamples = whichReferencesToDisplay(processedData);
-
-  /* for each sample in this.processedData, summarise the information */
+  /* Part I - summarise each sample (i.e. each sample name, i.e. this.dataPerSample */
   const summarisedData = {};
-  for (const [sampleName, sampleData] of Object.entries(processedData)) {
+  const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample);
+  for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
     summarisedData[sampleName] = {
       mappedCount: sampleData.mappedCount,
       refMatches: refMatchesAcrossSamples[sampleName],
       coverage: sampleData.coverage,
       maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
-      temporal: summariseTemporalData(sampleData.temporalMap),
+      temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
       readLengths: summariseReadLengths(sampleData.readLengthCounts),
       refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
     }
   }
 
-  // console.log("refMatchesAcrossGenome", refMatchesAcrossGenome)
-
+  /* Part II - summarise the overall data, i.e. all samples combined */
   const combinedData = {
-    mappedCount: Object.values((processedData)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
+    mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
     temporal: summariseOverallTemporalData(summarisedData)
   };
 
-  timerEnd("collectSampleDataForClient");
-  return [summarisedData, combinedData];
+  timerEnd("getDataForClient");
+
+  if (!Object.keys(this.dataPerSample).length) {
+    return false;
+  }
+  return {dataPerSample: summarisedData, combinedData};
 };
 
-Datastore.prototype.getDataForClient = function() {
-  const [dataPerSample, combinedData] = collectSampleDataForClient(this.processedData, this.viewOptions);
-  if (!Object.keys(dataPerSample).length) return false;
-  return {dataPerSample, combinedData, viewOptions: this.viewOptions};
-};
 
-
-Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
+Datastore.prototype.collectFastqFilesAndIndices = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
   const barcodes = [];
   Object.keys(global.config.run.barcodeNames).forEach((key) => {
     if (key === sampleName) barcodes.push(key);
@@ -241,10 +212,6 @@ Datastore.prototype.collectFastqFilesAndIndicies = function({sampleName, minRead
   return matches;
 };
 
-
-const summariseTemporalData = function(temporalMap) {
-  return Object.values(temporalMap).sort((a, b) => a.time>b.time ? 1 : -1);
-};
 
 /**
  * Turn `readLengthCounts` into an array of xy values for visualisation
@@ -296,13 +263,13 @@ const createReferenceMatchStream = function(refMatchCoverages) {
 
     let yPosition = 0;
     global.config.genome.referencePanel.forEach((refInfo, refIdx) => {
-        let percHere = 0;
-        /* require >10 reads to calc stream & this ref must have been seen for this sample */
-        if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
-            percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
-        }
-        stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
-        yPosition += +percHere;
+      let percHere = 0;
+      /* require >10 reads to calc stream & this ref must have been seen for this sample */
+      if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
+        percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
+      }
+      stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
+      yPosition += +percHere;
     })
   }
 
@@ -310,57 +277,41 @@ const createReferenceMatchStream = function(refMatchCoverages) {
 };
 
 /**
- * We want to create an array of `[ [time, mappedCount], ... ]` for all barcodes combined.
+ * Given temporal data for each individual sample, we want to summarise this for the overall dataset.
  *
- * This exists for each sample, however be aware that the time entries for individual barcodes
- * may be different e.g. BC01 may have time=42, but BC02 may not, so we must "remember" the
- * value last seen and use this instead.
+ * NOTE: be aware that the time entries for individual samples may not line up
+ * e.g. BC01 may have time=42, but BC02 may not, so we must "remember" the
+ * value last seen (for BC02) and ensure this is counted for time=42.
  */
 const summariseOverallTemporalData = (summarisedData) => {
-  /* what are the timestamps we've seen? */
-  const timeCountMap = {};
-  const timesSeen = new Set();
-  for (const [sampleName, sampleData] of Object.entries(summarisedData)) {
-    timeCountMap[sampleName] = {};
-    // eslint-disable-next-line no-loop-func
-    sampleData.temporal.forEach((timePoint) => {
-      timesSeen.add(timePoint.time);
-      timeCountMap[sampleName][String(timePoint.time)] = timePoint.mappedCount;
-    });
-  }
 
-  const temporal = [...timesSeen].map((n) => parseInt(n, 10))
-      .sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1)
-      .map((time) => ({time, mappedCount: 0}));
+    /* set of all timestamps observed */
+    const timesSeen = new Set();
+    Object.values(summarisedData).forEach((v) => {
+        v.temporal.forEach((d) => {
+            timesSeen.add(d.time);
+        })
+    })
 
-  /* Loop over each sampleName */
-  Object.keys(summarisedData).forEach((sampleName) => {
-    /* Loop over `temporal` */
-    let lastSeen = 0; /* the last seen mappedCount for this sampleName */
-    temporal.forEach((timePoint) => {
-      if (timeCountMap[sampleName]) {
-        const count = timeCountMap[sampleName][String(timePoint.time)];
-        timePoint.mappedCount += count;
-        lastSeen = count;
-      } else {
-        timePoint.mappedCount += lastSeen;
-      }
-    });
-  });
-  return temporal;
+    /* return structure -- chronological list of {time -> INT, mappedCount -> INT} */
+    const ret = [...timesSeen]
+        .sort((a, b) => a - b) // numerical sort
+        .map((time) => ({time, mappedCount: 0}));
+
+    /* loop over each sample modifing `ret` as we go */
+    Object.values(summarisedData).forEach((v) => {
+        const timeToCountMap = new Map(v.temporal.map((t) => [t.time, t.mappedCount]));
+        let memory = 0;
+        ret.forEach((timepoint) => {
+            if (timeToCountMap.has(timepoint.time)) {
+                memory = timeToCountMap.get(timepoint.time);
+            }
+            timepoint.mappedCount += memory;
+        })
+    })
+
+  return ret;
 };
 
-
-/* adds temporal data to the temporalMap */
-const appendTemporalData = function(barcode, timestamp, mappedCount, temporalMap, coverage, nGenomeSlices) {
-  const temporalDataPoint = {
-    time: timestamp,
-    mappedCount: mappedCount,
-    over10x:   parseInt((coverage.reduce((acc, cv) => cv > 10   ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
-    over100x:  parseInt((coverage.reduce((acc, cv) => cv > 100  ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
-    over1000x: parseInt((coverage.reduce((acc, cv) => cv > 1000 ? ++acc : acc, 0)/nGenomeSlices)*100, 10),
-  };
-  temporalMap[String(timestamp)] = temporalDataPoint; // this is ok if it overwrites
-};
 
 module.exports = { default: Datastore };

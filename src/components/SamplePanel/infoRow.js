@@ -30,10 +30,10 @@ const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, 
     <div className="infoRow" style={{color: sampleColour}}>
       <div>
         <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
-        <span>{summaryTitle}</span>
+        <span style={{whiteSpace: "nowrap"}}>{summaryTitle}</span>
       </div>
 
-      <span>{summaryText}</span>
+      <span style={{whiteSpace: "nowrap"}}>{summaryText}</span>
 
       <div>
         <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>

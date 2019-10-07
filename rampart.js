@@ -1,28 +1,31 @@
 const server = require("./server/server");
 const { parser } = require("./server/args");
 const getInitialConfig = require("./server/config").getInitialConfig;
-const { startUp } = require("./server/startUp");
+const { processExistingData, validateConfig } = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;
 const { fatal } = require('./server/utils');
-
-/* make some globals available everywhere */
-const args = parser.parseArgs();
-if (args.verbose) global.VERBOSE = true;
-
-global.config = getInitialConfig(args);
-global.datastore = new Datastore();
-global.fastqsSeen = new Set();
-
+const { setUpAnnotationRunner } = require("./server/annotator");
 
 const main = async () => {
-  server.run({devClient: args.devClient, ports: args.ports});
-  try {
-      const success = await startUp();
-      if (success) await startBasecalledFilesWatcher();
-  } catch (err) {
-    fatal(`Fatal error: ${err.message}`);
-  }
+    try {
+        const args = parser.parseArgs();
+        if (args.verbose) global.VERBOSE = true;
+        
+        global.config = getInitialConfig(args);
+        validateConfig(); // will throw if config is invalid
+        global.datastore = new Datastore();
+        global.filesSeen = new Set(); /* files (basenames) seen (FASTQ or CSV) */
+        global.annotationRunner = setUpAnnotationRunner();
+
+        server.run({devClient: args.devClient, ports: args.ports});
+
+        await processExistingData();
+        await startBasecalledFilesWatcher();
+
+    } catch (err) {
+        fatal(`Fatal error: ${err.message}`);
+    }
 };
 
 main();
