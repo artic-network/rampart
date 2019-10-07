@@ -90,34 +90,6 @@ Datastore.prototype.getSampleName = function(barcode) {
 };
 
 
-/**
- * Initialise the processed data for a "new" sampleName
- */
-// Datastore.prototype.initialiseMappingComponentsOfdataPerSampleIfNeeded = function(data) {
-//   if (data.coverage.length) {
-//     return; // already initialised
-//   }
-//   data.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
-//   data.refMatchCountsAcrossGenome = global.config.referencePanel.map(() => 
-//     Array.from(new Array(global.config.display.numCoverageBins), () => 0)
-//   );
-// };
-
-
-/**
- * For instance, if the barcode -> sample name mapping has changed
- * or if the genome resolution has changed etc.
- */
-Datastore.prototype.reprocessAllDatapoints = function() {
-  console.log("reprocessAllDatapoints")
-  this.dataPerSample = {};
-  this.datapoints.forEach((datapoint) => {
-    this.processNewlyDemuxedDatapoint(datapoint, false);
-    this.processNewlyMappedDatapoint(datapoint, false);
-  });
-  global.NOTIFY_CLIENT_DATA_UPDATED();
-};
-
 Datastore.prototype.getBarcodesSeen = function() {
   return [...this.barcodesSeen];
 }

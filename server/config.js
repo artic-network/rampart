@@ -290,47 +290,47 @@ const getInitialConfig = (args) => {
 /**
  * update the config file via GUI provided data
  */
-const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
+// const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
-    /* if client is sending us the references file */
-    if (refFasta) {
-        if (global.config.referencePanelPath) {
-            throw new Error("Shouldn't be able to supply a reference panel fasta when referencePanelPath exists");
-        }
-        newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
-        fs.writeFileSync(newConfig.referencePanelPath, refFasta);
-        newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
-    }
+//     /* if client is sending us the references file */
+//     if (refFasta) {
+//         if (global.config.referencePanelPath) {
+//             throw new Error("Shouldn't be able to supply a reference panel fasta when referencePanelPath exists");
+//         }
+//         newConfig.referencePanelPath = path.join(global.config.rampartTmpDir, "referencePanel.fasta");
+//         fs.writeFileSync(newConfig.referencePanelPath, refFasta);
+//         newConfig.referencePanel = parseReferenceInfo(newConfig.referencePanelPath);
+//     }
 
-    /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
-    if (refJsonString || refJsonPath) {
-        if (global.config.referenceConfigPath) {
-            throw new Error("Shouldn't be able to supply a reference config JSON when referenceConfigPath exists");
-        }
+//     /* if client is sending us JSON file -- either as a complete file-in-a-string or as a path to load */
+//     if (refJsonString || refJsonPath) {
+//         if (global.config.referenceConfigPath) {
+//             throw new Error("Shouldn't be able to supply a reference config JSON when referenceConfigPath exists");
+//         }
 
-        if (refJsonPath) {
-            ensurePathExists(refJsonPath);
-            newConfig.referenceConfigPath = refJsonPath;
-        } else {
-            newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
-            fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
-        }
+//         if (refJsonPath) {
+//             ensurePathExists(refJsonPath);
+//             newConfig.referenceConfigPath = refJsonPath;
+//         } else {
+//             newConfig.referenceConfigPath = path.join(global.config.rampartTmpDir, "reference.json");
+//             fs.writeFileSync(newConfig.referenceConfigPath, refJsonString);
+//         }
 
-        /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
-        newConfig.reference = JSON.parse(fs.readFileSync(newConfig.referenceConfigPath)).reference;
+//         /* parse the "main reference" configuration file (e.g. primers, genes, ref seq etc) */
+//         newConfig.reference = JSON.parse(fs.readFileSync(newConfig.referenceConfigPath)).reference;
 
-        /* the python mapping script needs a FASTA of the main reference */
-        newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
-    }
+//         /* the python mapping script needs a FASTA of the main reference */
+//         newConfig.coordinateReferencePath = save_coordinate_reference_as_fasta(newConfig.reference.sequence, global.config.rampartTmpDir);
+//     }
 
-    global.config = Object.assign({}, global.config, newConfig);
+//     global.config = Object.assign({}, global.config, newConfig);
 
-    if (refFasta || refJsonPath || refJsonString) {
-        /* try to start the mapper, which may not be running due to insufficent
-        config information. It will exit gracefully if required */
-        mapper();
-    }
-};
+//     if (refFasta || refJsonPath || refJsonString) {
+//         /* try to start the mapper, which may not be running due to insufficent
+//         config information. It will exit gracefully if required */
+//         mapper();
+//     }
+// };
 
 
 /**

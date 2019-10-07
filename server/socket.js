@@ -1,8 +1,4 @@
-const fs = require('fs')
-const { modifyConfig } = require("./config");
 const { verbose, warn } = require("./utils");
-// const { startUp } = require("./startUp");
-// const { startBasecalledFilesWatcher } = require("./watchBasecalledFiles");
 const { saveFastq } = require("./saveFastq");
 
 /**
@@ -45,28 +41,29 @@ const initialConnection = (socket) => {
 const setUpIOListeners = (socket) => {
   verbose("socket", "setUpIOListeners (socket for client - server communication)");
 
-  socket.on('config', (newConfig) => {
-    try {
-      modifyConfig(newConfig);
-      global.datastore.reprocessAllDatapoints();
-    } catch (err) {
-      console.log(err.message);
-      warn("setting of new config FAILED");
-      return;
-    }
-    sendData(); /* as the barcode -> names may have changed */
-    sendConfig();
-  });
+  // TODO -- RAMPART no longer processes these requests, although some should be reincorporated
+//   socket.on('config', (newConfig) => {
+//     try {
+//         modifyConfig(newConfig);
+//         global.datastore.reprocessAllDatapoints();
+//     } catch (err) {
+//       console.log(err.message);
+//       warn("setting of new config FAILED");
+//       return;
+//     }
+//     sendData(); /* as the barcode -> names may have changed */
+//     sendConfig();
+//   });
 
-  socket.on("saveDemuxedReads", (data) => {
-    try {
-      saveFastq({sampleName: data.sampleName, outputDirectory: data.outputDirectory, filters: data.filters});
-    } catch (err) {
-      console.trace(err);
-      warn(`Error during [saveDemuxedReads]`);
-      global.io.emit("showWarningMessage", `Error during [saveDemuxedReads]`);
-    }
-  });
+//   socket.on("saveDemuxedReads", (data) => {
+//     try {
+//       saveFastq({sampleName: data.sampleName, outputDirectory: data.outputDirectory, filters: data.filters});
+//     } catch (err) {
+//       console.trace(err);
+//       warn(`Error during [saveDemuxedReads]`);
+//       global.io.emit("showWarningMessage", `Error during [saveDemuxedReads]`);
+//     }
+//   });
 
 };
 
