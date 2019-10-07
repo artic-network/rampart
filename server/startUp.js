@@ -46,10 +46,13 @@ const startUp = async () => {
 
     /* Annotated files (CSVs) are added to the `parsingQueue` and `globals.filesSeen` */
     if (global.config.run.clearAnnotated) {
-        log(`  * Clearing the annotated folder (${prettyPath(global.config.run.annotatedPath)})`);
+        log(`  * Clearing CSVs from the annotated folder (${prettyPath(global.config.run.annotatedPath)})`);
         const annotatedFilesToDelete = await readdir(global.config.run.annotatedPath);
         for (const file of annotatedFilesToDelete) {
-            fs.unlinkSync(path.join(global.config.run.annotatedPath, file));
+            const fullPath = path.join(global.config.run.annotatedPath, file);
+            if (!fs.lstatSync(fullPath).isDirectory() && fullPath.endsWith(".csv")) {
+                fs.unlinkSync(fullPath);
+            }
         }
     } else {
         const pathsOfAnnotatedCSVs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
