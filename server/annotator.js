@@ -1,8 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const Deque = require("collections/deque");
-const { setReadTime, getReadTime } = require("./readTimes");
-const { verbose, log, warn } = require("./utils");
+const { verbose, trace, warn } = require("./utils");
 const { addToParsingQueue } = require("./annotationParser");
 
 /**
@@ -114,20 +113,11 @@ const annotator = async () => {
 
         try {
             verbose("annotator", `queue length: ${annotationQueue.length+1}. Beginning annotation of: ${fileToAnnotateBasename}`);
-            await Promise.all([ /* fail fast */
-                call_annotation_script(fileToAnnotateBasename),
-                setReadTime(fileToAnnotate)
-            ]);
-
-            const timestamp = getReadTime(fileToAnnotateBasename);
-
-            const fileToParse = path.join(global.config.run.annotatedPath, fileToAnnotateBasename + '.csv');
-
-            verbose("annotator", `${fileToAnnotateBasename} annotated. Read time: ${timestamp}`);
-
-            addToParsingQueue(fileToParse);
+            await call_annotation_script(fileToAnnotateBasename);
+            verbose("annotator", `${fileToAnnotateBasename} annotated.`);
+            addToParsingQueue(path.join(global.config.run.annotatedPath, fileToAnnotateBasename + '.csv'));
         } catch (err) {
-            console.trace(err);
+            trace(err);
             warn(`Processing / extracting time of ${fileToAnnotateBasename}: ${err}`);
         }
         isRunning = false;

@@ -93,17 +93,6 @@ module.exports = {startUp};
 //         global.fastqsSeen.add(path.basename(f));
 //     });
 
-// /* EXTRACT TIMESTAMPS FROM THOSE FASTQs */
-// const { setReadTime, getReadTime, setEpochOffset } = require('./readTimes');
-// log(`  * Getting read times from basecalled and annotation files`);
-// for (let fastq of basecalledFastqs) {
-//     await setReadTime(fastq);
-// }
-// for (let fastq of annotatedCSVs) {
-//     await setReadTime(fastq);
-// }
-// setEpochOffset();
-
 // testing an output pipeline:
 // const { PipelineRunner } = require("./PipelineRunner");
 //const binFastaPipeline = new PipelineRunner(name, snakefilePath, configfilePath, configOptions, queue);
