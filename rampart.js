@@ -24,6 +24,7 @@ const main = async () => {
         await startBasecalledFilesWatcher();
 
     } catch (err) {
+        console.trace(err);
         fatal(`Fatal error: ${err.message}`);
     }
 };
