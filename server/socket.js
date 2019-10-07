@@ -11,10 +11,12 @@ const { saveFastq } = require("./saveFastq");
 const sendData = () => {
   verbose("socket", "sendData");
   const data = global.datastore.getDataForClient();
-  if (data === false) return;
-  const {dataPerSample, combinedData, viewOptions} = data;
+  if (data === false) {
+    global.io.emit("infoMessage", `No data yet`);
+    return;
+  }
   global.io.emit("infoMessage", `New data`);
-  global.io.emit('data', {dataPerSample, combinedData, viewOptions});
+  global.io.emit('data', data);
 };
 
 global.NOTIFY_CLIENT_DATA_UPDATED = () => sendData();

@@ -1,16 +1,20 @@
 /**
- * A Datapoint is the annotated results from a single FASTQ file.
- * It contains getter & setter prototypes.
+ * A Datapoint is the annotated results from a single annotated (CSV) file
+ * which is generated from a single FASTQ file. A `Datapoint` object contains
+ * various getter & setter prototypes.
+ * 
+ * TODO: this should be modified such that a `Datapoint` object is created for
+ * each individual read, rather than each FASTQ/CSV.
+ *
+ * @param {String} fileNameStem basename of the fastq / csv
+ * @param {Array} annotations array of objects each with the following properties:
+ *                            read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,
+ *                            end_coords,num_matches,aln_block_len
+ * @param {Integer} timestamp timestamp representing this set of reads
  */
-/*
-* When mapping is successful we want to insert the data into the datastore
-*
-* annotations is an array of objects with the following values for each read:
-*  read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len
-*/
-const Datapoint = function(fileNameStem, annotations) {
+const Datapoint = function(fileNameStem, annotations, timestamp) {
   this.data = {};
-//   this.timestamp = timestamp;
+  this.timestamp = timestamp;
   this.fastqName = fileNameStem;
 
   annotations.forEach((d, index) => {
@@ -54,6 +58,9 @@ const Datapoint = function(fileNameStem, annotations) {
   });
 };
 
+Datapoint.prototype.getDataForBarcode = function(barcode) {
+    return this.data[barcode];
+}
 
 Datapoint.prototype.getBarcodes = function() {
   return Object.keys(this.data);
@@ -63,61 +70,6 @@ Datapoint.prototype.getTimestamp = function() {
   return this.timestamp;
 };
 
-Datapoint.prototype.getMappedCount = function(barcode) {
-  return this.data[barcode].mappedCount;
-};
-
-Datapoint.prototype.appendRefMatchCounts = function (barcode, refMatchCounts, referencesSeen) {
-  for (const [ref, values] of Object.entries(this.data[barcode].refMatches)) {
-    referencesSeen.add(ref);
-    if (!refMatchCounts[ref]) {
-      refMatchCounts[ref] = 0;
-    }
-    refMatchCounts[ref] += values.length;
-  }
-};
-
-const getCoverageBins = (readPos) => {
-  // get coverage indexes (i.e. bin number) relative to genome positions (fractions)
-  return [
-    Math.floor(readPos.startFrac * global.config.display.numCoverageBins),
-    Math.ceil(readPos.endFrac * global.config.display.numCoverageBins)
-  ];
-}
-
-Datapoint.prototype.appendReadsToCoverage = function (barcode, coverage) {
-  for (const readPos of this.data[barcode].readPositions) {
-    const [aIdx, bIdx] = getCoverageBins(readPos);
-    for (let i=aIdx; i<=bIdx && i<coverage.length; i++) {
-      coverage[i]++
-    }
-  }
-};
-
-Datapoint.prototype.appendReadLengthCounts = function(barcode, readLengthCounts) {
-  const readLengthResolution = global.config.display.readLengthResolution;
-  this.data[barcode].readLengths.forEach((n) => {
-    const len = parseInt(n/readLengthResolution, 10) * readLengthResolution;
-    if (readLengthCounts[len] === undefined) {
-      readLengthCounts[len] = 0;
-    }
-    readLengthCounts[len]++
-  })
-};
-
-Datapoint.prototype.appendRefMatchCoverages = function(barcode, refMatchCoverages) {
-  this.data[barcode].readPositions.forEach((readPos, idx) => {
-    const [aIdx, bIdx] = getCoverageBins(readPos);
-    const refName = this.data[barcode].readTopRefHits[idx];
-    if (!refMatchCoverages[refName]) {
-      /* unseen reference -- must initialise */
-      refMatchCoverages[refName] = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
-    }
-    for (let i=aIdx; i<=bIdx && i<refMatchCoverages[refName].length; i++) {
-      refMatchCoverages[refName][i]++
-    }
-  })
-};
 
 Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minReadLen, maxReadLen) {
   const barcodeData = this.data[barcode];

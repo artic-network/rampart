@@ -6,6 +6,7 @@ const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
 const { warn, trace, verbose } = require('./utils');
+const { getTimeFromAnnotatedCSV } = require('./readTimes');
 
 const parsingQueue = new Deque();
 let isRunning = false; // prevent this being called by parsingQueue.observeRangeChange() when parsingQueue.shift is called
@@ -29,8 +30,8 @@ async function parseAnnotations(fileToParse) {
             row.best_reference = "unmapped";
         }
     });
-
-    return annotations;
+    const time = getTimeFromAnnotatedCSV(annotations);
+    return {annotations, time};
 }
 
 /**
@@ -45,19 +46,19 @@ const annotationParser = async () => {
 
         const fileToParse = parsingQueue.shift();
         const filenameStem = path.basename(fileToParse, '.csv');
-        let annotations;
+        let annotations, time;
 
         verbose("annotation parser", `Parsing annotation for ${filenameStem}`)
         verbose("annotation parser", `${parsingQueue.length} files remain in queue`);
 
         try {
-            annotations = await parseAnnotations(fileToParse);
+            ({annotations, time} = await parseAnnotations(fileToParse));
         } catch (err) {
             trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);
         }
 
-        await global.datastore.addAnnotations(filenameStem, annotations);
+        await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations, time);
 
         isRunning = false;
 
