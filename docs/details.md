@@ -148,16 +148,16 @@ If the file is found in multiple places in the above list, the subsequent file w
 
 ## Installing a Protocol
 
-A protocol directory, a complete set of configuration files and, potentially, custom pipelines can be downloaded as a package. For example the standard [ARTIC Network](http://artic.network/) Ebola virus protocol for RAMPART is available from [GitHub](https://github.com/rambaut/rampart-ebov/). It can be downloaded and installed as follows:
+A protocol directory, a complete set of configuration files and, potentially, custom pipelines can be downloaded as a package. For example the standard [ARTIC Network](http://artic.network/) Ebola virus protocol for RAMPART is available from [GitHub](https://github.com/artic-network/artic-ebov/). It can be downloaded and installed as follows:
 
 ```
-git clone https://github.com/rambaut/rampart-ebov.git
+git clone https://github.com/artic-network/artic-ebov.git
 ``` 
 
 Then to use this protocol, RAMPART should be run with the `--protocol` command line option:
 
 ```
-node <rampart_directory>/rampart.js --protocol <protocols_directory>/rampart-ebov --basecalledPath <MinKNOW_basecalled_data_directory>/
+node <rampart_directory>/rampart.js --protocol <protocols_directory>/artic-ebov/rampart
 ```
 
 
@@ -167,7 +167,7 @@ Optional arguments:
   -h, --help            Show this help message and exit.
   -v, --version         Show program's version number and exit.
   --verbose             verbose output
-  --ports PORTS PORTS   The ports to talk to the client over. First: client 
+  --ports PORT PORT     The ports to talk to the client over. First: client 
                         delivery, i.e. what localhost port to access rampart 
                         via (default: 3000). Second: socket to transfer data 
                         over (default: 3001)

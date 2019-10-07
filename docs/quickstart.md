@@ -6,7 +6,7 @@ These instructions describe how to quickly and easily install and run RAMPART wi
 * The Oxford Nanopore Technology MinKNOW must be installed in order to run the MinION. 
 See the [Oxford Nanopore downloads page](https://community.nanoporetech.com/downloads) for instructions.
 
-* Conda should be installed -- [see instructions here](https://conda.io/docs/user-guide/install/index.html).
+* Conda should be installed -- [see instructions here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
  
   Conda is a popular environment manager which makes it trivial to install dependencies & software in a fashion that won't break other software you may have installed. While you can run RAMPART without conda, it requires you to install and update all of the other software packages it depends on.
 

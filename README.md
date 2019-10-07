@@ -22,10 +22,11 @@ RAMPART is primarily designed to work with amplicon-based primer schemes (e.g. f
 
 * [Quick Start](docs/quickstart.md)
 * [Technical details & file formats](docs/details.md)
+* [Developing](docs/developing.md)
+<!--
 * [Instructions for sequencing & basecalling](docs/sequencing.md)
 * [Running demos](docs/old_examples.md)
-* [Developing](docs/developing.md)
-
+-->
 
 ## Status
 
@@ -37,4 +38,3 @@ Please [get in contact](https://twitter.com/hamesjadfield) if you have any issue
 RAMPART has been deployed to sequence
 * [Yellow Fever Virus in Brazil](https://twitter.com/Hill_SarahC/status/1149372404260593664)
 * [ARTIC workshop in Accra, Ghana](https://twitter.com/george_l/status/1073245364197711874)
-
