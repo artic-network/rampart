@@ -17,28 +17,31 @@ const getFilesFromDirectory = async (dir, extension) => {
         .map((j) => path.join(dir, j));
 };
 
-/**
- * Initialisation function for RAMPART. Must only be called once.
- * Performs a number of steps including:
- * 1. Path checking (defined via config file).
- * 2. Collection of FASTQ / CSV files present at start up.
- * 3. Adding of those files (as appropriate, no duplicates) to annotation & parsing queues.
- */
-const startUp = async () => {
-    log("RAMPART starting up");
 
+/**
+ * validate provided config files. All path checking etc should be here.
+ */
+const validateConfig = async () => {
     if (!global.config.run.basecalledPath) {
         // todo - get basecalledPath from user interface
-        throw new Error("[startUp] basecalled path not specified");
+        throw new Error("[validateConfig] basecalled path not specified");
     }
     if (!global.config.pipelines.annotation.requires[0].path) {
         // todo - get references path from user interface
-        throw new Error("[startUp] references.fasta path not specified");
+        throw new Error("[validateConfig] references.fasta path not specified");
     }
 
     if (!fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
-        throw new Error("[startUp] no basecalled dir / annotated dir");
+        throw new Error("[validateConfig] no basecalled dir / annotated dir");
     }
+}
+
+/**
+ * Process existing datafiles (basecalled FASTQs + annotated CSVs)
+ * Adds these (as appropriate, no duplicates) to annotation & parsing queues.
+ */
+const processExistingData = async () => {
+    log("Scanning data already present");
 
     /* Collect basecalled FASTQs */
     const pathsOfBasecalledFastqs = await getFilesFromDirectory(global.config.run.basecalledPath, 'fastq');
@@ -78,11 +81,10 @@ const startUp = async () => {
         global.filesSeen.add(basename);
     })
 
-    log`RAMPART start up FINISHED\n`;
     return true;
 };
 
-module.exports = {startUp};
+module.exports = {processExistingData, validateConfig};
 
 
 
