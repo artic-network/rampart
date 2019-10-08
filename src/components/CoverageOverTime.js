@@ -16,12 +16,12 @@ const calcChartGeom = (DOMRect) => ({
 
 const strokeDashFunction = (i) => { /* i = 0, 1 or 2 */
   if (i === 1) {
-    return "5, 5";
+    return "5";
   } else if (i === 2) {
     return "2, 8"
   }
-  return null;
-}
+  return "0, 2";
+};
 
 const drawLines = (svg, scales, data, colour) => {
   svg.selectAll(".coverageLine").remove();
@@ -31,7 +31,8 @@ const drawLines = (svg, scales, data, colour) => {
       .attr("class", "coverageLine")
       .attr("fill", "none")
       .attr("stroke", colour)
-      .attr("stroke-width", 5)
+      .attr("stroke-width", 3)
+      .attr("stroke-linecap", "round")
       .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
       .attr('d', (coverageKey) => {
         const generator = line()
@@ -40,12 +41,12 @@ const drawLines = (svg, scales, data, colour) => {
           .curve(curveBasis);
         return generator(data)
       });
-}
+};
 
 const drawLegend = (svg, chartGeom, colour) => {
   const legend = svg.append("g")
     .attr("class", "legend")
-    .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.spaceTop + 5})`)
+    .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.height - chartGeom.spaceBottom + 30})`)
 
   const labels = ["1000x", "100x", "10x"];
 
@@ -53,20 +54,23 @@ const drawLegend = (svg, chartGeom, colour) => {
     .data([1, 2, 3])
     .enter()
     .append("path")
-      .attr("d", (d, i) => `M10,${20*i} H50`)
-      .attr("stroke-width", 5)
+      .attr("d", (d, i) => `M10,${15*i} H50`)
+      .attr("stroke-width", 3)
       .attr("stroke", colour)
+      .attr("stroke-linecap", "round")
       .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
 
   legend.selectAll("line")
     .data([1, 2, 3])
     .enter()
     .append("text")
+      .attr("class", "axis")
       .attr("x", 55)
-      .attr("y", (_, i) => 20*i + 4)
+      .attr("y", (_, i) => 15*i + 4)
       .text((n) => labels[n-1]);
 
-}
+};
+
 class CoverageOverTime extends React.Component {
   constructor(props) {
     super(props);

@@ -11,13 +11,19 @@
 /* ------------ FONTS --------------------- */
 @font-face {
   font-family: 'Lato';
-  src: local('LatoLatin-Light'), url(./LatoLatin-Light.woff) format('woff');
+  src: local('LatoLatin-Regular'), url(./LatoLatin-Regular.woff) format('woff');
   font-weight: bold;
 }
 
 @font-face {
   font-family: 'Lato';
   src: local('LatoLatin-Hairline'), url(./LatoLatin-Hairline.woff) format('woff');
+  font-weight: 100;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: local('LatoLatin-Light'), url(./LatoLatin-Light.woff) format('woff');
   font-weight: normal;
 }
 
@@ -63,6 +69,7 @@ div {
 /* ------------- TOGGLE  SWITCH ---------------*/
 div.toggle {
   margin: 0 auto;
+  font-weight: 100;
   /* width: 50%; */
 }
 div.toggle > label { /* the box around the slider */
@@ -382,7 +389,7 @@ th.rotate {
 }
 .panelContainer > .infoRow > span,
 .panelContainer > .infoRow > div {
-  font-weight: bold;
+  font-weight: normal;
   font-size: 1.3em;
 }
 .panelContainer > .infoRow > *:first-child {
@@ -420,7 +427,7 @@ th.rotate {
 }
 .chartTitle {
   text-align: center;
-  font-weight: 600;
+  font-weight: 100;
   font-size: 1.0em;
   white-space: nowrap;
   color: var(--light-text);
@@ -442,6 +449,7 @@ th.rotate {
   overflow-wrap: break-word;
 }
 .chartExpandContractIcon {
+  color: var(--light-text);
   position: absolute;
   top: 5px;
   right: 5px;
@@ -453,15 +461,17 @@ th.rotate {
 .axis text,
 text.axis {
   fill: var(--light-text); /* not color as it's SVG */
-  font-size: '12px';
+  font-size: 12px;
 }
 .legend > text {
   fill: var(--light-text); /* not color as it's SVG */
 }
 rect.amplicon {
-  stroke: var(--dark-artic-red);
+  stroke: white;
   stroke-width: 0.5px;
-  fill: var(--artic-red);
+  fill: darkgray;
+}
+rect.amplicon + text, rect.gene + text {
 }
 
 rect.gene {
@@ -469,14 +479,16 @@ rect.gene {
   stroke-width: 0.5px;
   fill: var(--artic-green);
 }
-rect.amplicon + text, rect.gene + text {
-  fill: var(--dark-foreground);
+rect.gene + text {
+    fill: var(--dark-foreground);
+    font-size: 11px;
 }
+
 .axis path,
 .axis line {
   fill: none;
   stroke: var(--light-text);
-  stroke-width: 1;
+  stroke-width: 1px;
   shape-rendering: auto;
 }
 
