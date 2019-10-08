@@ -18,10 +18,6 @@ discard_middle: "True"
 split_reads: "False"
 discard_unassigned: "False" #default keep unassigned, change to --discard_unassigned if you don't want to see unbarcoded reads
 barcode_set: "native" # [native,rapid,all], defaults to `native`, `all` is much slower
-limit_barcodes: "True"
+limit_barcodes_to: #barcode csv string e.g. NB01,NB02,NB03,NB04,NB05,NB06
 barcode_threshold: 80
 barcode_diff: 5
-
-##### Expected barcodes #####
-
-barcodes: #barcode csv string e.g. NB01,NB02,NB03,NB04,NB05,NB06

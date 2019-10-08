@@ -5,16 +5,6 @@
 config["output_path"] = config["output_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")
 
-barcodes = config["barcodes"].split(',')
-barcode_string = ""
-for i in barcodes:
-    barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
-
-limit_barcodes_to = ""
-print(config["limit_barcodes"])
-if config["limit_barcodes"]=="True":
-    limit_barcodes_to = " --limit_barcodes_to {}".format(barcode_string)
-
 barcode_set = ''
 if str(config["barcode_set"]).lower()=="rapid":
     barcode_set= " --rapid_barcodes"
@@ -22,6 +12,18 @@ elif str(config["barcode_set"]).lower()=="all":
     barcode_set=""
 else:
     barcode_set= " --native_barcodes"
+
+limit_barcodes_to = ""
+try:
+    barcodes = config["limit_barcodes_to"].split(',')
+    barcode_string = ""
+    for i in barcodes:
+        barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
+    limit_barcodes_to = " --limit_barcodes_to {}".format(barcode_string)
+except:
+    pass
+    # print("No barcodes given, will search for all barcodes within the {} barcode list.".format(config["barcode_set"]))
+
 
 discard_unassigned = ""
 if str(config["discard_unassigned"]).lower()=="true":
