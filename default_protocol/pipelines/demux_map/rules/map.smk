@@ -5,7 +5,13 @@ rule minimap2:
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.paf")
     shell:
-        "minimap2 -x map-ont --secondary=no --paf-no-hit {input.ref:q} {input.fastq:q} > {output:q}"
+        """
+        minimap2 -x map-ont \
+        --secondary=no \
+        --paf-no-hit \
+        {input.ref:q} \
+        {input.fastq:q} > {output:q}
+        """
         
 #This minimap call runs a mapping optimised for ont reads, only outputs the top hit for each
 #read and writes all reads, even if they don't have a hit (no hit written as ``*`` in paf file)
@@ -20,8 +26,10 @@ rule parse_mapping:
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
     shell:
-        "python {params.path_to_script}/parse_paf.py "
-        "--paf_file {input.mapped:q} "
-        "--report {output.report:q} "
-        "--annotated_reads {input.fastq:q}"
+        """
+        python {params.path_to_script}/parse_paf.py \
+        --paf_file {input.mapped:q} \
+        --report {output.report:q} \
+        --annotated_reads {input.fastq:q}
+        """
 #produces a csv report
