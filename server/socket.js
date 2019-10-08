@@ -1,5 +1,6 @@
 const { verbose, warn } = require("./utils");
 const { saveFastq } = require("./saveFastq");
+const { modifyConfig } = require("./config");
 
 /**
  * Collect data (from global.datastore) and send to client
@@ -43,7 +44,15 @@ const initialConnection = (socket) => {
 };
 
 const setUpIOListeners = (socket) => {
-  verbose("socket", "setUpIOListeners (socket for client - server communication)");
+    verbose("socket", "setUpIOListeners (socket for client - server communication)");
+
+    socket.on('config', (clientOptions) => {
+        const dataRecalcNeeded = modifyConfig(clientOptions);
+        sendConfig();
+        if (dataRecalcNeeded) {
+            warn("DATA RECALC NOT YET IMPLEMENTED")
+        }
+    })
 
   // TODO -- RAMPART no longer processes these requests, although some should be reincorporated
 //   socket.on('config', (newConfig) => {

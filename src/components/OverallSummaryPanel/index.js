@@ -23,7 +23,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
+const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -43,7 +43,6 @@ const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
         width={chartToDisplay === "coverage" ? "85%" : "35%"}
         canShowReferenceMatches={false}
         coverage={dataPerSample}
-        logYAxis={viewOptions.logYAxis}
         sampleColours={viewOptions.sampleColours}
         key="cov"
         config={config}
@@ -73,6 +72,7 @@ const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
         width={chartToDisplay === "readsPerSample" ? "85%" : "18%"}
         title="Mapped Reads / Sample"
         data={dataPerSample}
+        config={config}
         viewOptions={viewOptions}
         key="readsPerSample"
         renderProp={ chartToDisplay === "readsPerSample" ? 
@@ -121,4 +121,4 @@ const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
   )
 }
 
-export default OverallSummary;
+export default OverallSummaryPanel;

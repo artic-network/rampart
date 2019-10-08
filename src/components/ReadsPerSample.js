@@ -2,7 +2,7 @@ import React from 'react';
 import { select, mouse } from "d3-selection";
 import {drawAxes} from "../utils/commonFunctions";
 import {scaleLinear, scaleLog, scaleOrdinal} from "d3-scale";
-import { max } from "d3-array";
+import { getLogYAxis } from "../utils/config";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -108,7 +108,7 @@ class ReadsPerSample extends React.Component {
     if (!yMax) return;
     const scales = {
       x: calcXScale(chartGeom, barWidth, samples.length),
-      y: calcYScale(chartGeom, yMax, this.props.viewOptions.logYAxis)
+      y: calcYScale(chartGeom, yMax, getLogYAxis(this.props.config))
     };
     drawAxes(this.state.svg, chartGeom, scales, {xTicks: 0});
     const counts = [];

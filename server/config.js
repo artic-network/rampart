@@ -286,7 +286,8 @@ const getInitialConfig = (args) => {
         numCoverageBins: 1000, /* how many bins we group the coverage stats into */
         readLengthResolution: 10,
         referenceMapCountThreshold: 5,
-        maxReferencePanelSize: 10
+        maxReferencePanelSize: 10,
+        logYAxis: false
     };
 
     // Add any display options from the protocol config file
@@ -303,8 +304,17 @@ const getInitialConfig = (args) => {
 };
 
 /**
- * update the config file via GUI provided data
+ * update the global config object via client provided data
+ * @param {Object} clientSettings new config paramaters send from the client
+ * @returns {Boolean} whether a data recalculation is necessary
+ * @sideEffect modifies global.config in place
  */
+const modifyConfig = (clientSettings) => {
+    if (clientSettings.hasOwnProperty("logYAxis")) {
+        global.config.display.logYAxis = clientSettings.logYAxis;
+    }
+    return false;
+}
 // const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
 //     /* if client is sending us the references file */
@@ -412,6 +422,7 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
 
 module.exports = {
     getInitialConfig,
+    modifyConfig,
     updateConfigWithNewBarcodes,
     updateWhichReferencesAreDisplayed,
     updateReferencesSeen,

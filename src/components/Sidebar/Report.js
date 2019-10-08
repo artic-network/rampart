@@ -1,5 +1,5 @@
 import React from 'react';
-import {makeTimeFormatter} from "../utils/commonFunctions";
+import {makeTimeFormatter} from "../../utils/commonFunctions";
 
 const TimeInfo = ({data}) => {
   const timeFormatter = makeTimeFormatter();
@@ -56,7 +56,7 @@ const CurrentCoverageStats = ({data, config}) => {
 
 
 const ReferenceMatches = ({data, config}) => {
-  const refNames = config.referencePanel.map((r) => r.name);
+  const refNames = config.genome.referencePanel.map((r) => r.name);
   return (
     <table>
       <caption>Sample name - reference matches</caption>
@@ -150,7 +150,9 @@ const ReadCounts = ({data, config}) => {
     </table>
   );
 }
-const Report = ({dataPerSample, combinedData, config}) => {
+
+
+const Report = ({dataPerSample, config}) => {
 
   if (!config || !dataPerSample) {
     return (
@@ -166,16 +168,9 @@ const Report = ({dataPerSample, combinedData, config}) => {
       <ReadCounts data={dataPerSample} config={config}/>
       <ReferenceMatches data={dataPerSample} config={config}/>
       <CurrentCoverageStats data={dataPerSample} config={config}/>
-
     </div>
   )
 
 }
 
-
-
 export default Report;
-
-
-// data={data}
-// referencePanel={config.referencePanel}

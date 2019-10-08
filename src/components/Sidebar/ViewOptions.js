@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import { SwatchesPicker } from 'react-color';
 import { IoIosCloseCircle, IoMdColorFill } from "react-icons/io";
 import { availableColours } from "../../utils/colours";
+import { getLogYAxis } from "../../utils/config";
 import Toggle from "../toggle";
 
 const ColourPicker = ({currentColour, name, onChange, onCancel}) => {
@@ -48,9 +49,6 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
     </div>
   );
 
-  console.log(viewOptions)
-  // this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
-
   /* ---------  RENDER  ------------- */
   if (Object.keys(colourToPick).length) {
     return (
@@ -65,8 +63,8 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
       <h2>Graph options</h2>
       <Toggle
         labelLeft="Log (y) axis"
-        handleToggle={() => setViewOptions({logYAxis: !viewOptions.logYAxis})}
-        toggleOn={viewOptions.logYAxis}
+        handleToggle={() => setConfig({logYAxis: !getLogYAxis(config)})}
+        toggleOn={getLogYAxis(config)}
       />
 
       <h2>{"Sample & Reference colours"}</h2>
