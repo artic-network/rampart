@@ -72,9 +72,9 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, genes, amplicons, h
     .on("mouseout", handleMouseOut)
     .on("mousemove", handleGeneMove);
 
-  /* https://bl.ocks.org/emmasaunders/0016ee0a2cab25a643ee9bd4855d3464 for text attr values */
   genesSel.append("text")
-    .attr("x", (name) => scales.x(genes[name].start) + (scales.x(genes[name].end) - scales.x(genes[name].start))/2)
+      .attr("class", "gene-text")
+      .attr("x", (name) => scales.x(genes[name].start) + (scales.x(genes[name].end) - scales.x(genes[name].start))/2)
     .attr("y", calcYOfGene)
     .attr("dy", "12px") /* positive values bump down text */
     .attr("text-anchor", "middle") /* centered horizontally */

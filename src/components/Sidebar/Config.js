@@ -17,7 +17,7 @@ const ArticConfigSelection = ({items, setter, choice}) => (
   <div className="selectDropdown">
     <Select
       placeholder="Select ARTIC premade config:"
-      options={[{label: "Remove selection", value: undefined}, ...items]}
+      // options={[{label: "Remove selection", value: undefined}, ...items]}
       styles={customReactSelectStyles}
       value={choice}
       onChange={(selection) => setter(selection)}
@@ -153,59 +153,59 @@ const Config = ({config, setConfig, closeSidebar}) => {
           )
       }
 
-      <h2>Reference Panel (FASTA)</h2>
-      {modifiedConfig.referencePanel.length ? (
-        <div>{`Set, with ${modifiedConfig.referencePanel.length} references. You cannot change this!`}</div>
-      ) : refPanelFileDropped ? (
-          <div>File loaded -- click submit!</div>
-        ) : (
-          <div>
-            <div
-              className={`fileDropZone ${refPanelDropperHover ? "dragging" : ""}`}
-              onDragEnterCapture={() => setRefPanelDropperHover(true)}
-              onDragOver={(e) => {e.preventDefault()}}
-              onDragExitCapture={() => setRefPanelDropperHover(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setRefPanelDropperHover(false);
-                handleDroppedFile(e.dataTransfer.files[0], "refFASTA", setRefPanelFileDropped);
-              }}
-            >
-              drop FASTA here
-            </div>
-            <button className="modernButton" onClick={() => refPanelChooser.current.click()}>
-              choose file
-            </button>
-            <input
-              className="hidden"
-              type='file'
-              ref={refPanelChooser}
-              onChange={(e) => {handleDroppedFile(e.target.files[0], "refFasta", setRefPanelFileDropped);}}
-            />
-          </div>
-        )
-      }
+      {/*<h2>Reference Panel (FASTA)</h2>*/}
+      {/*{modifiedConfig.referencePanel.length ? (*/}
+        {/*<div>{`Set, with ${modifiedConfig.referencePanel.length} references. You cannot change this!`}</div>*/}
+      {/*) : refPanelFileDropped ? (*/}
+          {/*<div>File loaded -- click submit!</div>*/}
+        {/*) : (*/}
+          {/*<div>*/}
+            {/*<div*/}
+              {/*className={`fileDropZone ${refPanelDropperHover ? "dragging" : ""}`}*/}
+              {/*onDragEnterCapture={() => setRefPanelDropperHover(true)}*/}
+              {/*onDragOver={(e) => {e.preventDefault()}}*/}
+              {/*onDragExitCapture={() => setRefPanelDropperHover(false)}*/}
+              {/*onDrop={(e) => {*/}
+                {/*e.preventDefault();*/}
+                {/*setRefPanelDropperHover(false);*/}
+                {/*handleDroppedFile(e.dataTransfer.files[0], "refFASTA", setRefPanelFileDropped);*/}
+              {/*}}*/}
+            {/*>*/}
+              {/*drop FASTA here*/}
+            {/*</div>*/}
+            {/*<button className="modernButton" onClick={() => refPanelChooser.current.click()}>*/}
+              {/*choose file*/}
+            {/*</button>*/}
+            {/*<input*/}
+              {/*className="hidden"*/}
+              {/*type='file'*/}
+              {/*ref={refPanelChooser}*/}
+              {/*onChange={(e) => {handleDroppedFile(e.target.files[0], "refFasta", setRefPanelFileDropped);}}*/}
+            {/*/>*/}
+          {/*</div>*/}
+        {/*)*/}
+      {/*}*/}
 
-      <h2>Barcodes</h2>
-      {Object.keys(modifiedConfig.barcodeToName)
-        .sort((a, b) => modifiedConfig.barcodeToName[a].order > modifiedConfig.barcodeToName[b].order ? 1 : -1)
-        .map((barcodeName) => {
-          return (
-            <label key={barcodeName}>
-              <div className={"bcLabel"}>
-                {`${barcodeName}`}
-              </div>
-              <input
-                type="text"
-                value={modifiedConfig.barcodeToName[barcodeName].name}
-                onChange={(event) => {
-                  modifiedConfig.barcodeToName[barcodeName].name = event.target.value;
-                }}
-              />
-              {/* TODO -- add ordering box / dragger here */}
-            </label>
-          );
-      })}
+      {/*<h2>Barcodes</h2>*/}
+      {/*{Object.keys(modifiedConfig.barcodeToName)*/}
+        {/*.sort((a, b) => modifiedConfig.barcodeToName[a].order > modifiedConfig.barcodeToName[b].order ? 1 : -1)*/}
+        {/*.map((barcodeName) => {*/}
+          {/*return (*/}
+            {/*<label key={barcodeName}>*/}
+              {/*<div className={"bcLabel"}>*/}
+                {/*{`${barcodeName}`}*/}
+              {/*</div>*/}
+              {/*<input*/}
+                {/*type="text"*/}
+                {/*value={modifiedConfig.barcodeToName[barcodeName].name}*/}
+                {/*onChange={(event) => {*/}
+                  {/*modifiedConfig.barcodeToName[barcodeName].name = event.target.value;*/}
+                {/*}}*/}
+              {/*/>*/}
+              {/*/!* TODO -- add ordering box / dragger here *!/*/}
+            {/*</label>*/}
+          {/*);*/}
+      {/*})}*/}
 
 
       <SaveConfig handleClick={submit}/>

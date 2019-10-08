@@ -84,16 +84,16 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
         )
       })}
 
-      <h2>Reference colours:</h2>
-      {config.referencePanel.map((info, idx) => (
-        <div key={info.name} className="colourSwatch">
-          <div
-            onClick={() => setColourToPick({key: "referenceColours", name: info.name, idx: idx, value: info.colour})}
-            style={{backgroundColor: info.colour}}
-          />
-          <div>{`${info.name} (${info.display})`}</div>
-        </div>
-      ))}
+      {/*<h2>Reference colours:</h2>*/}
+      {/*{config.referencePanel.map((info, idx) => (*/}
+        {/*<div key={info.name} className="colourSwatch">*/}
+          {/*<div*/}
+            {/*onClick={() => setColourToPick({key: "referenceColours", name: info.name, idx: idx, value: info.colour})}*/}
+            {/*style={{backgroundColor: info.colour}}*/}
+          {/*/>*/}
+          {/*<div>{`${info.name} (${info.display})`}</div>*/}
+        {/*</div>*/}
+      {/*))}*/}
     </div>
   )
 }
