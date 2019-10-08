@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from "prop-types";
 import logo from "../images/logo.png";
 import { makeTimeFormatter } from "../utils/commonFunctions";
+import { getLogYAxis } from "../utils/config";
 
 class Header extends React.Component {
   constructor(props) {
@@ -9,7 +10,7 @@ class Header extends React.Component {
     this.handleKeyDown = (event) => {
       switch(event.keyCode) {
         case 76: // key: "l"
-          this.props.setViewOptions({logYAxis: !this.props.viewOptions.logYAxis});
+          this.props.setConfig({logYAxis: !getLogYAxis(this.props.config)});
           break;
         default:
           break;

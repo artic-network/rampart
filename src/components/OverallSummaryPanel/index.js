@@ -43,7 +43,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
         width={chartToDisplay === "coverage" ? "85%" : "35%"}
         canShowReferenceMatches={false}
         coverage={dataPerSample}
-        logYAxis={viewOptions.logYAxis}
         sampleColours={viewOptions.sampleColours}
         key="cov"
         config={config}
@@ -73,6 +72,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
         width={chartToDisplay === "readsPerSample" ? "85%" : "18%"}
         title="Mapped Reads / Sample"
         data={dataPerSample}
+        config={config}
         viewOptions={viewOptions}
         key="readsPerSample"
         renderProp={ chartToDisplay === "readsPerSample" ? 

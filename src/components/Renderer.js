@@ -39,6 +39,7 @@ const Renderer = (props) => {
                 viewOptions={props.viewOptions}
                 setViewOptions={props.setViewOptions}
                 config={props.config}
+                setConfig={props.setConfig}
                 sidebarButtonNames={sidebarButtonNames}
                 sidebarOpenCB={setSidebarOpenState}
                 combinedData={props.combinedData}
@@ -56,7 +57,7 @@ const Renderer = (props) => {
                 setConfig={props.setConfig}
                 combinedData={props.combinedData}
                 dataPerSample={props.dataPerSample}
-                viewOptionsviewOptions={props.viewOptions}
+                viewOptions={props.viewOptions}
                 setViewOptions={props.setViewOptions}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpenState={setSidebarOpenState}

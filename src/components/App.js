@@ -11,7 +11,6 @@ class App extends Component {
       mainPage: "loading",
       warningMessage: "",
       viewOptions: {
-        logYAxis: false,
         sampleColours: {},
       },
       config: {},
@@ -23,8 +22,11 @@ class App extends Component {
     this.state.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     }
-    this.state.setConfig = ({config, refFasta, refJsonPath, refJsonString}) => {
-      this.state.socket.emit('config', {config, refFasta, refJsonPath, refJsonString});
+    this.state.setConfig = (opts) => {
+      /* the ultimate source of truth for the config resides is the server. A request (by the client)
+      to set the config results in a socket call. The server will then return the new config
+      (see `registerServerListeners` below) potentially with an updated set of data */
+      this.state.socket.emit('config', opts);
     }
     this.state.clearWarningMessage = () => {
       this.setState({warningMessage: ""})

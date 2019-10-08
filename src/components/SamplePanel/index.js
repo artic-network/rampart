@@ -64,7 +64,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchCoveragesStream}
-        logYAxis={viewOptions.logYAxis}
         sampleColours={viewOptions.sampleColours}
         fillIn={true}
         config={config}

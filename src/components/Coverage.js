@@ -6,6 +6,7 @@ import { drawSteps } from "../d3/drawSteps";
 import { drawGenomeAnnotation } from "../d3/genomeAnnotation";
 import { drawStream } from "../d3/stream";
 import Toggle from "./toggle";
+import { getLogYAxis } from "../utils/config";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -35,7 +36,7 @@ class CoveragePlot extends React.Component {
         const xScale = calcXScale(this.state.chartGeom, this.props.config.genome.length);
         const yScale = this.state.showReferenceMatches ?
             calcYScale(this.state.chartGeom, 100) :
-            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: this.props.logYAxis});
+            calcYScale(this.state.chartGeom, getMaxCoverage(this.props.coverage), {log: getLogYAxis(this.props.config)});
         const scales = {x: xScale, y: yScale};
         /* draw the axes & genome annotation*/
         const ySuffix = this.state.showReferenceMatches ? "%" : "x";
