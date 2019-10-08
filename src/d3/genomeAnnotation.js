@@ -19,7 +19,7 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, genes, amplicons, h
       .style("right", right)
       .style("top", top)
       .style("visibility", "visible")
-      .html(`Amplicon ${d[0]}-${d[1]}bp`);
+      .html(`Amplicon ${i + 1} – ${d[0]}-${d[1]}bp`);
     }
   function handleGeneMove(d, i) {
     const [left, right, top] = getLeftRightTop(this, scales);
@@ -34,7 +34,7 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, genes, amplicons, h
     hoverSelection.style("visibility", "hidden");
   }
 
-  const ampliconRoof = chartGeom.height - chartGeom.spaceBottom + 20; /* all primers & genes below this */
+  const ampliconRoof = chartGeom.height - chartGeom.spaceBottom + 24; /* all primers & genes below this */
   const ampliconHeight = 8;
   if (amplicons) {
     svg.append("g")
@@ -80,7 +80,7 @@ export const drawGenomeAnnotation = (svg, chartGeom, scales, genes, amplicons, h
     .attr("text-anchor", "middle") /* centered horizontally */
     .attr("font-size", "12px")
     .attr("font-weight", "600")
-    .attr("alignment-baseline", "hanging") /* i.e. y value specifies top of text */
+    .attr("alignment-baseline", "bottom") /* i.e. y value specifies top of text */
     .attr("pointer-events", "none") /* don't capture mouse over */
     .text((name) => name.length > 10 ? "" : name);
 };

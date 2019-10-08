@@ -3,7 +3,8 @@
   --dark-background: #02292e;
   --dark-foreground: #fffcf2;
   --artic-red: #e06962;
-  --header: #005c68;
+  --dark-artic-red: #803c38;
+  --artic-green: #005c68;
   --light-text: #F6EECA;
 }
 
@@ -98,7 +99,7 @@ div.toggle > label > span.background {
 div.toggle > label > span.slider {
   width: 18px;
   right: 0px;
-  background-color: var(--header);
+  background-color: var(--artic-green);
   -webkit-transition: .4s;
   transition: .4s;
   cursor: pointer;
@@ -217,7 +218,7 @@ input.wide {
 div.header {
   width: 100%;
   margin: auto;
-  background-color: var(--header);
+  background-color: var(--artic-green);
   color: var(--light-text);
   border-radius: 5px;
   display: flex;
@@ -456,13 +457,19 @@ text.axis {
 .legend > text {
   fill: var(--light-text); /* not color as it's SVG */
 }
-rect.amplicon,
-rect.gene {
-  stroke: none;
-  fill: var(--light-text);
+rect.amplicon {
+  stroke: var(--dark-artic-red);
+  stroke-width: 0.5px;
+  fill: var(--artic-red);
 }
-rect.gene + text {
-  fill: var(--dark-background);
+
+rect.gene {
+  stroke: var(--light-text);
+  stroke-width: 0.5px;
+  fill: var(--artic-green);
+}
+rect.amplicon + text, rect.gene + text {
+  fill: var(--dark-foreground);
 }
 .axis path,
 .axis line {

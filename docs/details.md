@@ -160,6 +160,11 @@ Then to use this protocol, RAMPART should be run with the `--protocol` command l
 node <rampart_directory>/rampart.js --protocol <protocols_directory>/artic-ebov/rampart
 ```
 
+## Read annotation options
+
+RAMPART uses a built in script to de-multiplex each read and then to map it to the closest reference genome. Some options for this can be set in the `protocol.json`, `run_configuration.json` or as command-line options.
+
+In the `protocol.json` or `run_configuration.json` file these are specified in a `annotationOptions` block:
 
 ## Command line options
 ```
