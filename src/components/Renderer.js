@@ -5,7 +5,7 @@ import Footer from "./Footer";
 import '../styles/rampart.css';
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Modal from "./modal";
-import Sidebar, {sidebarButtonNames} from "./Sidebar";
+import Sidebar, {sidebarButtonNames} from "./Sidebar/index";
 import Panels from "./Panels";
 
 const Renderer = (props) => {
@@ -45,6 +45,7 @@ const Renderer = (props) => {
                 socket={props.socket}
                 infoMessage={props.infoMessage}
             />
+
             {renderMainPage()}
 
             <div id="contextMenuPortal"/>

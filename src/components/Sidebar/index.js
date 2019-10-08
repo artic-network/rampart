@@ -1,8 +1,8 @@
 import React from 'react';
 import { IoIosCloseCircle, IoMdSettings, IoIosOptions, IoMdToday } from "react-icons/io";
-import Config from "./config";
+import Config from "./Config";
 import Report from "./Report";
-import ViewOptions from "./viewOptions";
+import ViewOptions from "./ViewOptions";
 
 /**
  * React component to render & control a sidebar which transitions
@@ -39,7 +39,7 @@ const Sidebar = ({config, setConfig, combinedData, dataPerSample, viewOptions, s
     const sidebars = {
       config: (<Config config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
       viewOptions: (<ViewOptions config={config} setConfig={setConfig} viewOptions={viewOptions} setViewOptions={setViewOptions}/>),
-      report: (<Report dataPerSample={dataPerSample} combinedData={combinedData} config={config}/>)
+      report: (<Report dataPerSample={dataPerSample} config={config}/>)
     };
 
 
