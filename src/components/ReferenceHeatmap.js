@@ -14,7 +14,7 @@ const calcChartGeom = (DOMRect) => ({
         DOMRect.width>400 ? 150 :
             100,
     spaceRight: 0,
-    spaceBottom: 60,
+    spaceBottom: 70,
     spaceTop: 10,
     legendPadding: 20, /* horizontal */
     maxLegendWidth: 400

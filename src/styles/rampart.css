@@ -347,7 +347,7 @@ th.rotate {
   width: calc(100% - 30px);
   height: 350px;       /* adjusting will also adjust the graphs */
   min-height: 350px;   /* as they calculate via document selector query */
-  margin: 10px 10px 10px 10px;
+  margin: 10px 10px 0px 10px;
 }
 
 
@@ -355,7 +355,7 @@ th.rotate {
 .panelContainer {
   position: relative;
   width: 98%;
-  margin: 10px 10px 10px 10px;
+  margin: 0px 10px 10px 10px;
   transition: 0.5s ease-in;
   -webkit-transition: 0.5s ease-in;
   border: 1px solid gray;
@@ -421,7 +421,8 @@ th.rotate {
 .chartTitle {
   text-align: center;
   font-weight: 600;
-  font-size: 1.2em;
+  font-size: 1.0em;
+  white-space: nowrap;
   color: var(--light-text);
   padding-right: 25px; /* to stop icon overlap */
 }

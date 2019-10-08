@@ -10,7 +10,7 @@ const calcChartGeom = (DOMRect) => ({
   height: DOMRect.height - 20, // title line
   spaceLeft: 60,
   spaceRight: 10,
-  spaceBottom: 60,
+  spaceBottom: 70,
   spaceTop: 10
 });
 
