@@ -23,7 +23,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
+const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -121,4 +121,4 @@ const OverallSummary = ({combinedData, dataPerSample, viewOptions, config}) => {
   )
 }
 
-export default OverallSummary;
+export default OverallSummaryPanel;
