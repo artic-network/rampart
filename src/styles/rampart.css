@@ -502,7 +502,10 @@ span.hoverColourSquare + span {
   display: inline-block;
 }
 
-
+.maxCoverageLine {
+    stroke: var(--light-text);
+    stroke-width: 0.75px;
+}
 
 
 /* -------------- BASECALLED DIR ---------------- */
