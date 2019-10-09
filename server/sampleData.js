@@ -68,11 +68,11 @@ SampleData.prototype.updateRefMatchCounts = function(data, referencesSeen) {
 
 SampleData.prototype.updateMappedCount = function(data) {
     this.mappedCount += data.mappedCount;
-}
+};
 
 SampleData.prototype.coveragePercAboveThreshold = function(threshold) {
     return parseInt((this.coverage.reduce((acc, cv) => cv > threshold ? ++acc : acc, 0)/this.coverage.length)*100, 10);
-}
+};
 
 SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
     /* this.temporal[t] is the state of the world at time `t` */
@@ -94,7 +94,7 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
         over100x:  this.coveragePercAboveThreshold(100),
         over1000x: this.coveragePercAboveThreshold(1000)
     });
-}
+};
 
 /**
  * @param {numeric} timestampAdjustment unix time in ms
@@ -109,6 +109,6 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
         });
     }
     return ret;
-}
+};
 
 module.exports = { default: SampleData };
