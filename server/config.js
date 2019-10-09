@@ -266,7 +266,7 @@ const getInitialConfig = (args) => {
     }
 
     if (Object.keys(config.run.barcodeNames).length > 0) {
-        config.pipelines.annotation.configOptions["barcodes"] = Object.keys(config.run.barcodeNames).join(',');
+        config.pipelines.annotation.configOptions["limit_barcodes_to"] = Object.keys(config.run.barcodeNames).join(',');
     }
 
     // Add any annotationOptions options from the command line
