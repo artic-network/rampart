@@ -252,6 +252,9 @@ const getInitialConfig = (args) => {
                 warn(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
             }
 
+            // set this in config.run so the UI can find it.
+            config.run.referencesPanel = filepath;
+
         });
     }
 

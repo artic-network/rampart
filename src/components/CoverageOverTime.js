@@ -46,7 +46,6 @@ const drawLines = (svg, scales, data, colour) => {
 const drawMaxLines = (svg, scales, data, colour) => {
     const labels = ["1000x", "100x", "10x"];
 
-    console.log(data);
     svg.selectAll(".maxCoverageLine").remove();
     svg.selectAll(".maxCoverageLine")
         .data(["over1000x", "over100x", "over10x"])
