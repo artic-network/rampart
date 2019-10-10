@@ -102,8 +102,8 @@ export const calcYScale = (chartGeom, maxY, {log=false}={}) => {
     .domain([0, maxY]).range(range);
 }
 
-export const calcScales = (chartGeom, maxX, maxY) => {
-  return {x: calcXScale(chartGeom, maxX), y: calcYScale(chartGeom, maxY)};
+export const calcScales = (chartGeom, maxX, maxY, logY=false) => {
+  return {x: calcXScale(chartGeom, maxX), y: calcYScale(chartGeom, maxY, {log: logY})};
 }
 
 
