@@ -3,7 +3,7 @@
  * files.
  * @type {module:fs}
  */
-const fs = require('fs')
+const fs = require('fs');
 // const path = require('path')
 const { normalizePath, getAbsolutePath, verbose, log, warn, fatal } = require("./utils");
 const { getNthReferenceColour } = require("./colours");
@@ -16,7 +16,7 @@ const PIPELINES_CONFIG_FILENAME = "pipelines.json";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
 
 const UNMAPPED_LABEL = "unmapped";
-const UNASSIGNED_LABEL = "unassigned"
+const UNASSIGNED_LABEL = "unassigned";
 
 /**
  * Create initial config file from command line arguments - Note that
@@ -39,7 +39,7 @@ const UNASSIGNED_LABEL = "unassigned"
  *      (for visualization).
  *
  * `pipelines.json` - a list of pipelines available with paths to the Snakemake files. One
- *      pipeline named 'read_processor' is used to process reads for RAMPART and must be
+ *      pipeline named 'annotator' is used to process reads for RAMPART and must be
  *      present. Other pipelines are used for post-RAMPART processing and analysis.
  *
  * `run_configuration.json` - This file provides the configuration for the current run
@@ -101,6 +101,54 @@ function assert(item, message) {
     if (!item) {
         throw new Error(message);
     }
+}
+
+function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
+
+    let message = undefined;
+
+    if (!pipeline.name) {
+        message = `pipeline ${index + 1} is missing a name`;
+    }
+
+    if (!message && !pipeline.path) {
+        message = `pipeline ${pipeline.name} is missing a path`;
+    }
+
+    pipeline.path = normalizePath(getAbsolutePath(pipeline.path, {relativeTo: config.pipelines.path}));
+
+    if (!message && !fs.existsSync(pipeline.path)) {
+        message = `pipeline ${pipeline.name} path doesn't exist`;
+    }
+
+    if (!message && !fs.existsSync(pipeline.path + "Snakefile")) {
+        message = `pipeline ${pipeline.name} Snakefile doesn't exist`;
+    }
+
+    if (!message) {
+        if (!pipeline.config_file) {
+            pipeline.config_file = "config.yaml";
+        }
+
+        pipeline.config = getAbsolutePath(pipeline.config_file, {relativeTo: pipeline.path});
+        pipeline.configOptions = {};
+
+        if (!fs.existsSync(pipeline.config)) {
+            message = `pipeline ${pipeline.name} config file doesn't exist`;
+        }
+    }
+
+    if (message) {
+        if (warn) {
+            warn(message + ' - pipeline will be ignored');
+            pipeline.ignore = true;
+        } else {
+            throw new Error(message);
+        }
+    }
+
+
+
 }
 
 const getInitialConfig = (args) => {
@@ -193,6 +241,7 @@ const getInitialConfig = (args) => {
 
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
+    ensurePathExists(config.pipelines.path);
 
     if (args.basecalledPath) {
         /* overwrite any JSON defined path with a command line arg */
@@ -202,7 +251,7 @@ const getInitialConfig = (args) => {
         config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
         verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
     } catch (err) {
-        console.error(err.message)
+        console.error(err.message);
         // fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
         fatal(`No directory of basecalled reads specified in startup configuration`)
     }
@@ -230,9 +279,7 @@ const getInitialConfig = (args) => {
         verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    config.pipelines.annotation.path = normalizePath(getAbsolutePath(config.pipelines.annotation.path, {relativeTo: config.pipelines.path}));
-    config.pipelines.annotation.config = getAbsolutePath(config.pipelines.annotation.config_file, {relativeTo: config.pipelines.path});
-    config.pipelines.annotation.configOptions = {};
+    checkPipeline(config, config.pipelines.annotation);
 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
@@ -281,8 +328,12 @@ const getInitialConfig = (args) => {
         });
     }
 
-    ensurePathExists(config.pipelines.annotation.path);
-    ensurePathExists(config.pipelines.annotation.path + "Snakefile");
+    // If other pipelines are specified, check them
+    if (config.pipelines.processing) {
+        config.pipelines.processing.forEach( (pipeline, index) => {
+            checkPipeline(config, pipeline, index, true);
+        });
+    }
 
     /* display options */
     config.display = {
@@ -317,7 +368,8 @@ const modifyConfig = (clientSettings) => {
         global.config.display.logYAxis = clientSettings.logYAxis;
     }
     return false;
-}
+};
+
 // const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 
 //     /* if client is sending us the references file */

@@ -10,15 +10,11 @@
 			}
 		]
 	},
-	"post-processing": [
+	"processing": [
 		{
-			"name": "Bin reads by barcode",
-			"path": "pipelines/bin_reads",
-			"config": "bin_by=barcode"
-		},
-		{
-			"name": "Build consensus",
-			"path": "pipelines/build_consensus"
+			"name": "Build consensus (ARTIC pipeline)",
+			"path": "pipelines/build_consensus_artic",
+			"config": "min_length=100 max_length=10000"
 		},
 		{
 			"name": "Export reads",
