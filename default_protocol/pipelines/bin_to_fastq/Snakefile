@@ -1,5 +1,10 @@
 ##### Configuration #####
 
+# trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
+config["output_path"] = config["output_path"].rstrip("/")
+config["annotated_path"] = config["annotated_path"].rstrip("/")
+config["input_path"] = config["input_path"].rstrip("/")
+
 barcodes = config["barcodes"].split(',')
 barcode_string = ""
 for i in barcodes:
@@ -13,13 +18,13 @@ sample_string = ""
 if config["sample"]:
     sample_string = config["sample"]
 else:
-    config["sample"] = "_".join(barcodes)
+    sample_string = "_".join(barcodes)
 
 ##### Target rules #####
 
 rule all:
     input:
-        expand(config["output_path"] + "/binned_{sample}.fastq",sample=config["sample"])
+        config["output_path"] + "/binned_{}.fastq".format(sample_string)
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
 
 ##### Modules #####
