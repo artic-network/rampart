@@ -22,7 +22,7 @@
 		},
 		{
 			"name": "Export reads",
-			"path": "pipelines/bin_reads"
+			"path": "pipelines/bin_to_fastq/"
 		}
 	]
 }

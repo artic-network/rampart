@@ -194,7 +194,6 @@ const getInitialConfig = (args) => {
     assert(config.pipelines, "No pipeline configuration has been provided");
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
 
-
     if (args.basecalledPath) {
         /* overwrite any JSON defined path with a command line arg */
         config.run.basecalledPath = args.basecalledPath;
@@ -212,6 +211,7 @@ const getInitialConfig = (args) => {
         config.run.annotatedPath = args.annotatedDir;
     }
     config.run.annotatedPath = normalizePath(getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()}));
+    config.run.workingDir = process.cwd();
 
     ensurePathExists(config.run.annotatedPath, {make: true});
     verbose("config", `Annotated path: ${config.run.annotatedPath}`);

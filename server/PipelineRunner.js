@@ -10,14 +10,15 @@ class PipelineRunner {
 
     /**
      * Constructor
-     * @property {String} name
-     * @property {String} snakefile (absolute) path to the snakemake file
-     * @property {String} configfile (absolute) path to the snakemake config file
-     * @property {Array} configOptions list of config options to be passed to snakemake via `--config`
-     * @property {Function} onSuccess callback when snakemake is successful. Arguments: `job`
-     * @property {Boolean} queue
+     * @property {Object}         opts
+     * @property {String}         opts.name
+     * @property {String}         opts.snakefile      (absolute) path to the snakemake file
+     * @property {false||String}  opts.configfile     (absolute) path to the snakemake config file
+     * @property {Array}          opts.configOptions  list of config options to be passed to snakemake via `--config`
+     * @property {Function}       opts.onSuccess      callback when snakemake is successful. Arguments: `job`
+     * @property {Boolean}        opts.queue
      */
-    constructor(name, snakefile, configfile, configOptions, onSuccess, queue = false) {
+    constructor({name, snakefile, configfile, configOptions, onSuccess, queue=false}) {
         this._name = name;
         this._snakefile = snakefile;
         this._configfile = configfile;
@@ -39,70 +40,54 @@ class PipelineRunner {
     /**
      * Run a job immediately
      * @param job
-     * @returns {Promise<void>}
+     * @returns {Promise<void>} the promise 
+     * @throws
      */
     async runJob(job) {
         if (this._jobQueue) {
             throw new Error(`Pipeline, ${this._name}, has a queue - call addToQueue()`)
         }
         this._isRunning = true;
-        await this._runPipeline(job);
-        this._isRunning = false;
+        await this._runPipeline(job); // will throw if job fails
         this._onSuccess(job);
+        this._isRunning = false;
     }
 
     /**
      * Add a job to the queue for processing
      * @param job
      * @returns {Promise<void>}
+     * @throws
      */
     async addToQueue(job) {
-        try {
-            if (!this._jobQueue) {
-                throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
-            }
-            const requiredProperties = ["inputPath", "outputPath", "filenameStem"];
-            requiredProperties.forEach((p) => {
-                if (!job.hasOwnProperty(p)) {
-                    throw new Error(`Jobs submitted to the ${this._name} pipeline must have properties ${requiredProperties.join(", ")}.`)
-                }
-            })
-        } catch (err) {
-            trace(err);
-            warn(err.message);
-            return;
+        if (!this._jobQueue) {
+            throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
         }
         this._jobQueue.push(job);
     }
 
     /**
      * private method to actually spawn a Snakemake pipeline and capture output.
-     * @param job
+     * @param {Object} job snakemake config key-value pairs
      * @returns {Promise<*>}
      * @private
      */
     async _runPipeline(job) {
         return new Promise((resolve, reject) => {
             const pipelineConfig = [];
-            pipelineConfig.push(`input_path=${job.inputPath}`);
-            pipelineConfig.push(`output_path=${job.outputPath}`);
-            pipelineConfig.push(`filename_stem=${job.filenameStem}`);
+            // start with (optional) configuration options defined for the entire pipeline
             if (this._configOptions) {
-                // optional additional configuration options from configuration files
                 pipelineConfig.push(...this._configOptions);
             }
-            if (job.configOptions) {
-                // optional additional configuration options from the job
-                pipelineConfig.push(...job.configOptions);
-            }
+            // add in job-specific config options
+            pipelineConfig.push(...Object.keys(job).map((key) => `${key}=${job[key]}`));
+          
 
-            let spawnArgs = [
-                '--snakefile', this._snakefile,
-                '--configfile', this._configfile,
-                '--config', ...pipelineConfig
-            ];
+            let spawnArgs = ['--snakefile', this._snakefile];
+            if (this._configfile) spawnArgs.push(...['--configfile', this._configfile])
+            spawnArgs.push(...['--config', ...pipelineConfig]);
 
-            // verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
+            verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
             const process = spawn('snakemake', spawnArgs);
 
@@ -157,6 +142,7 @@ class PipelineRunner {
                     this._onSuccess(job);
                 } catch (err) {
                     trace(err);
+                    warn("JOB FAILED!")
                 }
                 this._isRunning = false;
 

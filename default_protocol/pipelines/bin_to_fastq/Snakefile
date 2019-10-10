@@ -6,14 +6,14 @@ for i in barcodes:
     barcode_string+=" {}".format(i)
 
 bin_string = ""
-if config["bin_by"]:
+if "bin_by" in config:
     bin_string = "--bin-by " + config["bin_by"]
 
 sample_string = ""
-if config["sample"]:
+if "sample" in config:
     sample_string = config["sample"]
 else:
-    config["sample"] = "_".join(barcodes)
+    sample_string = "_".join(barcodes)
 
 ##### Target rules #####
 
