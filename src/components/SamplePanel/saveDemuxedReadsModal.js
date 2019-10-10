@@ -3,7 +3,11 @@ import React, {useState} from 'react';
 import PropTypes from "prop-types";
 import { IoIosSave } from "react-icons/io";
 
+/* AS OF OCT 10 THIS FILE IS UNUSED.
 
+It is kept while the `PostProcessingRunner` is being developed as it may use some of
+the same design implementations
+*/
 
 const SaveDemuxedReads = ({config, socket, sampleName, referenceNames, dismissModal}) => {
 

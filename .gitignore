@@ -28,6 +28,7 @@ coordinate_reference.fasta
 #don't commit demuxed or annotated reads...
 demuxed/
 annotations/
+binned*
 
 # editor configs etc
 *.code-workspace

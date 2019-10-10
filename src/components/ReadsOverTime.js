@@ -3,6 +3,7 @@ import { select, mouse } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
 import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
 import {defaultLineColour} from "../utils/colours";
+import { getLogYAxis } from "../utils/config";
 
 const timeFormatter = makeTimeFormatter();
 
@@ -78,7 +79,7 @@ class ReadsOverTime extends React.Component {
     this.state = {chartGeom: {}};
   }
   redraw() {
-    const scales = calcScales(this.state.chartGeom, ...getMaxsOfReadsOverTime(this.props.temporalData));
+    const scales = calcScales(this.state.chartGeom, ...getMaxsOfReadsOverTime(this.props.temporalData), getLogYAxis(this.props.config));
     const xTicks = this.state.chartGeom.width > 500 ? 5 : this.state.chartGeom.width > 300 ? 3 : 2;
     drawAxes(this.state.svg, this.state.chartGeom, scales, {isTime: true, xTicks})
     drawLine(this.state.svg, scales, this.props.temporalData, this.infoRef)

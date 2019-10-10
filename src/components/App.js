@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Renderer from './Renderer';
 import io from 'socket.io-client';
+import WindowMonitor from './WindowMonitor';
 import { createSampleColours, createReferenceColours } from "../utils/colours";
 
 class App extends Component {
@@ -109,7 +110,9 @@ class App extends Component {
   render() {
     const props = {...this.state};
     return (
-      <Renderer {...props}/>
+      <WindowMonitor>
+        <Renderer {...props}/>
+      </WindowMonitor>
     );
   }
 }

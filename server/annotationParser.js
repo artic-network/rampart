@@ -21,6 +21,11 @@ parsingQueue.observeRangeChange( () => { annotationParser(); } );
 const addToParsingQueue = (filepath) => parsingQueue.push(filepath);
 
 async function parseAnnotations(fileToParse) {
+    if (!fs.existsSync(fileToParse)) {
+        warn(`Annotation file, ${fileToParse}, doesn't exist - skipping.`);
+        return;
+    }
+
     const annotations = await dsv.csvParse(fs.readFileSync(fileToParse).toString());
     verbose(
         "annotation parser",

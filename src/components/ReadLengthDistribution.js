@@ -3,6 +3,7 @@ import { select } from "d3-selection";
 import {calcScales, drawAxes} from "../utils/commonFunctions";
 import {drawSteps} from "../d3/drawSteps";
 import { max } from "d3-array";
+import { getLogYAxis } from "../utils/config";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -23,7 +24,7 @@ class ReadLengthDistribution extends React.Component {
     if (!this.props.xyValues.length) return;
     const maxX = this.props.xyValues[this.props.xyValues.length-1][0];
     const maxY = max(this.props.xyValues.map((xy) => xy[1]));
-    const scales = calcScales(this.state.chartGeom, maxX, maxY);
+    const scales = calcScales(this.state.chartGeom, maxX, maxY, getLogYAxis(this.props.config));
     drawAxes(this.state.svg, this.state.chartGeom, scales, {xSuffix: "bp", xTicks: 4})
     const data = [{name: "Read Lengths", xyValues: this.props.xyValues, colour: this.props.colour}];
     const hoverDisplayFunc = ({name, xValue, yValue}) => (`Read length ${xValue}bp<br/>Num reads: ${yValue}`);

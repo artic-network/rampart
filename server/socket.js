@@ -1,6 +1,7 @@
 const { verbose, warn } = require("./utils");
-const { saveFastq } = require("./saveFastq");
+// const { saveFastq } = require("./saveFastq");
 const { modifyConfig } = require("./config");
+const { triggerPostProcessing } = require("./postProcessing.js");
 
 /**
  * Collect data (from global.datastore) and send to client
@@ -53,6 +54,8 @@ const setUpIOListeners = (socket) => {
             warn("DATA RECALC NOT YET IMPLEMENTED")
         }
     })
+
+    socket.on('triggerPostProcessing', triggerPostProcessing);
 
   // TODO -- RAMPART no longer processes these requests, although some should be reincorporated
 //   socket.on('config', (newConfig) => {

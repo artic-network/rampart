@@ -60,6 +60,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
         temporalData={combinedData.temporal}
         viewOptions={viewOptions}
         key="readsOverTime"
+        config={config}
         renderProp={ chartToDisplay === "readsOverTime" ? 
           (<ContractChart handleClick={() => goToChart(false)}/>) :
           (<ExpandChart handleClick={() => goToChart("readsOverTime")}/>)

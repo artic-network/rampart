@@ -21,17 +21,17 @@ const setUpAnnotationRunner = () => {
     }
 
     const onSuccess = (job) => {
-        addToParsingQueue(path.join(global.config.run.annotatedPath, job.filenameStem + '.csv'));
+        addToParsingQueue(path.join(global.config.run.annotatedPath, job.filename_stem + '.csv'));
     }
 
-    const annotationRunner = new PipelineRunner(
-        "annotator",
-        global.config.pipelines.annotation.path + "Snakefile",
-        global.config.pipelines.annotation.path + global.config.pipelines.annotation.config_file,
+    const annotationRunner = new PipelineRunner({
+        name: "annotator",
+        snakefile: global.config.pipelines.annotation.path + "Snakefile",
+        configfile: global.config.pipelines.annotation.path + global.config.pipelines.annotation.config_file,
         configOptions,
         onSuccess,
-        true
-    );
+        queue: true
+    });
     return annotationRunner;
 }
 

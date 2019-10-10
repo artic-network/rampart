@@ -5,6 +5,7 @@
 config["output_path"] = config["output_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")
 
+# todo - check that 'barcode_set' is one of 'native', 'rapid', or 'all' and throw error if not
 barcode_set = ''
 if str(config["barcode_set"]).lower()=="rapid":
     barcode_set= " --rapid_barcodes"
@@ -13,6 +14,7 @@ elif str(config["barcode_set"]).lower()=="all":
 else:
     barcode_set= " --native_barcodes"
 
+# todo - check that the barcode labels fit the required format (text followed by an integer)
 limit_barcodes_to = ""
 try:
     barcodes = config["limit_barcodes_to"].split(',')
@@ -31,18 +33,21 @@ if str(config["discard_unassigned"]).lower()=="true":
 else:
     discard_unassigned= ""
 
+# todo - check that the value is true or false
 require_two_barcodes = ""
 if str(config["require_two_barcodes"]).lower()=="false":
     require_two_barcodes= ""
 else:
     require_two_barcodes= " --require_two_barcodes"
 
+# todo - check that the value is true or false
 split_reads = ""
 if str(config["split_reads"]).lower()=="true":
     split_reads= " --no_split"
 else:
     split_reads= " --no_split"
 
+# todo - check that the value is true or false
 discard_middle = ""
 if str(config["discard_middle"]).lower()=="true":
     discard_middle= " --discard_middle"

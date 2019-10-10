@@ -16,25 +16,6 @@ const getFilesFromDirectory = async (dir, extension) => {
         .map((j) => path.join(dir, j));
 };
 
-
-/**
- * validate provided config files. All path checking etc should be here.
- */
-const validateConfig = async () => {
-    if (!global.config.run.basecalledPath) {
-        // todo - get basecalledPath from user interface
-        throw new Error("[validateConfig] basecalled path not specified");
-    }
-    if (!global.config.pipelines.annotation.requires[0].path) {
-        // todo - get references path from user interface
-        throw new Error("[validateConfig] references.fasta path not specified");
-    }
-
-    if (!fs.existsSync(global.config.run.basecalledPath) || !fs.existsSync(global.config.run.annotatedPath)) {
-        throw new Error("[validateConfig] no basecalled dir / annotated dir");
-    }
-}
-
 /**
  * Process existing datafiles (basecalled FASTQs + annotated CSVs)
  * Adds these (as appropriate, no duplicates) to annotation & parsing queues.
@@ -92,9 +73,9 @@ const processExistingData = async () => {
             return; /* annotated CSV present (added above) */
         }
         global.annotationRunner.addToQueue({
-            inputPath: global.config.run.basecalledPath,
-            outputPath: global.config.run.annotatedPath,
-            filenameStem: basename
+            input_path: global.config.run.basecalledPath,
+            output_path: global.config.run.annotatedPath,
+            filename_stem: basename
         });
         global.filesSeen.add(basename);
     })
@@ -102,7 +83,7 @@ const processExistingData = async () => {
     return true;
 };
 
-module.exports = {processExistingData, validateConfig};
+module.exports = {processExistingData};
 
 
 
