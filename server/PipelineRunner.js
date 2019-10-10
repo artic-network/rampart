@@ -40,7 +40,7 @@ class PipelineRunner {
     /**
      * Run a job immediately
      * @param job
-     * @returns {Promise<void>} the promise 
+     * @returns {Promise<void>} the promise
      * @throws
      */
     async runJob(job) {
@@ -81,7 +81,6 @@ class PipelineRunner {
             }
             // add in job-specific config options
             pipelineConfig.push(...Object.keys(job).map((key) => `${key}=${job[key]}`));
-          
 
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) spawnArgs.push(...['--configfile', this._configfile])
@@ -100,7 +99,6 @@ class PipelineRunner {
                 }
             );
 
-
             const err = [];
             process.stderr.on(
                 'data',
@@ -115,7 +113,7 @@ class PipelineRunner {
                 if (code === 0) {
                     resolve();
                 } else {
-                    warn(`pipeline (${this._name})`, `pipeline finished with exit code ${code}`);
+                    warn(`pipeline (${this._name}) finished with exit code ${code}`);
                     err.forEach( (line) => warn(line) );
                     reject();
                 }
