@@ -3,7 +3,8 @@ import CoveragePlot from "../Coverage";
 import ReadLengthDistribution from "../ReadLengthDistribution";
 import CoverageOverTime from "../CoverageOverTime";
 import InfoRow from "./infoRow";
-import SaveDemuxedReads from "./saveDemuxedReadsModal";
+// import SaveDemuxedReads from "./saveDemuxedReadsModal";
+import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 
 /**
  * Why are we using this transition / setTimeout stuff?
@@ -19,7 +20,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
   const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [postProcessingState, setPostProcessingState] = useState(false);
   const transitionStarted = (duration=600) => { /* CSS transition is 0.5s */
     setTransitionInProgress(true);
     setTimeout(() => setTransitionInProgress(false), duration);
@@ -52,7 +53,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     } else {
       menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
     }
-    menuItems.push({label: "Save Demuxed Reads", callback: () => {setShowModal("saveReads")}})
+    menuItems.push(...getPostProcessingMenuItems(config, setPostProcessingState));
   }
 
   /* ----------------- C H A R T S ----------------------- */
@@ -94,9 +95,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     )
   };
 
-  if (sampleName === "abc") {
-    console.log(sampleName, sampleColour, sampleData)
-  }
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
   const renderCharts = () => {
     if (!expanded) return null;
@@ -126,22 +124,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     );
   }
 
-  /* -------------- DO WE WANT TO RENDER A MODAL? -------------- */
-  const renderModal = () => {
-    if (showModal === "saveReads") {
-      return (
-        <SaveDemuxedReads
-          sampleName={sampleName}
-          referenceNames={sampleData.referencePanelNames}
-          dismissModal={() => setShowModal(false)}
-          socket={socket}
-          config={config}
-        />
-      )
-    }
-    return null
-  }
-
   /* ----------------- R E N D E R ---------------- */
   return (
     <div
@@ -156,7 +138,12 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         handleClick={toggleExpanded}
         isExpanded={expanded}
       />
-      {renderModal()}
+      <PostProcessingRunner
+        pipeline={postProcessingState}
+        sampleName={sampleName}
+        socket={socket}
+        dismissModal={() => setPostProcessingState(false)}
+      />
       {transitionInProgress ? null : renderCharts()}
     </div>
   );
