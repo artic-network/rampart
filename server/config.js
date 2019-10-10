@@ -108,21 +108,21 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
     let message = undefined;
 
     if (!pipeline.name) {
-        message = `pipeline ${index + 1} is missing a name`;
+        message = `is missing name`;
     }
 
     if (!message && !pipeline.path) {
-        message = `pipeline ${pipeline.name} is missing a path`;
+        message = `is missing the path`;
     }
 
     pipeline.path = normalizePath(getAbsolutePath(pipeline.path, {relativeTo: config.pipelines.path}));
 
     if (!message && !fs.existsSync(pipeline.path)) {
-        message = `pipeline ${pipeline.name} path doesn't exist`;
+        message = `path doesn't exist`;
     }
 
     if (!message && !fs.existsSync(pipeline.path + "Snakefile")) {
-        message = `pipeline ${pipeline.name} Snakefile doesn't exist`;
+        message = `Snakefile doesn't exist`;
     }
 
     if (!message) {
@@ -139,8 +139,8 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
     }
 
     if (message) {
-        if (warn) {
-            warn(`pipeline '${pipeline.name}' ${message} - pipeline will be ignored`);
+        if (giveWarning) {
+            warn(`pipeline '${pipeline.name ? pipeline.name : index + 1}' ${message} - pipeline will be ignored`);
             pipeline.ignore = true;
         } else {
             throw new Error(`pipeline '${pipeline.name}' ${message}`);
