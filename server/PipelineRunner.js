@@ -13,16 +13,15 @@ class PipelineRunner {
      * @property {Object}         opts
      * @property {String}         opts.name
      * @property {String}         opts.snakefile      (absolute) path to the snakemake file
-     * @property {false||String}  opts.configfile     (absolute) path to the snakemake config file
+     * @property {false|String}   opts.configfile     (absolute) path to the snakemake config file
      * @property {Array}          opts.configOptions  list of config options to be passed to snakemake via `--config`
-     * @property {Function}       opts.onSuccess      callback when snakemake is successful. Arguments: `job`
+     * @property {false|Function} opts.onSuccess      callback when snakemake is successful. Callback arguments: `job`. Only used if `queue` is true.
      * @property {Boolean}        opts.queue
      */
-    constructor({name, snakefile, configfile, configOptions, onSuccess, queue=false}) {
+    constructor({name, snakefile, configfile, configOptions, onSuccess=false, queue=false}) {
         this._name = name;
         this._snakefile = snakefile;
         this._configfile = configfile;
-        this._onSuccess = onSuccess; // callback
 
         this._configOptions = configOptions;
 
@@ -30,6 +29,7 @@ class PipelineRunner {
 
         this._isRunning = false;
         if (queue) {
+            this._onSuccess = onSuccess; // callback
             this._jobQueue = new Deque();
             this._jobQueue.observeRangeChange(() => {
                 this._runJobsInQueue();
@@ -38,10 +38,10 @@ class PipelineRunner {
     }
 
     /**
-     * Run a job immediately
+     * Run a job immediately. Note that the `onSuccess` callback is not used via this method.
      * @param job
      * @returns {Promise<void>} the promise
-     * @throws
+     * @throws if the pipeline fails or if this pipeline is set up with a queue
      */
     async runJob(job) {
         if (this._jobQueue) {
@@ -49,17 +49,16 @@ class PipelineRunner {
         }
         this._isRunning = true;
         await this._runPipeline(job); // will throw if job fails
-        this._onSuccess(job);
         this._isRunning = false;
     }
 
     /**
-     * Add a job to the queue for processing
+     * Add a job to the queue for processing. When a job is successfully run the `onSuccess` callback will run.
      * @param job
-     * @returns {Promise<void>}
-     * @throws
+     * @returns {undefined}
+     * @throws if the runner is not set up with a queue
      */
-    async addToQueue(job) {
+    addToQueue(job) {
         if (!this._jobQueue) {
             throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
         }
@@ -137,7 +136,7 @@ class PipelineRunner {
                 try {
                     await this._runPipeline(job);
                     this._processedCount += 1;
-                    this._onSuccess(job);
+                    if (this._onSuccess) this._onSuccess(job);
                 } catch (err) {
                     trace(err);
                     warn("JOB FAILED!")

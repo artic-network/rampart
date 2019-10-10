@@ -27,9 +27,7 @@ const triggerPostProcessing = async (options) => {
     name: options.pipeline.name,
     snakefile: path.join(global.config.pipelines.path, options.pipeline.path) + "Snakefile",
     configfile: false,
-    configOptions: [],
-    onSuccess: () => {global.io.emit("infoMessage", `post processing for "${options.pipeline.name}" FINISHED`);},
-    queue: false
+    configOptions: []
   });
   // all of the following settings are specific to the "Export reads" pipeline & need to be made generic
   const barcodes = [];
