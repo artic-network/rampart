@@ -134,16 +134,16 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
         pipeline.configOptions = {};
 
         if (!fs.existsSync(pipeline.config)) {
-            message = `pipeline ${pipeline.name} config file doesn't exist`;
+            message = `config file doesn't exist`;
         }
     }
 
     if (message) {
         if (warn) {
-            warn(message + ' - pipeline will be ignored');
+            warn(`pipeline '${pipeline.name}' ${message} - pipeline will be ignored`);
             pipeline.ignore = true;
         } else {
-            throw new Error(message);
+            throw new Error(`pipeline '${pipeline.name}' ${message}`);
         }
     }
 
