@@ -1,7 +1,7 @@
 const { verbose, warn } = require("./utils");
 // const { saveFastq } = require("./saveFastq");
 const { modifyConfig } = require("./config");
-const { triggerPostProcessing } = require("./post-processing.js");
+const { triggerPostProcessing } = require("./postProcessing.js");
 
 /**
  * Collect data (from global.datastore) and send to client
