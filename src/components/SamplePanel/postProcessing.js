@@ -5,12 +5,11 @@ import { IoMdPlay } from "react-icons/io";
 
 
 export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
-    return config.pipelines["post-processing"].map((obj) => ({
+    return config.pipelines.processing.map((obj) => ({
         label: obj.name,
         callback: () => setPostProcessingState(obj)
     }));
-}
-
+};
 
 export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName}) => {
   if (!pipeline) return null;
@@ -19,7 +18,7 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
     console.log("triggerPostProcessing")
     socket.emit('triggerPostProcessing', {pipeline, sampleName});
     dismissModal();
-  }
+  };
 
   return (
     <Modal dismissModal={dismissModal}>
@@ -31,7 +30,7 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
       </button>
     </Modal>
   )
-}
+};
 
 PostProcessingRunner.propTypes = {
   dismissModal: PropTypes.func.isRequired,
