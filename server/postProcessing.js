@@ -2,12 +2,18 @@ const path = require('path');
 const { PipelineRunner } = require('./PipelineRunner');
 
 
-
+/* not sure where this getter should live */
+const getBarcodesFromSampleName = (sampleName) => {
+  const barcodes = [];
+  for (const [bc, obj] of Object.entries(global.config.run.barcodeNames)) {
+    if (obj.name === sampleName) barcodes.push(bc);
+  }
+  return barcodes;
+}
 
 
 
 const triggerPostProcessing = async (options) => {
-  console.log("triggerPostProcessing options:", options);
 
   if (options.pipeline.name !== "Export reads") {
     global.io.emit("infoMessage", `post processing for "${options.pipeline.name}" is not yet supported`);
@@ -23,29 +29,27 @@ const triggerPostProcessing = async (options) => {
   can enter in options / params, but this needs to be thorugh through */
 
   global.io.emit("infoMessage", `POST PROCESSING TRIGGERED // ${options.pipeline.name} // ${options.sampleName}`);
+  
   const runner = new PipelineRunner({
     name: options.pipeline.name,
-    snakefile: path.join(global.config.pipelines.path, options.pipeline.path) + "Snakefile",
-    configfile: false,
+    snakefile: path.join(options.pipeline.path, "Snakefile"),
+    configfile: options.pipeline.config_file ? path.join(options.pipeline.path, options.pipeline.config_file) : false,
     configOptions: []
   });
-  // all of the following settings are specific to the "Export reads" pipeline & need to be made generic
-  const barcodes = [];
-  for (const [bc, obj] of Object.entries(global.config.run.barcodeNames)) {
-    if (obj.name === options.sampleName) barcodes.push(bc);
-  }
+
+  /* set up job parameters defined via `options.pipeline.options` */
+  const job = {...options.userSettings};
+  if (options.pipeline.options.sample_name) job.sample_name = options.sampleName;
+  if (options.pipeline.options.annotated_path) job.annotated_path = global.config.run.annotatedPath;
+  if (options.pipeline.options.basecalled_path) job.basecalled_path = global.config.run.basecalledPath;
+  if (options.pipeline.options.output_path) job.output_path = global.config.run.workingDir;
+  if (options.pipeline.options.barcodes) job.barcodes = getBarcodesFromSampleName(options.sampleName);
+
   try { // await will throw if the Promise (returned by runner.runJob()) rejects
-      await runner.runJob({
-      input_path: global.config.run.basecalledPath,
-      output_path: global.config.run.workingDir,
-      barcodes,
-      annotated_path: global.config.run.annotatedPath,
-      min_length: 0,
-      max_length: 100000000,
-      sample: options.sampleName
-    });
+    await runner.runJob(job);
   } catch (err) {
     global.io.emit("infoMessage", `POST PROCESSING FAILED // ${options.pipeline.name} // ${options.sampleName}`);
+    return;
   }
   global.io.emit("infoMessage", `POST PROCESSING SUCCESS // ${options.pipeline.name} // ${options.sampleName}`);
 }
