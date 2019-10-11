@@ -12,7 +12,7 @@ dependencies:
   - pip=19.1
   - snakemake=5.4.3
   - watchdog=0.8.3=py36_0
-  - yarn=1.10.1
+  - npm=6.1.0
   - pip:
     - msgpack==0.5.6
     - binlorry==0.1
