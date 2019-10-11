@@ -1,7 +1,7 @@
 # RAMPART
-Read Assignment, Mapping, and Phylogenetic Analysis in Real Time
+Read Assignment, Mapping, and Phylogenetic Analysis in Real Time.
 
-## TL;DR
+
 RAMPART runs concurrently with MinKNOW and shows you demuxing / mapping results in real time.
 
 ![](docs/overview.png)
@@ -12,29 +12,30 @@ Time is crucial in outbreak analysis, and recent advancements in sequencing prep
 Furthermore, the small size of many pathogens mean that insightful sequence data is obtained in a matter of minutes.
 RAMPART run concurrently with MinION sequencing of such pathogens.
 It provides a real-time overview of genome coverage and reference matching for each barcode.
-(Consensus sequence creation and phylogenetic placement is currently under development.)
 
-RAMPART is primarily designed to work with amplicon-based primer schemes (e.g. for [ebola](https://github.com/artic-network/primer-schemes)), but may be used with most other datasets.
+RAMPART was originally designed to work with amplicon-based primer schemes (e.g. for [ebola](https://github.com/artic-network/primer-schemes)), but this isn't a requirement.
 
 
 
 ## Documentation
 
-* [Quick Start](docs/quickstart.md)
-* [Technical details & file formats](docs/details.md)
-* [Developing](docs/developing.md)
-<!--
-* [Instructions for sequencing & basecalling](docs/sequencing.md)
-* [Running demos](docs/old_examples.md)
--->
+* [Installation](docs/installation.md)
+* [Running an example dataset & understanding the visualisations](docs/examples.md)
+* [Setting up for your own run](docs/setting-up.md)
+* [Designing a custom protocol pipelines](docs/protocols.md)
+* [Debugging when things don't work](docs/debugging.md)
+* [Notes relating to RAMPART development](docs/developing.md)
+
+
+
 
 ## Status
 
 RAMPART is in development with a publication forthcoming.
-Please [get in contact](https://twitter.com/hamesjadfield) if you have any issues.
+Please [get in contact](https://twitter.com/hamesjadfield) if you have any issues, questions or comments.
 
-## Spotted in the field
 
-RAMPART has been deployed to sequence
+## RAMPART has been deployed to sequence:
+
 * [Yellow Fever Virus in Brazil](https://twitter.com/Hill_SarahC/status/1149372404260593664)
 * [ARTIC workshop in Accra, Ghana](https://twitter.com/george_l/status/1073245364197711874)

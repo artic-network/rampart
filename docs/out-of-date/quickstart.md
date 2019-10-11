@@ -1,4 +1,12 @@
-# Quick start for installing and running RAMPART
+# Steps to get RAMPART up and running
+
+## Step 1: Install RAMPART
+[See here](installation)
+
+## Step 2: Run an example dataset to familiarise yourself with the 
+
+
+
 
 These instructions describe how to quickly and easily install and run RAMPART with the minimum of setting up. For more detailed instructions for installing and customising RAMPART for particular experiments [see here](installation).
 
