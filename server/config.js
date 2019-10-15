@@ -152,15 +152,10 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
 }
 
 const getInitialConfig = (args) => {
+    const serverDir = __dirname;
+    const rampartSourceDir = serverDir.substring(0, serverDir.length - 7); // no trailing slash
 
-    /* NOTE: as rampart becomes an executable on $PATH, this logic will need to change */
-    if (!process.argv[1].endsWith('rampart.js')) {
-        throw new Error(`ERROR. Can't get RAMPART path from argv[1]: ${process.argv[1]}`);
-    }
-    const rampartPath = process.argv[1].substring(0, process.argv[1].length - 10);
-    //verbose("config", `RAMPART path: ${rampartPath}`);
-
-    const defaultProtocolPath = getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: rampartPath});
+    const defaultProtocolPath = getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: rampartSourceDir});
     //verbose("config", `Default protocol path: ${defaultProtocolPath}`);
 
     const pathCascade = [

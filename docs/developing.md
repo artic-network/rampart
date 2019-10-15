@@ -7,3 +7,5 @@ This runs a little slower, but the client will update automatically as you modif
 * Open [localhost:3000](http://localhost:3000) in a browser (not 3001)
 
 This hot-reloading ability is not available for the server, so changes to server code require you to kill & restart the server (`node rampart.js`).
+
+## "Live" Bascecalling from a bulkfile

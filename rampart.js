@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const server = require("./server/server");
 const { parser } = require("./server/args");
 const getInitialConfig = require("./server/config").getInitialConfig;

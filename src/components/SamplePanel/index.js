@@ -139,12 +139,14 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         handleClick={toggleExpanded}
         isExpanded={expanded}
       />
-      <PostProcessingRunner
-        pipeline={postProcessingState}
-        sampleName={sampleName}
-        socket={socket}
-        dismissModal={() => setPostProcessingState(false)}
-      />
+      {postProcessingState ? (
+        <PostProcessingRunner
+            pipeline={postProcessingState}
+            sampleName={sampleName}
+            socket={socket}
+            dismissModal={() => setPostProcessingState(false)}
+        />
+      ) : null}
       {transitionInProgress ? null : renderCharts()}
     </div>
   );

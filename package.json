@@ -1,8 +1,14 @@
 {
-  "name": "frontend",
+  "name": "artic-rampart",
   "version": "1.0.0pre1",
   "main": "src/electron.js",
-  "private": true,
+  "author": "James Hadfield, Ainé O'Toole, ARTIC network, Nick Loman, Andrew Rambaut",
+  "bin": {
+    "rampart": "./rampart.js"
+  },
+  "repository": "github:artic-network/rampart",
+  "private": false,
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
@@ -37,11 +43,7 @@
     "build": "react-scripts build",
     "server": "node src/server.js",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "electron": "electron ."
-  },
-  "devDependencies": {
-    "electron": "^2.0.6"
+    "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [

@@ -21,7 +21,6 @@ if "sample" in config:
         sample_string = config["sample"]
     else:
         sample_string = "_".join(barcodes)
-else:
     sample_string = "_".join(barcodes)
 
 ##### Target rules #####
