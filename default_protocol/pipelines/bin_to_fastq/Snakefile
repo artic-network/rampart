@@ -3,35 +3,25 @@
 # trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
 config["output_path"] = config["output_path"].rstrip("/")
 config["annotated_path"] = config["annotated_path"].rstrip("/")
-config["input_path"] = config["input_path"].rstrip("/")
-barcodes = config["barcodes"].split(',')
-print(barcodes)
-barcode_string = ""
-for i in barcodes:
-    barcode_string+=" {}".format(i)
+config["basecalled_path"] = config["basecalled_path"].rstrip("/")
 
-bin_string = ""
-if "bin_by" in config:
-    if config["bin_by"] != None:
-        bin_string = "--bin-by " + config["bin_by"]
+# bin.smk requires `bin_by_option`, `sample_name` and `barcodes` to be set
+bin_by_option = "--bin-by " + config["bin_by"] if config.get("bin_by") else ""
+sample_name = config["sample_name"] if config.get("sample_name") else "_".join(config["barcodes"].split(','))
 
-sample_string = ""
-if "sample" in config:
-    if config["sample"] != None:
-        sample_string = config["sample"]
-    else:
-        sample_string = "_".join(barcodes)
-    sample_string = "_".join(barcodes)
+barcodes = ""
+for i in config["barcodes"].split(','):
+    barcodes += " {}".format(i)
+
 
 ##### Target rules #####
-
 rule all:
     input:
-        config["output_path"] + "/binned_{}.fastq".format(sample_string)
+        config["output_path"] + "/binned_{}.fastq".format(sample_name)
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
 
-##### Modules #####
 
+##### Modules #####
 include: "rules/bin.smk"
 
 
