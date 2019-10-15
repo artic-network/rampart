@@ -4,19 +4,23 @@
 config["output_path"] = config["output_path"].rstrip("/")
 config["annotated_path"] = config["annotated_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")
-
 barcodes = config["barcodes"].split(',')
+print(barcodes)
 barcode_string = ""
 for i in barcodes:
     barcode_string+=" {}".format(i)
 
 bin_string = ""
 if "bin_by" in config:
-    bin_string = "--bin-by " + config["bin_by"]
+    if config["bin_by"] != None:
+        bin_string = "--bin-by " + config["bin_by"]
 
 sample_string = ""
 if "sample" in config:
-    sample_string = config["sample"]
+    if config["sample"] != None:
+        sample_string = config["sample"]
+    else:
+        sample_string = "_".join(barcodes)
 else:
     sample_string = "_".join(barcodes)
 
