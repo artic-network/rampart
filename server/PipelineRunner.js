@@ -76,10 +76,14 @@ class PipelineRunner {
             const pipelineConfig = [];
             // start with (optional) configuration options defined for the entire pipeline
             if (this._configOptions) {
-                pipelineConfig.push(...this._configOptions);
+                pipelineConfig.push(...Object.keys(this._configOptions).map( key => {
+                    return `${key}=${this._configOptions[key].indexOf(' ') !== -1 ? `\"${this._configOptions[key]}\"` : this._configOptions[key]}`;
+                }));
             }
             // add in job-specific config options
-            pipelineConfig.push(...Object.keys(job).map((key) => `${key}=${job[key]}`));
+            pipelineConfig.push(...Object.keys(job).map((key) => {
+                return `${key}=${job[key].indexOf(' ') !== -1 ? `\"${job[key]}\"` : job[key]}`;
+            }));
 
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) spawnArgs.push(...['--configfile', this._configfile])
@@ -108,7 +112,13 @@ class PipelineRunner {
                 }
             );
 
-            process.on('exit', (code, signal) => {
+            process.on('error', (code) => {
+                warn(`pipeline (${this._name}) exited with errors. Error messages:`);
+                err.forEach( (line) => warn(`\t${line}`) );
+                reject();
+            });
+
+            process.on('exit', (code) => {
                 if (code === 0) {
                     resolve();
                 } else {

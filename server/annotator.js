@@ -4,19 +4,17 @@ const { PipelineRunner } = require('./PipelineRunner');
 
 
 const setUpAnnotationRunner = () => {
-    const configOptions = [];
+    let configOptions = {};
+
+    // include optional additional configuration options from configuration files or arguments
+    if (global.config.pipelines.annotation.configOptions) {
+        configOptions = { ...global.config.pipelines.annotation.configOptions };
+    }
 
     // find any file that the pipeline requires
     if (global.config.pipelines.annotation.requires) {
         global.config.pipelines.annotation.requires.forEach( (requirement) => {
-            configOptions.push(`${requirement.config_key}=${requirement.path}`);
-        } );
-    }
-
-    // include optional additional configuration options from configuration files or arguments
-    if (global.config.pipelines.annotation.configOptions) {
-        Object.keys(global.config.pipelines.annotation.configOptions).forEach( key => {
-            configOptions.push(`${key}=${global.config.pipelines.annotation.configOptions[key]}`);
+            configOptions[requirement.config_key] = requirement.path;
         });
     }
 
