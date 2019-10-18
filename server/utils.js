@@ -42,8 +42,8 @@ const deleteFolderRecursive = function(pathToRm) {
 };
 
 const fatal = (msg) => {
-  console.log(chalk.redBright(`[FATAL]    ${msg}`));
-  process.exit(2);
+  console.error(chalk.redBright(`[FATAL]    ${msg}`));
+ process.exit(2);
 };
 
 const verbose = (caller, msg) => {

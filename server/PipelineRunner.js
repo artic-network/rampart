@@ -4,7 +4,7 @@
  */
 const { spawn } = require('child_process');
 const Deque = require("collections/deque");
-const { verbose, warn, trace } = require("./utils");
+const { verbose, warn, fatal, trace } = require("./utils");
 
 class PipelineRunner {
 
@@ -102,20 +102,18 @@ class PipelineRunner {
                 }
             );
 
-            const err = [];
+            const stderr = [];
             process.stderr.on(
                 'data',
                 (data) => {
-                    err.push(data.toString());
+                    stderr.push(data.toString());
                     // Snakemakes put info on stderr so only show it if it returns an error code
                     // warn(data.toString());
                 }
             );
 
-            process.on('error', (code) => {
-                warn(`pipeline (${this._name}) exited with errors. Error messages:`);
-                err.forEach( (line) => warn(`\t${line}`) );
-                reject();
+            process.on('error', (err) => {
+                reject(`pipeline (${this._name}) failed to run - is Snakemake installed and on the Path?`);
             });
 
             process.on('exit', (code) => {
@@ -124,7 +122,7 @@ class PipelineRunner {
                 } else {
                     warn(`pipeline (${this._name}) finished with exit code ${code}. Error messages:`);
                     err.forEach( (line) => warn(`\t${line}`) );
-                    reject();
+                    resolve();
                 }
             });
         });
@@ -148,8 +146,8 @@ class PipelineRunner {
                     this._processedCount += 1;
                     if (this._onSuccess) this._onSuccess(job);
                 } catch (err) {
-                    trace(err);
-                    warn("JOB FAILED!")
+                    // trace(err);
+                    fatal(err)
                 }
                 this._isRunning = false;
 
