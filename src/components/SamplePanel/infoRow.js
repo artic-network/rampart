@@ -4,18 +4,19 @@ import { MdReorder } from "react-icons/md";
 import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle } from "react-icons/io";
 import { IconContext } from "react-icons";
 import Menu from "./menu";
+import {makeTimeFormatter} from "../../utils/commonFunctions";
 
 /* the icon on the far left which opens the panel */
 const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
-  return (
-    <IconContext.Provider value={{color: sampleColour}}>
-      { isExpanded ? (
-        <IoIosArrowDropupCircle className="icon120 clickable" onClick={handleClick} />
-      ) : (
-        <IoIosArrowDropdownCircle className="icon120 clickable" onClick={handleClick} />
-      )}
-    </IconContext.Provider>
-  );
+    return (
+        <IconContext.Provider value={{color: sampleColour}}>
+            { isExpanded ? (
+                <IoIosArrowDropupCircle className="icon120 clickable" onClick={handleClick} />
+            ) : (
+                <IoIosArrowDropdownCircle className="icon120 clickable" onClick={handleClick} />
+            )}
+        </IconContext.Provider>
+    );
 }
 
 /**
@@ -23,29 +24,33 @@ const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
  * the info row is rendered when the panel is collapsed and when open
  */
 const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, isExpanded}) => {
-  const summaryTitle = `${sampleName}`;
-  const summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.mappedRate} reads/sec | read last seen XmYYs ago`;
+    const summaryTitle = `${sampleName}`;
+    const timeFormatter = makeTimeFormatter();
 
-  return (
-    <div className="infoRow" style={{color: sampleColour}}>
-      <div>
-        <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
-        <span style={{whiteSpace: "nowrap"}}>{summaryTitle}</span>
-      </div>
+    const summaryText = `${sampleData.mappedCount} reads mapped | ` +
+        `${sampleData.mappedRate} reads/sec | ` +
+        `read last seen ${timeFormatter(sampleData.readLastSeen)} ago`;
 
-      <span style={{whiteSpace: "nowrap"}}>{summaryText}</span>
+    return (
+        <div className="infoRow" style={{color: sampleColour}}>
+            <div>
+                <TriggerPanelExpand isExpanded={isExpanded} handleClick={handleClick} sampleColour={sampleColour}/>
+                <span style={{whiteSpace: "nowrap"}}>{summaryTitle}</span>
+            </div>
 
-      <div>
-        <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>
-          <IconContext.Provider value={{color: sampleColour}}>
-            <MdReorder className="icon150 iconCenterVertically clickable" style={{paddingTop: "3px"}}/>
-          </IconContext.Provider>
-        </ContextMenuTrigger>
-        <Menu id={`panelRightClickMenu-${sampleName}`} items={menuItems}/>
-      </div>
+            <span style={{whiteSpace: "nowrap"}}>{summaryText}</span>
 
-    </div>
-  );
+            <div>
+                <ContextMenuTrigger id={`panelRightClickMenu-${sampleName}`} holdToDisplay={0}>
+                    <IconContext.Provider value={{color: sampleColour}}>
+                        <MdReorder className="icon150 iconCenterVertically clickable" style={{paddingTop: "3px"}}/>
+                    </IconContext.Provider>
+                </ContextMenuTrigger>
+                <Menu id={`panelRightClickMenu-${sampleName}`} items={menuItems}/>
+            </div>
+
+        </div>
+    );
 };
 
 
