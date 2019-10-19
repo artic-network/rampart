@@ -25,14 +25,14 @@ const ExpandChart = ({handleClick}) => {
       <IoIosExpand onClick={handleClick}/>
     </div>
   )
-}
+};
 const ContractChart = ({handleClick}) => {
   return (
     <div className="chartExpandContractIcon" onClick={handleClick}>
       <IoIosContract onClick={handleClick}/>
     </div>
   )
-}
+};
 
 /**
  * See <Panel> for why we use timeouts here
@@ -46,7 +46,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
     setTransitionInProgress(true);
     setChartToDisplay(chartName);
     setTimeout(() => setTransitionInProgress(false), duration);
-  }
+  };
 
 
   /* ----------------- C H A R T S ----------------------- */
@@ -110,7 +110,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
         }
       />
     )
-  }
+  };
 
   const renderGraphs = () => {
     if (chartToDisplay) {
@@ -124,7 +124,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
     els.push(charts.readsPerSample);
     els.push(charts.referenceHeatmap);
     return els;
-  }
+  };
 
   /* ----------------- R E N D E R ---------------- */
   return (
@@ -134,6 +134,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
       </div>
     </div>
   )
-}
+};
 
 export default OverallSummaryPanel;

@@ -25,7 +25,7 @@ const calcChartGeom = (DOMRect) => ({
     spaceLeft: 50,
     spaceRight: 10,
     spaceBottom: 70,
-    spaceTop: 10
+    spaceTop: 20
 });
 
 const strokeDashFunction = (i) => { /* i = 0, 1 or 2 */
@@ -154,6 +154,7 @@ class CoverageOverTime extends React.Component {
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
+                {this.props.renderProp ? this.props.renderProp : null}
             </div>
         )
     }

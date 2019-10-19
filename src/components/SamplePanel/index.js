@@ -19,6 +19,22 @@ import CoverageOverTime from "../CoverageOverTime";
 import InfoRow from "./infoRow";
 // import SaveDemuxedReads from "./saveDemuxedReadsModal";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
+import { IoIosExpand, IoIosContract } from "react-icons/io";
+
+const ExpandChart = ({handleClick}) => {
+  return (
+      <div className="chartExpandContractIcon" onClick={handleClick}>
+        <IoIosExpand onClick={handleClick}/>
+      </div>
+  )
+};
+const ContractChart = ({handleClick}) => {
+  return (
+      <div className="chartExpandContractIcon" onClick={handleClick}>
+        <IoIosContract onClick={handleClick}/>
+      </div>
+  )
+};
 
 /**
  * Why are we using this transition / setTimeout stuff?
@@ -43,6 +59,12 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     transitionStarted();
     setExpanded(!expanded);
   }
+
+  const goToChart = (chartName, duration=0) => {
+    setTransitionInProgress(true);
+    setShowSinglePanel(chartName);
+    setTimeout(() => setTransitionInProgress(false), duration);
+  };
 
   /* -------------- DATA TRANSFORMS ----------------- */
   const coverageData = {};
@@ -83,6 +105,10 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         fillIn={true}
         config={config}
         key="coveragePlot"
+        renderProp={ showSinglePanel === "coverage" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("coverage")}/>)
+        }
       />
     ),
     readLength: (
@@ -95,6 +121,10 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         config={config}
         viewOptions={viewOptions}
         key="readLengths"
+        renderProp={ showSinglePanel === "readLength" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("readLength")}/>)
+        }
       />
     ),
     coverageOverTime: (
@@ -106,6 +136,10 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         colour={sampleColour}
         viewOptions={viewOptions}
         key="coverageOverTime"
+        renderProp={ showSinglePanel === "coverageOverTime" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("coverageOverTime")}/>)
+        }
       />
     )
   };
@@ -137,7 +171,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         </div>
       </div>
     );
-  }
+  };
 
   /* ----------------- R E N D E R ---------------- */
   return (
@@ -164,6 +198,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
       {transitionInProgress ? null : renderCharts()}
     </div>
   );
-}
+};
 
 export default SamplePanel;
