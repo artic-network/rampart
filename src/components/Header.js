@@ -45,12 +45,17 @@ class Header extends React.Component {
     //   )
     // }
 
-    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped.` : "No data yet";
+    if (this.props.combinedData) {
+      console.log(this.props.combinedData);
+    }
+    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped ` : "no data yet ";
+    const rateMsg = this.props.combinedData && this.props.combinedData.mappedRate ?
+        `${Math.floor(this.props.combinedData.mappedRate)} reads/sec` : "calculating rate...";
+    const title = this.props.config.run ? `${this.props.config.run.title}` : "untitled";
     return (
       <div>
-        <h2 style={{margin: "2px"}}>{this.props.config.title}</h2>
-        <h3 style={{margin: "2px"}}>{readsMsg}</h3>
-        <h3 style={{margin: "2px"}}>{`Last server message: ${this.props.infoMessage}`}</h3>
+        <h3 style={{margin: "2px", fontWeight: "normal"}}>{`Experiment: ${title} | ${readsMsg} | ${rateMsg}`}</h3>
+        <h3 style={{margin: "2px", fontSize:"0.9em", fontWeight: "bold"}}>{`Last server message: ${this.props.infoMessage}`}</h3>
 
         {/* <h3 style={{margin: "2px"}}>{runTimeMsg}</h3> */}
         {/* <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3> */}
@@ -63,14 +68,14 @@ class Header extends React.Component {
 
         <div className="logo">
           <a href="http://artic.network" target="_blank" rel="noopener noreferrer">
-            <img src={logo} alt={"logo"} width="132"/>
+            <img src={logo} alt={"logo"} width="96"/>
           </a>
         </div>
 
         <div>
           <h2 style={{marginTop: "0px", marginBottom: "8px"}}>
-            <span style={{fontSize: "1.8em"}}>RAMPART</span>
-            <span> Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
+            <span style={{fontSize: "1.8em", fontWeight: "normal"}}>RAMPART</span>
+            <span style={{fontWeight: "100"}}> Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
           </h2>
           {this.renderInfo()}
         </div>
@@ -96,6 +101,6 @@ Header.propTypes = {
 
 Header.defaultProps = {
   config: {title: "Config not set!"},
-}
+};
 
 export default Header;

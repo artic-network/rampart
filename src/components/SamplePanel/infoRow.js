@@ -24,7 +24,7 @@ const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
  */
 const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, isExpanded}) => {
   const summaryTitle = `${sampleName}`;
-  const summaryText = `${sampleData.mappedCount} reads mapped.`;
+  const summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.mappedRate} reads/sec | read last seen XmYYs ago`;
 
   return (
     <div className="infoRow" style={{color: sampleColour}}>
