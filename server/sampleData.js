@@ -21,7 +21,7 @@ const getCoverageBins = (readPos) => {
         Math.ceil(readPos.endFrac * global.config.display.numCoverageBins)
     ];
 };
-  
+
 
 SampleData.prototype.updateCoverage = function(data) {
     for (const readPos of data.readPositions) {
@@ -75,10 +75,6 @@ SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
     }
 };
 
-SampleData.prototype.updateMappedRate = function(mappedCount, timeElapsed) {
-    this.mappedRate = timeElapsed > 0.0 ? mappedCount / timeElapsed : 0;
-};
-
 SampleData.prototype.coveragePercAboveThreshold = function(threshold) {
     return parseInt((this.coverage.reduce((acc, cv) => cv > threshold ? ++acc : acc, 0)/this.coverage.length)*100, 10);
 };
@@ -99,11 +95,14 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
     this.temporal.set(timestamp, {
         // time: timestamp,
         mappedCount: this.mappedCount,
+        mappedRate: 0,
         over10x:   this.coveragePercAboveThreshold(10),
         over100x:  this.coveragePercAboveThreshold(100),
         over1000x: this.coveragePercAboveThreshold(1000)
     });
 };
+
+const TIME_WINDOW = 30; // time window for calculating the rate of read aquisition in seconds.
 
 /**
  * @param {numeric} timestampAdjustment unix time in ms
@@ -117,6 +116,15 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
             ...value
         });
     }
+
+    for (let i = ret.length - 1; i > 0; i--) {
+        for (let j = i - 1; j > 0; j--) {
+            if (ret[i].time - ret[j].time > TIME_WINDOW) {
+                ret[i].mappedRate = (ret[i].mappedCount - ret[j].mappedCount) / (ret[i].time - ret[j].time);
+            }
+        }
+    }
+
     return ret;
 };
 

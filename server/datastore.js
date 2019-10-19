@@ -71,7 +71,6 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
         }
         const sampleData = this.dataPerSample[sampleName];
         sampleData.updateMappedCount(barcodeData.mappedCount, datapoint.getTimestamp());
-        sampleData.updateMappedRate(barcodeData.mappedCount, this.timeElapsed);
         sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
         sampleData.updateCoverage(barcodeData);
         sampleData.updateReadLengthCounts(barcodeData);
@@ -174,7 +173,6 @@ Datastore.prototype.getDataForClient = function() {
     for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
         summarisedData[sampleName] = {
             mappedCount: sampleData.mappedCount,
-            mappedRate: 100,
             readsLastSeen: sampleData.readsLastSeenTime > 0 ? (this.currentTimestamp - sampleData.readsLastSeenTime) / 1000 : 0,
             refMatches: refMatchesAcrossSamples[sampleName],
             coverage: sampleData.coverage,
@@ -192,6 +190,7 @@ Datastore.prototype.getDataForClient = function() {
         readsLastSeen: Math.min(...Object.values(summarisedData).map((d) => d.readsLastSeen)),
         temporal: summariseOverallTemporalData(summarisedData)
     };
+    combinedData.mappedRate = (combinedData.temporal.length > 0 ? combinedData.temporal[combinedData.temporal.length - 1].mappedRate : -1);
 
     timerEnd("getDataForClient");
 
@@ -320,6 +319,17 @@ const summariseOverallTemporalData = (summarisedData) => {
             timepoint.mappedCount += memory;
         })
     });
+
+    const TIME_WINDOW = 30; // time window for calculating the rate of read aquisition in seconds.
+
+    // this is a pretty ugly bit of code. Probably a better way of doing with map/reduce
+    for (let i = ret.length - 1; i > 0; i--) {
+        for (let j = i - 1; j > 0; j--) {
+            if (ret[i].time - ret[j].time > TIME_WINDOW) {
+                ret[i].mappedRate = (ret[i].mappedCount - ret[j].mappedCount) / (ret[i].time - ret[j].time);
+            }
+        }
+    }
 
     return ret;
 };
