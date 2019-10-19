@@ -20,7 +20,7 @@ import { color as d3color } from "d3-color";
  * Heatmap scale over 0-100 (i.e. percentage)
  */
 export const heatColourScale = scaleSequential(chromatic.interpolateYlOrRd)
-  .domain([100, 0])
+  .domain([100, 0]);
 
 export const defaultLineColour = "#F6EECA";
 
@@ -46,7 +46,7 @@ const _interpolatorToArray = (interp, n, ignoreStart=0, ignoreEnd=0, luminanceTh
       return colour.hex()
     })
     .slice(ignoreStart||0, nn-ignoreEnd||nn+1)
-}
+};
 
 /**
  * A list of available colours for the app.
@@ -70,7 +70,7 @@ export const availableColours = [
   _interpolatorToArray(chromatic.interpolateBuPu, 10, 2, 1),
   _interpolatorToArray(chromatic.interpolateYlGn, 10, 2, 1),
   _interpolatorToArray(chromatic.interpolateGreys, 10, 0, 1, 0),
-]
+];
 
 
 /**
@@ -93,7 +93,7 @@ export const createReferenceColours = (n) => {
     if (inPanelIdx > 9) inPanelIdx -= 10;
   }
   return ret;
-}
+};
 
 /**
  * Sample colours are picked from the availableColours
@@ -101,9 +101,10 @@ export const createReferenceColours = (n) => {
  * wrapping around
  */
 export const createSampleColours = (n) => {
-  const jump = n > 10 ? 1 :
-    n > 5 ? 3 :
-      1;
+  const jump =  n > 20 ? 1 :
+      n > 10 ? 2 :
+      n > 5 ? 4 :
+          8;
   let whichPanelIdx = 1;
   let inPanelIdx = jump;
   const ret = new Array(n);
@@ -118,4 +119,4 @@ export const createSampleColours = (n) => {
     }
   }
   return ret;
-}
+};

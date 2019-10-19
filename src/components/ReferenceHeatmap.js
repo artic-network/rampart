@@ -84,7 +84,6 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             const percentOfSample = (100.0 * count) / sampleTotal;
             const percentOfTotal = (100.0 * count) / total;
             const heat = (100.0 * count) / (SHOW_RELATIVE_HEAT ? maxCount : sampleTotal);
-            // const heat = (100.0 * count) / sampleTotal;
             d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
@@ -106,9 +105,11 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const charPx = 8; /* guesstimate of character pixel width */
     const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
     const textFn = (d) => {
-        if (d.name.length > allowedChars) return `${d.name.slice(0,allowedChars-2)}...`
+        if (d.name.length > allowedChars) {
+            return `${d.name.slice(0,allowedChars-2)}...`;
+        }
         return d.name;
-    }
+    };
 
     /* render the reference names (on the far left) */
     svg.selectAll(".refLabel")
@@ -151,9 +152,9 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
         const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
-        // const mapString = referencePanel[d.refIdx].name != "unmapped" ?
+        // const mapString = referencePanel[d.refIdx].name !== "unmapped" ?
         //     `map to ${referencePanel[d.refIdx].name}` : `were not mapped to any reference`;
-        const mapString = referencePanel[d.refIdx].name != "unmapped" ?
+        const mapString = referencePanel[d.refIdx].name !== "unmapped" ?
             `Reference: ${referencePanel[d.refIdx].name}` : `Unmapped`;
         select(infoRef)
             .style("left", left)
