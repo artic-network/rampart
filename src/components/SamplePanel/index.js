@@ -73,24 +73,24 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
 
   /* ------------- MENU OPTIONS -------------------- */
   const menuItems = [];
-  if (!expanded) {
-    menuItems.push({label: "Expand panel", callback: toggleExpanded})
-  } else {
-    menuItems.push({label: "Contract panel", callback: toggleExpanded})
-    if (singleRow) {
-      if (showSinglePanel === false) {
-        menuItems.push({label: "Expand Coverage", callback: () => {transitionStarted(0); setShowSinglePanel("coverage")}});
-        menuItems.push({label: "Expand Read Lengths", callback: () => {transitionStarted(0); setShowSinglePanel("readLength")}});
-        menuItems.push({label: "Expand Coverage vs Time", callback: () => {transitionStarted(0); setShowSinglePanel("coverageOverTime")}});
-      } else {
-        menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(0); setShowSinglePanel(false)}});
-      }
-      menuItems.push({label: "Show All (vertically)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(false);}});
-    } else {
-      menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
-    }
+  // if (!expanded) {
+  //   menuItems.push({label: "Expand panel", callback: toggleExpanded})
+  // } else {
+  //   menuItems.push({label: "Contract panel", callback: toggleExpanded})
+  //   if (singleRow) {
+  //     if (showSinglePanel === false) {
+  //       menuItems.push({label: "Expand Coverage", callback: () => {transitionStarted(0); setShowSinglePanel("coverage")}});
+  //       menuItems.push({label: "Expand Read Lengths", callback: () => {transitionStarted(0); setShowSinglePanel("readLength")}});
+  //       menuItems.push({label: "Expand Coverage vs Time", callback: () => {transitionStarted(0); setShowSinglePanel("coverageOverTime")}});
+  //     } else {
+  //       menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(0); setShowSinglePanel(false)}});
+  //     }
+  //     menuItems.push({label: "Show All (vertically)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(false);}});
+  //   } else {
+  //     menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
+  //   }
     menuItems.push(...getPostProcessingMenuItems(config, setPostProcessingState));
-  }
+  // }
 
   /* ----------------- C H A R T S ----------------------- */
   const charts = {
