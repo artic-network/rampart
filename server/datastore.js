@@ -9,33 +9,37 @@ const { UNMAPPED_LABEL } = require('./config');
  * Prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {
-  /* datapoints are essentially the raw data */
-  this.datapoints = [];
-  /* processed data is per sample name & designed so that new data is added without requiring
-  any expensive recompute */
-  this.dataPerSample = {};
-  this.barcodesSeen = new Set();
+    /* datapoints are essentially the raw data */
+    this.datapoints = [];
+    /* processed data is per sample name & designed so that new data is added without requiring
+    any expensive recompute */
+    this.dataPerSample = {};
+    this.barcodesSeen = new Set();
 
-  this.timestampAdjustment = undefined;
-  /* Given barcodes (e.g. via config files) intialise the data structures
-  This means they will be displayed in the client, even if no reads have arrived for them */
-  for (const barcode of Object.keys(global.config.run.barcodeNames)) {
-    this.barcodesSeen.add(barcode);
-    const sampleName = this.getSampleName(barcode)
-    this.dataPerSample[sampleName] = new SampleData();
-  }
+    this.timestampAdjustment = undefined;
+    this.currentTimestamp = undefined;
+
+    /* Given barcodes (e.g. via config files) intialise the data structures
+      This means they will be displayed in the client, even if no reads have arrived for them */
+    for (const barcode of Object.keys(global.config.run.barcodeNames)) {
+        this.barcodesSeen.add(barcode);
+        const sampleName = this.getSampleName(barcode)
+        this.dataPerSample[sampleName] = new SampleData();
+    }
 
 };
 
+this._RATE_SMOOTHING_WINDOW = 60000;
 /**
  * this prototype should be called every time any timestamp is seen.
  * It ensures `this.timestampAdjustment` is the earliest timestamp
  */
-Datastore.prototype.timestampObserved = function(timestamp) {
+Datastore.prototype.updateTimestamp = function(timestamp) {
     if (!this.timestampAdjustment || this.timestampAdjustment > timestamp) {
         this.timestampAdjustment = timestamp;
     }
-}
+    this.currentTimestamp = timestamp;
+};
 
 /**
  * Add newly annotated data to the datastore.
@@ -50,34 +54,35 @@ Datastore.prototype.timestampObserved = function(timestamp) {
  */
 Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations) {
 
-  /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
-  const datapoint = new Datapoint(fileNameStem, annotations);
-  this.datapoints.push(datapoint);
-  this.timestampObserved(datapoint.getTimestamp());
+    /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
+    const datapoint = new Datapoint(fileNameStem, annotations);
+    this.datapoints.push(datapoint);
+    this.updateTimestamp(datapoint.getTimestamp());
 
-  /* step 2: update `dataPerSample`, which is a summary of the run so far */
-  const referencesSeen = new Set();
-  datapoint.getBarcodes().forEach((barcode) => {
-    this.barcodesSeen.add(barcode);
-    const barcodeData = datapoint.getDataForBarcode(barcode);
-    const sampleName = this.getSampleName(barcode);
-    /* initialise this.dataPerSample[sampleName] if a new sample name has been observed */
-    if (!this.dataPerSample[sampleName]) {
-      this.dataPerSample[sampleName] = new SampleData();
-    }
-    const sampleData = this.dataPerSample[sampleName];
-    sampleData.updateMappedCount(barcodeData);
-    sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
-    sampleData.updateCoverage(barcodeData);
-    sampleData.updateReadLengthCounts(barcodeData);
-    sampleData.updateRefMatchCoverages(barcodeData); /* update per-reference-match coverage stats */
-    sampleData.updateTemporalData(barcodeData, datapoint.getTimestamp());
-  });
+    /* step 2: update `dataPerSample`, which is a summary of the run so far */
+    const referencesSeen = new Set();
+    datapoint.getBarcodes().forEach((barcode) => {
+        this.barcodesSeen.add(barcode);
+        const barcodeData = datapoint.getDataForBarcode(barcode);
+        const sampleName = this.getSampleName(barcode);
+        /* initialise this.dataPerSample[sampleName] if a new sample name has been observed */
+        if (!this.dataPerSample[sampleName]) {
+            this.dataPerSample[sampleName] = new SampleData();
+        }
+        const sampleData = this.dataPerSample[sampleName];
+        sampleData.updateMappedCount(barcodeData.mappedCount, datapoint.getTimestamp());
+        sampleData.updateMappedRate(barcodeData.mappedCount, this.timeElapsed);
+        sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
+        sampleData.updateCoverage(barcodeData);
+        sampleData.updateReadLengthCounts(barcodeData);
+        sampleData.updateRefMatchCoverages(barcodeData); /* update per-reference-match coverage stats */
+        sampleData.updateTemporalData(barcodeData, datapoint.getTimestamp());
+    });
 
-  /* step 3: trigger server-client data updates as needed */
-  updateConfigWithNewBarcodes();
-  updateReferencesSeen(referencesSeen);
-  global.NOTIFY_CLIENT_DATA_UPDATED()
+    /* step 3: trigger server-client data updates as needed */
+    updateConfigWithNewBarcodes();
+    updateReferencesSeen(referencesSeen);
+    global.NOTIFY_CLIENT_DATA_UPDATED()
 };
 
 
@@ -85,16 +90,16 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
  * Get Barcode -> sample name via the (global) config
  */
 Datastore.prototype.getSampleName = function(barcode) {
-  if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
-    return global.config.run.barcodeNames[barcode].name;
-  }
-  return barcode;
+    if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
+        return global.config.run.barcodeNames[barcode].name;
+    }
+    return barcode;
 };
 
 
 Datastore.prototype.getBarcodesSeen = function() {
-  return [...this.barcodesSeen];
-}
+    return [...this.barcodesSeen];
+};
 
 /**
  * Choose which references should be displayed
@@ -106,35 +111,35 @@ Datastore.prototype.getBarcodesSeen = function() {
  * @param {int} maxNum max num of references to return
  */
 const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
-  const refMatchesAcrossSamples = {};
-  const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
-  for (const [sampleName, sampleData] of Object.entries(dataPerSample)) {
-    /* calculate the percentage mapping for this sample across all references to compare with threshold */
-    refMatchesAcrossSamples[sampleName] = {};
-    const refMatchPercs = {};
-    const total = Object.values(sampleData.refMatchCounts).reduce((pv, cv) => cv+pv, 0);
-    for (const ref of Object.keys(sampleData.refMatchCounts)) {
-      refMatchPercs[ref] = sampleData.refMatchCounts[ref] / total * 100;
-      refMatchesAcrossSamples[sampleName][ref] = sampleData.refMatchCounts[ref];
+    const refMatchesAcrossSamples = {};
+    const refsAboveThres = {}; /* references above ${threshold} perc in any sample. values = num samples matching this criteria */
+    for (const [sampleName, sampleData] of Object.entries(dataPerSample)) {
+        /* calculate the percentage mapping for this sample across all references to compare with threshold */
+        refMatchesAcrossSamples[sampleName] = {};
+        const refMatchPercs = {};
+        const total = Object.values(sampleData.refMatchCounts).reduce((pv, cv) => cv+pv, 0);
+        for (const ref of Object.keys(sampleData.refMatchCounts)) {
+            refMatchPercs[ref] = sampleData.refMatchCounts[ref] / total * 100;
+            refMatchesAcrossSamples[sampleName][ref] = sampleData.refMatchCounts[ref];
+        }
+        refMatchesAcrossSamples[sampleName].total = total;
+
+        for (const [refName, perc] of Object.entries(refMatchPercs)) {
+            if (perc > threshold) {
+                if (refsAboveThres[refName] === undefined) refsAboveThres[refName]=0;
+                refsAboveThres[refName]++;
+            }
+        }
     }
-    refMatchesAcrossSamples[sampleName].total = total;
+    const refsToDisplay = Object.keys(refsAboveThres)
+        .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
+        .filter( a => a !== UNMAPPED_LABEL)
+        .slice(0, maxNum);
 
-    for (const [refName, perc] of Object.entries(refMatchPercs)) {
-      if (perc > threshold) {
-        if (refsAboveThres[refName] === undefined) refsAboveThres[refName]=0;
-        refsAboveThres[refName]++;
-      }
-    }
-  }
-  const refsToDisplay = Object.keys(refsAboveThres)
-      .sort((a, b) => refsAboveThres[a]<refsAboveThres[b] ? 1 : -1)
-      .filter( a => a !== UNMAPPED_LABEL)
-      .slice(0, maxNum);
+    refsToDisplay.push(UNMAPPED_LABEL);
 
-  refsToDisplay.push(UNMAPPED_LABEL);
-
-  updateWhichReferencesAreDisplayed(refsToDisplay);
-  return refMatchesAcrossSamples;
+    updateWhichReferencesAreDisplayed(refsToDisplay);
+    return refMatchesAcrossSamples;
 };
 
 /**
@@ -161,57 +166,61 @@ const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
  * }}
  */
 Datastore.prototype.getDataForClient = function() {
-  timerStart("getDataForClient");
+    timerStart("getDataForClient");
 
-  /* Part I - summarise each sample (i.e. each sample name, i.e. this.dataPerSample */
-  const summarisedData = {};
-  const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample, global.config.display.referenceMapCountThreshold, global.config.display.maxReferencePanelSize);
-  for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
-    summarisedData[sampleName] = {
-      mappedCount: sampleData.mappedCount,
-      refMatches: refMatchesAcrossSamples[sampleName],
-      coverage: sampleData.coverage,
-      maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
-      temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
-      readLengths: summariseReadLengths(sampleData.readLengthCounts),
-      refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
+    /* Part I - summarise each sample (i.e. each sample name, i.e. this.dataPerSample */
+    const summarisedData = {};
+    const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample, global.config.display.referenceMapCountThreshold, global.config.display.maxReferencePanelSize);
+    for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
+        summarisedData[sampleName] = {
+            mappedCount: sampleData.mappedCount,
+            mappedRate: 100,
+            readsLastSeen: sampleData.readsLastSeenTime > 0 ? (this.currentTimestamp - sampleData.readsLastSeenTime) / 1000 : 0,
+            refMatches: refMatchesAcrossSamples[sampleName],
+            coverage: sampleData.coverage,
+            maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
+            temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
+            readLengths: summariseReadLengths(sampleData.readLengthCounts),
+            refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
+        }
     }
-  }
 
-  /* Part II - summarise the overall data, i.e. all samples combined */
-  const combinedData = {
-    mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
-    temporal: summariseOverallTemporalData(summarisedData)
-  };
+    /* Part II - summarise the overall data, i.e. all samples combined */
+    const combinedData = {
+        mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
+        mappedRate: 100,
+        readsLastSeen: Math.min(...Object.values(summarisedData).map((d) => d.readsLastSeen)),
+        temporal: summariseOverallTemporalData(summarisedData)
+    };
 
-  timerEnd("getDataForClient");
+    timerEnd("getDataForClient");
 
-  if (!Object.keys(this.dataPerSample).length) {
-    return false;
-  }
-  return {dataPerSample: summarisedData, combinedData};
+    if (!Object.keys(this.dataPerSample).length) {
+        return false;
+    }
+    return {dataPerSample: summarisedData, combinedData};
 };
 
 
 Datastore.prototype.collectFastqFilesAndIndices = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
-  const barcodes = [];
-  Object.keys(global.config.run.barcodeNames).forEach((key) => {
-    if (key === sampleName) barcodes.push(key);
-    if (global.config.run.barcodeNames[key].name === sampleName) barcodes.push(key);
-  });
+    const barcodes = [];
+    Object.keys(global.config.run.barcodeNames).forEach((key) => {
+        if (key === sampleName) barcodes.push(key);
+        if (global.config.run.barcodeNames[key].name === sampleName) barcodes.push(key);
+    });
 
-  const matches = [];
+    const matches = [];
 
-  this.datapoints.forEach((datapoint) => {
-    barcodes.forEach((barcode) => {
-      const result = datapoint.getFastqPositionsMatchingFilters(barcode, minReadLen, maxReadLen);
-      if (result) {
-        matches.push(result);
-      }
-    })
-  });
+    this.datapoints.forEach((datapoint) => {
+        barcodes.forEach((barcode) => {
+            const result = datapoint.getFastqPositionsMatchingFilters(barcode, minReadLen, maxReadLen);
+            if (result) {
+                matches.push(result);
+            }
+        })
+    });
 
-  return matches;
+    return matches;
 };
 
 
@@ -220,24 +229,24 @@ Datastore.prototype.collectFastqFilesAndIndices = function({sampleName, minReadL
  * NOTE: due to the way we draw lines, we need padding zeros! (else the d3 curve will join up points)
  */
 const summariseReadLengths = function(readLengthCounts) {
-  const readLengthResolution = global.config.display.readLengthResolution;
-  const xValues = Object.keys(readLengthCounts).map((n) => parseInt(n, 10)).sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
-  const counts = xValues.map((x) => readLengthCounts[x]);
-  const readLengths = {};
-  /* edge case */
-  readLengths.xyValues = [
-    [xValues[0]-readLengthResolution, 0],
-    [xValues[0], counts[0]]
-  ];
-  /* for each point, pad with zero on LHS unless it's a single step ahead */
-  for (let i = 1; i < xValues.length; i++) {
-    const singleStepAhead = xValues[i] - readLengthResolution === xValues[i-1];
-    if (!singleStepAhead) {
-      readLengths.xyValues.push([xValues[i]-readLengthResolution, 0]);
+    const readLengthResolution = global.config.display.readLengthResolution;
+    const xValues = Object.keys(readLengthCounts).map((n) => parseInt(n, 10)).sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
+    const counts = xValues.map((x) => readLengthCounts[x]);
+    const readLengths = {};
+    /* edge case */
+    readLengths.xyValues = [
+        [xValues[0]-readLengthResolution, 0],
+        [xValues[0], counts[0]]
+    ];
+    /* for each point, pad with zero on LHS unless it's a single step ahead */
+    for (let i = 1; i < xValues.length; i++) {
+        const singleStepAhead = xValues[i] - readLengthResolution === xValues[i-1];
+        if (!singleStepAhead) {
+            readLengths.xyValues.push([xValues[i]-readLengthResolution, 0]);
+        }
+        readLengths.xyValues.push([xValues[i], counts[i]]);
     }
-    readLengths.xyValues.push([xValues[i], counts[i]]);
-  }
-  return readLengths;
+    return readLengths;
 };
 
 
@@ -252,30 +261,30 @@ const summariseReadLengths = function(readLengthCounts) {
  *            yi = [z1, z2]: the (y0, y1) values of the reference at that pivot point.
  */
 const createReferenceMatchStream = function(refMatchCoverages) {
-  if (!Object.keys(refMatchCoverages).length) {
-    return [];
-  }
-  const nBins = global.config.display.numCoverageBins;
-  const stream = global.config.genome.referencePanel.map(() => Array.from(new Array(nBins), () => [0,0]));
+    if (!Object.keys(refMatchCoverages).length) {
+        return [];
+    }
+    const nBins = global.config.display.numCoverageBins;
+    const stream = global.config.genome.referencePanel.map(() => Array.from(new Array(nBins), () => [0,0]));
 
-  for (let xIdx=0; xIdx<nBins; xIdx++) {
-    const totalReadsHere = Object.values(refMatchCoverages)
-        .map((coverageBins) => coverageBins[xIdx])
-        .reduce((a, b) => a+b)
+    for (let xIdx=0; xIdx<nBins; xIdx++) {
+        const totalReadsHere = Object.values(refMatchCoverages)
+            .map((coverageBins) => coverageBins[xIdx])
+            .reduce((a, b) => a+b)
 
-    let yPosition = 0;
-    global.config.genome.referencePanel.forEach((refInfo, refIdx) => {
-      let percHere = 0;
-      /* require >10 reads to calc stream & this ref must have been seen for this sample */
-      if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
-        percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
-      }
-      stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
-      yPosition += +percHere;
-    })
-  }
+        let yPosition = 0;
+        global.config.genome.referencePanel.forEach((refInfo, refIdx) => {
+            let percHere = 0;
+            /* require >10 reads to calc stream & this ref must have been seen for this sample */
+            if (totalReadsHere >= 10 && refMatchCoverages[refInfo.name]) {
+                percHere = refMatchCoverages[refInfo.name][xIdx] / totalReadsHere;
+            }
+            stream[refIdx][xIdx] = [yPosition, yPosition+percHere];
+            yPosition += +percHere;
+        })
+    }
 
-  return stream;
+    return stream;
 };
 
 /**
@@ -293,7 +302,7 @@ const summariseOverallTemporalData = (summarisedData) => {
         v.temporal.forEach((d) => {
             timesSeen.add(d.time);
         })
-    })
+    });
 
     /* return structure -- chronological list of {time -> INT, mappedCount -> INT} */
     const ret = [...timesSeen]
@@ -310,9 +319,9 @@ const summariseOverallTemporalData = (summarisedData) => {
             }
             timepoint.mappedCount += memory;
         })
-    })
+    });
 
-  return ret;
+    return ret;
 };
 
 

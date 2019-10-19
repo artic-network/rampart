@@ -5,12 +5,14 @@
  */
 const SampleData = function() {
     this.mappedCount = 0;
+    this.readsLastSeenTime = undefined;
+    this.mappedRate = 0;
     this.refMatchCounts = {};
     this.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
     this.temporal = new Map();
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
-}
+};
 
 const getCoverageBins = (readPos) => {
     // get coverage indexes (i.e. bin number) relative to genome positions (fractions)
@@ -18,7 +20,7 @@ const getCoverageBins = (readPos) => {
         Math.floor(readPos.startFrac * global.config.display.numCoverageBins),
         Math.ceil(readPos.endFrac * global.config.display.numCoverageBins)
     ];
-}
+};
   
 
 SampleData.prototype.updateCoverage = function(data) {
@@ -28,7 +30,7 @@ SampleData.prototype.updateCoverage = function(data) {
             this.coverage[i]++;
         }
     }
-}
+};
 
 SampleData.prototype.updateReadLengthCounts = function(data) {
     const readLengthResolution = global.config.display.readLengthResolution;
@@ -66,8 +68,15 @@ SampleData.prototype.updateRefMatchCounts = function(data, referencesSeen) {
     }
 };
 
-SampleData.prototype.updateMappedCount = function(data) {
-    this.mappedCount += data.mappedCount;
+SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
+    this.mappedCount += mappedCount;
+    if (mappedCount > 0) {
+        this.readsLastSeenTime = timestamp;
+    }
+};
+
+SampleData.prototype.updateMappedRate = function(mappedCount, timeElapsed) {
+    this.mappedRate = timeElapsed > 0.0 ? mappedCount / timeElapsed : 0;
 };
 
 SampleData.prototype.coveragePercAboveThreshold = function(threshold) {

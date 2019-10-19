@@ -27,9 +27,10 @@ const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, 
     const summaryTitle = `${sampleName}`;
     const timeFormatter = makeTimeFormatter();
 
+    console.log(sampleData);
     const summaryText = `${sampleData.mappedCount} reads mapped | ` +
         `${sampleData.mappedRate} reads/sec | ` +
-        `read last seen ${timeFormatter(sampleData.readLastSeen)} ago`;
+        `read last seen ${timeFormatter(sampleData.readsLastSeen)} ago`;
 
     return (
         <div className="infoRow" style={{color: sampleColour}}>

@@ -16,7 +16,7 @@ const sendData = () => {
   /* find time of last data point */
   if (data.combinedData.temporal.length) {
       const t = data.combinedData.temporal[data.combinedData.temporal.length-1].time;
-      global.io.emit("infoMessage", `New data (t=${t}s)`);
+      global.io.emit("infoMessage", `new data (t=${t}s)`);
   }
   global.io.emit('data', data);
 };
