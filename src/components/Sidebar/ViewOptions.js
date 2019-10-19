@@ -23,7 +23,7 @@ const ColourPicker = ({currentColour, name, onChange, onCancel}) => {
       </div>
     </div>
   )
-}
+};
 
 const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
   /* -----------    STATE MANAGEMENT    ------------------- */
@@ -42,7 +42,8 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
     newViewOptions[key][name] = hex;
     setViewOptions(newViewOptions);
     setColourToPick(false);
-  }
+  };
+
   if (!Object.keys(config).length) return (
     <div className={`viewOptions`}>
       <h2>No config set</h2>
@@ -57,6 +58,7 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
       </div>
     )
   }
+
   return (
     <div className={`viewOptions`}>
 
@@ -96,7 +98,7 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
       {/*))}*/}
     </div>
   )
-}
+};
 
 export default ViewOptions
 

@@ -23,7 +23,7 @@ const addToParsingQueue = (filepath) => parsingQueue.push(filepath);
 async function parseAnnotations(fileToParse) {
     if (!fs.existsSync(fileToParse)) {
         warn(`Annotation file, ${fileToParse}, doesn't exist - skipping.`);
-        return;
+        return undefined;
     }
 
     const annotations = await dsv.csvParse(fs.readFileSync(fileToParse).toString());
@@ -58,12 +58,12 @@ const annotationParser = async () => {
 
         try {
             annotations = await parseAnnotations(fileToParse);
+            if (annotations) {
+                await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations);
+            }
         } catch (err) {
-            trace(err);
             warn(`Error parsing file, ${fileToParse.split("/").slice(-1)[0]}: ${err}`);
         }
-
-        await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations);
 
         isRunning = false;
 

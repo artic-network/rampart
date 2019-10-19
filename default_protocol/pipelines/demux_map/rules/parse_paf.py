@@ -9,6 +9,10 @@ def parse_args():
     parser.add_argument("--annotated_reads", action="store", type=str, dest="reads")
 
     parser.add_argument("--report", action="store", type=str, dest="report")
+
+    parser.add_argument("--min_read_length", action="store", type=int, dest="min_read_length")
+    parser.add_argument("--max_read_length", action="store", type=int, dest="max_read_length")
+
     return parser.parse_args()
 
 def parse_read_header(header):
@@ -44,7 +48,7 @@ def get_barcode_time(reads):
         
     return header_dict
 
-def parse_paf(paf,report,reads):
+def parse_paf(paf, report, reads, min_read_length, max_read_length):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len
@@ -62,8 +66,9 @@ def parse_paf(paf,report,reads):
             if ref_hit=='*': #output by minimap2 if read doesn't map
                 coord_start,coord_end=0,0
                 unmapped +=1
-            
-            report.write("{},{},{},{},{},{},{},{},{},{}\n".format(read_name,read_len,start_time,barcode,ref_hit,ref_len,coord_start,coord_end,matches,aln_block_len))
+
+            if int(read_len) >= min_read_length and int(read_len) <= max_read_length:
+                report.write("{},{},{},{},{},{},{},{},{},{}\n".format(read_name,read_len,start_time,barcode,ref_hit,ref_len,coord_start,coord_end,matches,aln_block_len))
 
     try:
         prop_unmapped = unmapped / len(header_dict)
@@ -80,4 +85,4 @@ if __name__ == '__main__':
     with open(str(args.report), "w") as csv_report:
 
         csv_report.write("read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len\n")
-        parse_paf(args.paf_file,csv_report,args.reads)
+        parse_paf(args.paf_file,csv_report,args.reads, args.min_read_length, args.max_read_length)

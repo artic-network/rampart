@@ -17,19 +17,19 @@ const SaveDemuxedReads = ({config, socket, sampleName, referenceNames, dismissMo
   const [outputDirectory, setOutputDirectory] = useState("/Users/naboo/scratch/rampart");
   const refSelInitialState = {};
   referenceNames.forEach((name) => {refSelInitialState[name]=false});
-  const [referencesSelected, _setRefSel] = useState(refSelInitialState)
+  const [referencesSelected, _setRefSel] = useState(refSelInitialState);
 
   const send = () => {
-    console.log("sending request to save demuxed reads")
+    console.log("sending request to save demuxed reads");
     socket.emit('saveDemuxedReads', {sampleName, outputDirectory, filters: {minReadLen, maxReadLen}});
     dismissModal();
-  }
+  };
 
   const barcodesMatchingThisSampleName = [];
   Object.keys(config.barcodeToName).forEach((key) => {
     if (key === sampleName) barcodesMatchingThisSampleName.push(key);
     if (config.barcodeToName[key].name === sampleName) barcodesMatchingThisSampleName.push(key);
-  })
+  });
 
 
   return (
@@ -66,7 +66,7 @@ const SaveDemuxedReads = ({config, socket, sampleName, referenceNames, dismissMo
 
     </Modal>
   )
-}
+};
 
 
 SaveDemuxedReads.propTypes = {

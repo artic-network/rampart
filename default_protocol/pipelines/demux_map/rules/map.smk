@@ -22,7 +22,9 @@ rule parse_mapping:
         fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
         mapped= config["output_path"] + "/temp/{filename_stem}.paf"
     params:
-        path_to_script = workflow.current_basedir
+        path_to_script = workflow.current_basedir,
+        min_read_length = config["min_read_length"],
+        max_read_length = config["max_read_length"]
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
     shell:
@@ -30,6 +32,8 @@ rule parse_mapping:
         python {params.path_to_script}/parse_paf.py \
         --paf_file {input.mapped:q} \
         --report {output.report:q} \
-        --annotated_reads {input.fastq:q}
+        --annotated_reads {input.fastq:q} \
+        --min_read_length {params.min_read_length} \
+        --max_read_length {params.max_read_length}
         """
 #produces a csv report
