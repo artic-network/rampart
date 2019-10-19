@@ -86,7 +86,7 @@ class Header extends React.Component {
           </a>
         </div>
 
-        <div>
+        <div className="title">
           <h2 style={{marginTop: "0px", marginBottom: "8px"}}>
             <span style={{fontSize: "1.8em", fontWeight: "normal"}}>RAMPART</span>
             <span style={{fontWeight: "100"}}> Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>

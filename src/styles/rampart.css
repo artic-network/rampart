@@ -238,6 +238,10 @@ div.header .logo {
   margin: 5px;
   margin-right: 20px;
 }
+div.header .title {
+  white-space: nowrap;
+  overflow: hidden;
+}
 div.header .buttons {
   display: flex;
   flex-direction: column;
