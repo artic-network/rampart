@@ -28,7 +28,7 @@ const calcChartGeom = (DOMRect) => ({
         DOMRect.width>400 ? 150 :
             100,
     spaceRight: 0,
-    spaceBottom: 70,
+    spaceBottom: 90,
     spaceTop: 10,
     legendPadding: 20, /* horizontal */
     maxLegendWidth: 400
@@ -60,16 +60,38 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     const d3data = Array.from(new Array(names.length*referencePanel.length));
 
     let dataIdx = 0;
+
+    let maxCount = 0;
+    let total = 0;
     for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
             const count = parseInt(data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]) || 0;
-            const total = parseInt(data[names[sampleIdx]].refMatches['total']) || 1;
-            const percent = (100.0 * count) / total;
+            if (count > maxCount) {
+                maxCount = count;
+            }
+            total += count;
+        }
+    }
+
+    // if true then the heat is relative to the largest value, if false then it is the percentage
+    // of reads by sample
+    const SHOW_RELATIVE_HEAT = false;
+
+    for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
+        for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
+            const count = parseInt(data[names[sampleIdx]].refMatches[referencePanel[refIdx].name]) || 0;
+            const sampleTotal = parseInt(data[names[sampleIdx]].refMatches['total']) || 1;
+            const percentOfSample = (100.0 * count) / sampleTotal;
+            const percentOfTotal = (100.0 * count) / total;
+            const heat = (100.0 * count) / (SHOW_RELATIVE_HEAT ? maxCount : sampleTotal);
+            // const heat = (100.0 * count) / sampleTotal;
             d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
                 count,
-                percent
+                percentOfSample,
+                percentOfTotal,
+                heat
             };
             // console.log(names[sampleIdx] + " vs. " + referencePanel[refIdx].name + ": " + data[names[sampleIdx]].refMatches[referencePanel[refIdx].name] + " / " + data[names[sampleIdx]].refMatches['total'])
             dataIdx++;
@@ -129,8 +151,10 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
         const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
+        // const mapString = referencePanel[d.refIdx].name != "unmapped" ?
+        //     `map to ${referencePanel[d.refIdx].name}` : `were not mapped to any reference`;
         const mapString = referencePanel[d.refIdx].name != "unmapped" ?
-            `map to ${referencePanel[d.refIdx].name}` : `were not mapped to any reference`;
+            `Reference: ${referencePanel[d.refIdx].name}` : `Unmapped`;
         select(infoRef)
             .style("left", left)
             .style("right", right)
@@ -139,7 +163,13 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             .html(`
                 Sample: ${names[d.sampleIdx]}
                 <br/>
-                ${d.count} (${d.percent.toFixed(2)}%) of reads ${mapString}
+                ${mapString}
+                <br/>
+                ${d.count} reads
+                <br/>
+                ${d.percentOfSample.toFixed(2)}% of the sample
+                <br/>
+                ${d.percentOfTotal.toFixed(2)}% of the total
             `);
     }
     function handleMouseOut() {
@@ -156,44 +186,46 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .attr('height', cellDims.height)
         .attr("x", d => scales.x(d.sampleIdx) + cellDims.padding)
         .attr("y", d => scales.y(d.refIdx+1) + cellDims.padding)
-        .attr("fill", d => d.count === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d.percent))
+        .attr("fill", d => d.count === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d.heat))
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
-    /* render the legend (bottom) -- includes coloured cells & text */
-    const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-    let legendWidth = chartGeom.width - chartGeom.spaceRight - 2*chartGeom.legendPadding;
-    if (legendWidth > chartGeom.maxLegendWidth) legendWidth = chartGeom.maxLegendWidth;
-    const legendRightOffset = (chartGeom.width - legendWidth) / 2;
-    const legendBoxWidth = legendWidth / legendDataValues.length;
-    const legendBoxHeight = 12;
-    const legendRoof = chartGeom.height - chartGeom.spaceBottom + 10;
-    const legendTextFn = (d, i) => {
-        if (legendWidth === chartGeom.maxLegendWidth) return `${d}%`;
-        if (i%2) return `${d}%`;
-        return "";
-    };
-    const legend = svg.selectAll(".legend")
-        .data(legendDataValues)
-        // .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
-        .enter().append("g")
-        .attr("class", "legend");
-    legend.append("rect")
-        .attr('y', legendRoof)
-        .attr("x", (d, i) => legendRightOffset + legendBoxWidth*(i+1))
-        .attr("width", legendBoxWidth)
-        .attr("height", legendBoxHeight)
-        .style("fill", (d) => {
-            return d === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d);
-        });
-    legend.append("text")
-        .text(legendTextFn)
-        .attr("class", "axis")
-        .attr('x', (d, i) => legendRightOffset + legendBoxWidth*(i+1))
-        .attr('y', legendRoof + legendBoxHeight + 11)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("alignment-baseline", "hanging")
+    if (!SHOW_RELATIVE_HEAT) {
+        /* render the legend (bottom) -- includes coloured cells & text */
+        const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+        let legendWidth = chartGeom.width - chartGeom.spaceRight - 2 * chartGeom.legendPadding;
+        if (legendWidth > chartGeom.maxLegendWidth) legendWidth = chartGeom.maxLegendWidth;
+        const legendRightOffset = (chartGeom.width - legendWidth) / 2;
+        const legendBoxWidth = legendWidth / legendDataValues.length;
+        const legendBoxHeight = 12;
+        const legendRoof = chartGeom.height - chartGeom.spaceBottom + 30;
+        const legendTextFn = (d, i) => {
+            if (legendWidth === chartGeom.maxLegendWidth) return `${d}%`;
+            if (i % 2) return `${d}%`;
+            return "";
+        };
+        const legend = svg.selectAll(".legend")
+            .data(legendDataValues)
+            // .data(legendDataValues.slice(0, legendDataValues.length-1)) /* don't include the last one... */
+            .enter().append("g")
+            .attr("class", "legend");
+        legend.append("rect")
+            .attr('y', legendRoof)
+            .attr("x", (d, i) => legendRightOffset + legendBoxWidth * (i + 1))
+            .attr("width", legendBoxWidth)
+            .attr("height", legendBoxHeight)
+            .style("fill", (d) => {
+                return d === 0 ? EMPTY_CELL_COLOUR : heatColourScale(d);
+            });
+        legend.append("text")
+            .text(legendTextFn)
+            .attr("class", "axis")
+            .attr('x', (d, i) => legendRightOffset + legendBoxWidth * (i + 1))
+            .attr('y', legendRoof + legendBoxHeight + 11)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("alignment-baseline", "hanging")
+    }
 };
 
 class ReferenceHeatmap extends React.Component {

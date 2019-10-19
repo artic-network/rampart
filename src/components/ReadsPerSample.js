@@ -29,7 +29,7 @@ const calcChartGeom = (DOMRect) => ({
 });
 
 const calculateBarWidth = (chartGeom, numSamples) =>
-  ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numSamples);
+    ((chartGeom.width - chartGeom.spaceLeft - chartGeom.spaceRight) / numSamples);
 
 const getMaxCount = ({samples, data}) => {
   let maxCount = 0;
@@ -38,30 +38,30 @@ const getMaxCount = ({samples, data}) => {
   }
   if (!maxCount) return 0;
   const resolution = maxCount.mappedCount > 10000 ? 10000 :
-    maxCount.mappedCount > 1000 ? 1000 :
-      maxCount.mappedCount > 100 ? 100 : 10;
+      maxCount.mappedCount > 1000 ? 1000 :
+          maxCount.mappedCount > 100 ? 100 : 10;
   return maxCount ? (parseInt(maxCount/resolution, 10)+1)*resolution : 0;
-}
+};
 
 const calcXScale = (chartGeom, barWidth, numSamples) => {
   const xValues = Array.from(new Array(numSamples), (_, i) => i);
   return scaleOrdinal()
-    .domain(xValues)
-    .range(xValues.map(x => (x+0.5)*barWidth + chartGeom.spaceLeft))
-}
+      .domain(xValues)
+      .range(xValues.map(x => (x+0.5)*barWidth + chartGeom.spaceLeft))
+};
 
 const calcYScale = (chartGeom, maxReads, log) => {
   if (log) {
     return scaleLog()
-      .base(10)
-      .domain([10, maxReads])
-      .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
-      .clamp(true);
+        .base(10)
+        .domain([10, maxReads])
+        .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop])
+        .clamp(true);
   }
   return scaleLinear()
-    .domain([0, maxReads])
-    .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop]);
-}
+      .domain([0, maxReads])
+      .range([chartGeom.height - chartGeom.spaceBottom, chartGeom.spaceTop]);
+};
 
 
 const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples, infoRef, data) => {
@@ -75,11 +75,11 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
     const left  = mouseX > midPosPx ? "" : `${mouseX + 16}px`;
     const right = mouseX > midPosPx ? `${rangeLeftRightPx[1] - mouseX}px` : "";
     select(infoRef)
-      .style("left", left)
-      .style("right", right)
-      .style("top", `${mouseY-20}px`)
-      .style("visibility", "visible")
-      .html(`
+        .style("left", left)
+        .style("right", right)
+        .style("top", `${mouseY-20}px`)
+        .style("visibility", "visible")
+        .html(`
         Sample: ${samples[i]}
         <br/>
         ${d} mapped reads
@@ -91,20 +91,37 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
 
   svg.selectAll(".bar").remove();
   svg.selectAll(".bar")
-    .append("g")
-    .attr("class", "bars")
-    .data(counts)
-    .enter()
+      // .append("g")
+      // .attr("class", "bars")
+      .data(counts)
+      .enter()
       .append("rect")
-        .attr("class", "bar")
-        .attr("x", (count, sampleIdx) => scales.x(sampleIdx) - 0.5*barWidth+1)
-        .attr("width", barWidth-1)
-        .attr("y", (count) => scales.y(count))
-        .attr("fill", (count, sampleIdx) => colours[sampleIdx])
-        .attr("height", (count) => chartGeom.height - chartGeom.spaceBottom - scales.y(count))
-        .on("mouseout", handleMouseOut)
-        .on("mousemove", handleMouseMove);
-}
+      .attr("class", "bar")
+      .attr("x", (count, sampleIdx) => scales.x(sampleIdx) - 0.5*barWidth+1)
+      .attr("width", barWidth-1)
+      .attr("y", (count) => scales.y(count))
+      .attr("fill", (count, sampleIdx) => colours[sampleIdx])
+      .attr("height", (count) => chartGeom.height - chartGeom.spaceBottom - scales.y(count))
+      .on("mouseout", handleMouseOut)
+      .on("mousemove", handleMouseMove);
+
+  /* render the column labels (sample numbers or names) on the bottom */
+  // svg.selectAll(".sampleName")
+  //     .data(samples)
+  //     .enter()
+  //     .append("g")
+  //     .attr("class", "sampleName")
+  //     .attr("transform", "translate(40,40) rotate(-135deg)")
+  //     .append("text")
+  //     .attr("class", "axis")
+  //     // .text((name, idx) => idx + 1)
+  //     .text((name, idx) => name)
+  //     .attr('x', (name, idx) => scales.x(idx))
+  //     .attr('y', chartGeom.height - chartGeom.spaceBottom + 10)
+  //     .attr("text-anchor", "end")
+  //     .attr("font-size", "12px")
+  //     .attr("alignment-baseline", "hanging");
+};
 
 
 class ReadsPerSample extends React.Component {
@@ -116,7 +133,7 @@ class ReadsPerSample extends React.Component {
     /* currently redo everything, but we could make this much much smarter */
     const chartGeom = this.state.chartGeom;
     const samples = Object.keys(this.props.data)
-      .filter((name) => name!=="all"); // TODO -- order appropriately!
+        .filter((name) => name!=="all"); // TODO -- order appropriately!
     const barWidth = calculateBarWidth(chartGeom, samples.length);
     const yMax = getMaxCount({samples, data: this.props.data});
     if (!yMax) return;
@@ -144,20 +161,20 @@ class ReadsPerSample extends React.Component {
   }
   render() {
     return (
-      <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
-        <div className="chartTitle">
-          {this.props.title}
+        <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
+          <div className="chartTitle">
+            {this.props.title}
+          </div>
+          <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
+          <div className="centerHorizontally">
+            <svg
+                ref={(r) => {this.DOMref = r}}
+                height={this.state.chartGeom.height || 0}
+                width={this.state.chartGeom.width || 0}
+            />
+          </div>
+          {this.props.renderProp ? this.props.renderProp : null}
         </div>
-        <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
-        <div className="centerHorizontally">
-          <svg
-            ref={(r) => {this.DOMref = r}}
-            height={this.state.chartGeom.height || 0}
-            width={this.state.chartGeom.width || 0}
-          />
-        </div>
-        {this.props.renderProp ? this.props.renderProp : null}
-      </div>
     )
   }
 }
