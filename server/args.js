@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2019 ARTIC Network http://artic.network
+ * https://github.com/artic-network/rampart
+ *
+ * This file is part of RAMPART. RAMPART is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version. RAMPART is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License
+ * along with RAMPART. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 const argparse = require('argparse');
 const version = require('../package.json').version;
 
@@ -5,9 +19,7 @@ const parser = new argparse.ArgumentParser({
   version: version,
   addHelp: true,
   description: `RAMPART v${version}: Read Assignment, Mapping, and Phylogenetic Analysis in Real Time`,
-  epilog: `
-  RAMPART is curently under development!
-  `
+  epilog: ``
 });
 parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
 parser.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
