@@ -79,6 +79,15 @@ class PipelineRunner {
         this._jobQueue.push(job);
     }
 
+    _convertConfigObjectToArray(configObject) {
+        return Object.entries(configObject).map(([key, value]) => {
+            if (Array.isArray(value)) {
+                return `${key}=${value.join(',')}`;
+            }
+            return `${key}=${value.toString().indexOf(' ') !== -1 ? `\"${value}\"` : value}`;
+        });
+
+    }
     /**
      * private method to actually spawn a Snakemake pipeline and capture output.
      * @param {Object} job snakemake config key-value pairs
@@ -88,19 +97,19 @@ class PipelineRunner {
     async _runPipeline(job) {
         return new Promise((resolve, reject) => {
             const pipelineConfig = [];
+
             // start with (optional) configuration options defined for the entire pipeline
             if (this._configOptions) {
-                pipelineConfig.push(...Object.keys(this._configOptions).map( key => {
-                    return `${key}=${this._configOptions[key].indexOf(' ') !== -1 ? `\"${this._configOptions[key]}\"` : this._configOptions[key]}`;
-                }));
+                pipelineConfig.push(...this._convertConfigObjectToArray(this._configOptions));
             }
+
             // add in job-specific config options
-            pipelineConfig.push(...Object.keys(job).map((key) => {
-                return `${key}=${job[key].indexOf(' ') !== -1 ? `\"${job[key]}\"` : job[key]}`;
-            }));
+            pipelineConfig.push(...this._convertConfigObjectToArray(job));
 
             let spawnArgs = ['--snakefile', this._snakefile];
-            if (this._configfile) spawnArgs.push(...['--configfile', this._configfile])
+            if (this._configfile) {
+                spawnArgs.push(...['--configfile', this._configfile])
+            }
             spawnArgs.push(...['--config', ...pipelineConfig]);
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));

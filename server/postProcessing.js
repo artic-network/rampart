@@ -23,7 +23,7 @@ const getBarcodesFromSampleName = (sampleName) => {
     if (obj.name === sampleName) barcodes.push(bc);
   }
   return barcodes;
-}
+};
 
 
 
