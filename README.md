@@ -4,7 +4,7 @@ Read Assignment, Mapping, and Phylogenetic Analysis in Real Time.
 
 RAMPART runs concurrently with MinKNOW and shows you demuxing / mapping results in real time.
 
-![](docs/overview.png)
+![](docs/images/main.png)
 
 
 ## Motivation

@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { select, mouse } from "d3-selection";
-import { line, curveBasis } from "d3-shape";
+import { line, curveBasis, curveLinear } from "d3-shape";
 import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
 import {defaultLineColour} from "../utils/colours";
 import { getLogYAxis } from "../utils/config";
@@ -67,7 +67,7 @@ const drawLine = (svg, scales, data, showRate, infoRef) => {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;
         const right = mouseX > 0.5 * scales.x.range()[1] ? `${scales.x.range()[1] - mouseX}px` : "";
-        const value = parseInt(scales.y.invert(findLineYposGivenXpos(mouseX, path.node()))/10, 10)*10
+        const value = parseInt(scales.y.invert(findLineYposGivenXpos(mouseX, path.node())), 10);
         select(infoRef)
             .style("left", left)
             .style("right", right)
@@ -76,7 +76,7 @@ const drawLine = (svg, scales, data, showRate, infoRef) => {
             .html(`
         Time: ${timeFormatter(scales.x.invert(mouseX))}
         <br/>
-        ${showRate ? "rate(reads/sec)" : "n(reads)"}: ${value} (interpolated)
+        ${showRate ? "rate(reads/sec)" : "count(reads)"}: ${value} (interpolated)
       `);
     }
     function handleMouseOut() {
@@ -139,7 +139,7 @@ class ReadsOverTime extends React.Component {
                 {/*</div>*/}
                 <div className="centerHorizontally">
                     <Toggle
-                        labelLeft="# Reads"
+                        labelLeft="Mapped reads"
                         labelRight="Reads/sec"
                         handleToggle={this.toggleReadsVsRate}
                         toggleOn={false}
