@@ -28,4 +28,4 @@ By opening a browser at [localhost:3000](http://localhost:3000) we can see the d
 It should look something like this:
 
 
-![](overview.png)
+![](images/main.png)
