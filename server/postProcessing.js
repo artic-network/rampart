@@ -62,7 +62,7 @@ const triggerPostProcessing = async (options) => {
   try { // await will throw if the Promise (returned by runner.runJob()) rejects
     await runner.runJob(job);
   } catch (err) {
-    global.io.emit("infoMessage", `POST PROCESSING FAILED // ${options.pipeline.name} // ${options.sampleName}`);
+    global.io.emit("infoMessage", `POST PROCESSING FAILED // ${options.pipeline.name} // ${options.sampleName} // ${err.toString()}`);
     return;
   }
   global.io.emit("infoMessage", `POST PROCESSING SUCCESS // ${options.pipeline.name} // ${options.sampleName}`);

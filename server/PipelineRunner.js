@@ -145,7 +145,7 @@ class PipelineRunner {
                 } else {
                     warn(`pipeline (${this._name}) finished with exit code ${code}. Error messages:`);
                     stderr.forEach( (line) => warn(`\t${line}`) );
-                    resolve();
+                    reject(`pipeline (${this._name}) finished with exit code ${code}`);
                 }
             });
         });
