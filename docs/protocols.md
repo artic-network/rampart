@@ -139,8 +139,8 @@ An array of such pipelines is defined in the JSON each with the following proper
 * `"config_file" {string}` -- the name of a config file (e.g. `config.yaml`) in the pipeline directory.
 * `"run_per_sample" {bool}` -- is the pipeline able to be run for an individual sample?
 * `"options" {Object}` -- an object defining config arguments which RAMPART can supply to the snakemake file. Available properties:
-    * `"min_length" {bool}` set via GUI
-    * `"max_length" {bool}` set via GUI
+    * `"min_read_length" {bool}` set via GUI
+    * `"max_read_length" {bool}` set via GUI
     * `"sample_name" {bool}` set via server. Only makes sense with the "run_per_sample" option.
     * `"barcodes" {bool}` set via server. barcodes associated with a selected sample
     * `"basecalled_path" {bool}` set via server

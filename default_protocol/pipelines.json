@@ -14,7 +14,7 @@
 		{
 			"name": "Build consensus (ARTIC pipeline)",
 			"path": "pipelines/build_consensus_artic",
-			"config": "min_length=100 max_length=10000"
+			"config": "min_read_length=100 max_read_length=10000"
 		},
 		{
 			"name": "Export reads",
@@ -22,8 +22,8 @@
 			"config_file": false,
 			"run_per_sample": true,
 			"options": {
-				"min_length": true,
-				"max_length": true,
+				"min_read_length": true,
+				"max_read_length": true,
 				"sample_name": true,
 				"barcodes": true,
 				"basecalled_path": true,

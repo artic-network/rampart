@@ -20,14 +20,14 @@ import { IoMdPlay } from "react-icons/io";
 const ChooseMinReadLength = ({userSettings, setUserSettings}) => (
     <>
         <h4>Minimum read length:</h4>
-        <input type="text" value={userSettings.min_length} onChange={(e) => setUserSettings({...userSettings, min_length: e.target.value})}/>
+        <input type="text" value={userSettings.min_read_length} onChange={(e) => setUserSettings({...userSettings, min_read_length: e.target.value})}/>
     </>
 );
 
 const ChooseMaxReadLength = ({userSettings, setUserSettings}) => (
     <>
         <h4>Maximum read length:</h4>
-        <input type="text" value={userSettings.max_length} onChange={(e) => setUserSettings({...userSettings, max_length: e.target.value})}/>
+        <input type="text" value={userSettings.max_read_length} onChange={(e) => setUserSettings({...userSettings, max_read_length: e.target.value})}/>
     </>
 );
 
@@ -44,8 +44,8 @@ export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
 const createInitialState = (pipeline) => {
     console.log("creating initial state");
     const initialState = {};
-    if (pipeline.options.min_length) initialState.min_length = 0; // TODO -- get min read length from dataset
-    if (pipeline.options.max_length) initialState.max_length = 100000; // TODO -- get max read length from dataset
+    if (pipeline.options.min_read_length) initialState.min_read_length = 0; // TODO -- get min read length from dataset
+    if (pipeline.options.max_read_length) initialState.max_read_length = 1000000; // TODO -- get max read length from dataset
     return initialState;
 }
 
@@ -64,10 +64,10 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
             {Object.keys(userSettings).length ? (
                 <>
                     <h3>This pipeline requests the following options:</h3>
-                    {(userSettings.min_length !== undefined) ? (
+                    {(userSettings.min_read_length !== undefined) ? (
                         <ChooseMinReadLength userSettings={userSettings} setUserSettings={setUserSettings}/>
                     ) : null}
-                    {(userSettings.max_length !== undefined) ? (
+                    {(userSettings.max_read_length !== undefined) ? (
                         <ChooseMaxReadLength userSettings={userSettings} setUserSettings={setUserSettings}/>
                     ) : null}
                 </>

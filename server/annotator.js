@@ -34,7 +34,7 @@ const setUpAnnotationRunner = () => {
 
     const onSuccess = (job) => {
         addToParsingQueue(path.join(global.config.run.annotatedPath, job.filename_stem + '.csv'));
-    }
+    };
 
     const annotationRunner = new PipelineRunner({
         name: "annotator",
@@ -44,8 +44,9 @@ const setUpAnnotationRunner = () => {
         onSuccess,
         queue: true
     });
+
     return annotationRunner;
-}
+};
 
 
 

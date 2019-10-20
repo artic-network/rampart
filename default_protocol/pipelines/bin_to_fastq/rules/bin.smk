@@ -4,23 +4,20 @@ rule binlorry:
         path_to_reads = config["basecalled_path"],
         report_dir = config["annotated_path"],
         outdir = config["output_path"],
-        min_length = config["min_length"],
-        max_length = config["max_length"],
-        bin_by_option = bin_by_option,
+        min_read_length = config["min_read_length"],
+        max_read_length = config["max_read_length"],
         barcodes = barcodes,
         sample_name = sample_name
     output:
-        reads= config["output_path"] + "/binned_{sample_name}.fastq",
-        report= config["output_path"] + "/binned_{sample_name}.csv"
+        output_prefix= config["output_path"] + "/binned_{sample_name}",
     shell:
-        "binlorry -i {params.path_to_reads} "
-        "-t {params.report_dir} "
-        "-o {params.outdir}/binned_{params.sample_name} "
-        "-n {params.min_length} "
-        "-x {params.max_length} "
+        "binlorry -i {params.path_to_reads:q} "
+        "-t {params.report_dir:q} "
+        "-o {output.output_prefix:q} "
+        "-n {params.min_read_length} "
+        "-x {params.max_read_length} "
         "--filter-by barcode {params.barcodes} "
         "--out-report"
-        " {params.bin_by_option}"
 
 
 

@@ -5,14 +5,16 @@
 config["output_path"] = config["output_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")
 
-# todo - check that 'barcode_set' is one of 'native', 'rapid', or 'all' and throw error if not
-barcode_set = ''
-if str(config["barcode_set"]).lower()=="rapid":
+# todo - check that 'barcode_set' is one of 'native', 'rapid', `pcr` or 'all' and throw error if not
+barcode_set = " --native_barcodes"
+if str(config["barcode_set"]).lower()=="native":
+    barcode_set= " --native_barcodes"
+elif str(config["barcode_set"]).lower()=="rapid":
     barcode_set= " --rapid_barcodes"
+elif str(config["barcode_set"]).lower()=="pcr":
+    barcode_set=" --pcr_barcodes"
 elif str(config["barcode_set"]).lower()=="all":
     barcode_set=""
-else:
-    barcode_set= " --native_barcodes"
 
 # todo - check that the barcode labels fit the required format (text followed by an integer)
 limit_barcodes_to = ""

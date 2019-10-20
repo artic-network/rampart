@@ -6,8 +6,8 @@ output_path: path/to/binned #where rampart will put the binned/ filtered files
 
 ##### Length filters #####
 
-min_length: 1
-max_length: 100000
+min_read_length: 1
+max_read_length: 1000000
 
 ##### Barcodes to process #####
 

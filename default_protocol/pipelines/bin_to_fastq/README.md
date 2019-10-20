@@ -49,8 +49,8 @@ snakemake --snakefile pipelines/bin_to_fastq/Snakefile \
 --config input_path=../artic-polio/data/basecalled \
 annotated_path=../artic-polio/data/test_rampart_pipeline \
 output_path=../artic-polio/data/test_rampart_binned \
-min_length=500 \
-max_length=1500 \
+min_read_length=500 \
+max_read_length=1500 \
 barcodes=NB19,NB20 \
 sample=sample_19_20
 ```

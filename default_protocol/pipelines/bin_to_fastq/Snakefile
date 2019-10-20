@@ -5,8 +5,7 @@ config["output_path"] = config["output_path"].rstrip("/")
 config["annotated_path"] = config["annotated_path"].rstrip("/")
 config["basecalled_path"] = config["basecalled_path"].rstrip("/")
 
-# bin.smk requires `bin_by_option`, `sample_name` and `barcodes` to be set
-bin_by_option = "--bin-by " + config["bin_by"] if config.get("bin_by") else ""
+# bin.smk requires `sample_name` and `barcodes` to be set
 sample_name = config["sample_name"] if config.get("sample_name") else "_".join(config["barcodes"].split(','))
 
 barcodes = ""
