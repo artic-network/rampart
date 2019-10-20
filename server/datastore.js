@@ -200,7 +200,6 @@ Datastore.prototype.getDataForClient = function() {
     /* Part II - summarise the overall data, i.e. all samples combined */
     const combinedData = {
         mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
-        mappedRate: 100,
         readsLastSeen: Math.min(...Object.values(summarisedData).map((d) => d.readsLastSeen)),
         temporal: summariseOverallTemporalData(summarisedData)
     };

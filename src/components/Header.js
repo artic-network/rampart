@@ -59,9 +59,6 @@ class Header extends React.Component {
     //   )
     // }
 
-    if (this.props.combinedData) {
-      console.log(this.props.combinedData);
-    }
     const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped ` : "no data yet ";
     const rateMsg = this.props.combinedData && this.props.combinedData.mappedRate >= 0 ?
         `${Math.round(this.props.combinedData.mappedRate)} reads/sec` : "calculating rate...";

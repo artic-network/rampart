@@ -41,7 +41,6 @@ const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, 
     const summaryTitle = `${sampleName}`;
     const timeFormatter = makeTimeFormatter();
 
-    console.log(sampleData);
     const summaryText = `${sampleData.mappedCount} reads mapped | ` +
         `${sampleData.temporal.length > 0 ? Math.round(sampleData.temporal[sampleData.temporal.length - 1].mappedRate) : "N/A"} reads/sec | ` +
         `read last seen ${timeFormatter(sampleData.readsLastSeen)} ago`;
