@@ -117,7 +117,7 @@ function assert(item, message) {
     }
 }
 
-function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
+function checkPipeline(config, pipeline, key, giveWarning = false) {
 
     let message = undefined;
 
@@ -154,7 +154,7 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
 
     if (message) {
         if (giveWarning) {
-            warn(`pipeline '${pipeline.name ? pipeline.name : index + 1}' ${message} - pipeline will be ignored`);
+            warn(`pipeline '${pipeline.name ? pipeline.name : key}' ${message} - pipeline will be ignored`);
             pipeline.ignore = true;
         } else {
             throw new Error(`pipeline '${pipeline.name}' ${message}`);
@@ -288,7 +288,7 @@ const getInitialConfig = (args) => {
         verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    checkPipeline(config, config.pipelines.annotation);
+    checkPipeline(config, config.pipelines.annotation, "annotation");
 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
@@ -339,8 +339,8 @@ const getInitialConfig = (args) => {
 
     // If other pipelines are specified, check them
     if (config.pipelines.processing) {
-        config.pipelines.processing.forEach( (pipeline, index) => {
-            checkPipeline(config, pipeline, index, true);
+        Object.entries(config.pipelines.processing).forEach( (key, pipeline) => {
+            checkPipeline(config, pipeline, key, true);
         });
     }
 

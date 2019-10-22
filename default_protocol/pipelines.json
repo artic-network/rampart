@@ -10,13 +10,13 @@
 			}
 		]
 	},
-	"processing": [
-		{
+	"processing": {
+		"consensus": {
 			"name": "Build consensus (ARTIC pipeline)",
 			"path": "pipelines/build_consensus_artic",
 			"config": "min_read_length=100 max_read_length=10000"
 		},
-		{
+		"export_reads": {
 			"name": "Export reads",
 			"path": "pipelines/bin_to_fastq",
 			"config_file": false,
@@ -31,5 +31,5 @@
 				"output_path": true
 			}
 		}
-	]
+	}
 }
