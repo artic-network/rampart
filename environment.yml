@@ -5,14 +5,14 @@ channels:
   - defaults
 dependencies:
   - python=3.7
-  - nodejs
-  - pip
-  - biopython=1.70=np112py36_1
-  - pandas=0.23.0=py36_1
-  - minimap2=2.11
-  - snakemake=5.4.3
-  - watchdog=0.8.3=py36_0
+  - nodejs=12.11.1
+  - pip=19.3.1
+  - biopython=1.74
+  - pandas=0.25.2
+  - minimap2=2.17
+  - snakemake=5.7.1
+  - watchdog=0.9.0
   - pip:
-    - msgpack==0.5.6
+    - msgpack==0.6.2
     - binlorry==0.1
-    - git+https://github.com/artic-network/Porechop.git@v0.3.0pre
+    - git+https://github.com/artic-network/Porechop.git@v0.3.1pre

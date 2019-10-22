@@ -33,12 +33,12 @@ const ChooseMaxReadLength = ({userSettings, setUserSettings}) => (
 
 
 export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
-    return Object.values(config.pipelines.processing)
+    return config.pipelines.processing ? config.pipelines.processing
         .filter((pipeline) => pipeline.run_per_sample)
         .map((obj) => ({
             label: obj.name,
             callback: () => setPostProcessingState(obj)
-        }));
+        })) : [];
 };
 
 const createInitialState = (pipeline) => {

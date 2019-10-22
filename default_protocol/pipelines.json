@@ -10,26 +10,25 @@
 			}
 		]
 	},
-	"processing": {
-		"consensus": {
-			"name": "Build consensus (ARTIC pipeline)",
-			"path": "pipelines/build_consensus_artic",
-			"config": "min_read_length=100 max_read_length=10000"
-		},
-		"export_reads": {
-			"name": "Export reads",
-			"path": "pipelines/bin_to_fastq",
-			"config_file": false,
-			"run_per_sample": true,
-			"options": {
-				"min_read_length": true,
-				"max_read_length": true,
-				"sample_name": true,
-				"barcodes": true,
-				"basecalled_path": true,
-				"annotated_path": true,
-				"output_path": true
-			}
+	"consensus": {
+		"name": "Build consensus (ARTIC pipeline)",
+		"path": "pipelines/build_consensus_artic",
+		"config": "min_read_length=100 max_read_length=10000"
+	},
+	"export_reads": {
+		"name": "Export reads",
+		"path": "pipelines/bin_to_fastq",
+		"processing": true,
+		"config_file": false,
+		"run_per_sample": true,
+		"options": {
+			"min_read_length": true,
+			"max_read_length": true,
+			"sample_name": true,
+			"barcodes": true,
+			"basecalled_path": true,
+			"annotated_path": true,
+			"output_path": true
 		}
 	}
 }
