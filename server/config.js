@@ -74,7 +74,7 @@ function ensurePathExists(path, {make=false}={}) {
             throw new Error(`ERROR. Path ${path} doesn't exist.`);
         }
     }
-};
+}
 
 function readConfigFile(paths, fileName) {
     let config = {};
@@ -86,7 +86,15 @@ function readConfigFile(paths, fileName) {
             const filePath = normalizePath(path) + fileName;
             if (fs.existsSync(filePath)) {
                 verbose("config", `Reading ${fileName} from ${path}`);
-                config = {...config, ...JSON.parse(fs.readFileSync(filePath))};
+                const newConfig = JSON.parse(fs.readFileSync(filePath));
+
+                // if any of the subobjects have a path element, update it to be relative to the current file
+                Object.values(newConfig).forEach((value) => {
+                    if (value.path) {
+                        value.path = normalizePath(getAbsolutePath(value.path, {relativeTo: path}));
+                    }
+                });
+                config = {...config, ...newConfig};
                 config.path = normalizePath(path); // add the path of the final config file read - for relative paths
             }
         });
@@ -128,8 +136,6 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
     if (!message && !pipeline.path) {
         message = `is missing the path`;
     }
-
-    pipeline.path = normalizePath(getAbsolutePath(pipeline.path, {relativeTo: config.pipelines.path}));
 
     if (!message && !fs.existsSync(pipeline.path)) {
         message = `path doesn't exist`;
@@ -288,7 +294,7 @@ const getInitialConfig = (args) => {
         verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    checkPipeline(config, config.pipelines.annotation);
+    checkPipeline(config, config.pipelines.annotation, 0);
 
     if (config.pipelines.annotation.requires) {
         // find any file that the pipeline requires
@@ -338,11 +344,11 @@ const getInitialConfig = (args) => {
     }
 
     // If other pipelines are specified, check them
-    if (config.pipelines.processing) {
-        config.pipelines.processing.forEach( (pipeline, index) => {
-            checkPipeline(config, pipeline, index, true);
-        });
-    }
+    config.pipelines.processing = Object.values(config.pipelines)
+        .filter( (pipeline) => pipeline.processing );
+    config.pipelines.processing.forEach( (pipeline, index) => {
+        checkPipeline(config, pipeline, index, true);
+    });
 
     /* display options */
     config.display = {

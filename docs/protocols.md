@@ -112,10 +112,13 @@ If you don't supply a protocol, or your protocol doesn't contain a `pipelines.js
 
 ### Structure of the JSON file:
 
-```js
+```json
 {
-    "annotation": {...}, // see "Read Annotation Pipeline" below
-    "processing": [...]  // see "User definable post-processing pipelines" below
+    "annotation": {...},  // see "Read Annotation Pipeline" below
+    "my_pipeline": {...}, // see "User definable post-processing pipelines" below
+    .
+    .
+    .
 }
 ```
 
@@ -128,12 +131,13 @@ For each pipeline you'll need to create a `Snakemake` file which RAMPART will ca
 1. a config file -- useful for options that don't need to be dynamically set
 2. config arguments -- when you set up your `pipelines.json` you can instruct RAMPART to suppy a number of parameters when the pipeline is triggered.
 
-An array of such pipelines is defined in the JSON each with the following properties:
+An list of such pipelines is defined in the JSON each with the following properties:
 
 **Required properties**
 
 * `"name"` -- the name of the pipeline (displayed in the menus)
 * `"path"` -- the path to the pipeline, relative to the "protocol" directory. There _must_ be a `Snakemake` file in this directory
+* `"processing"` -- this should be `true` if this pipeline is to appear in the processing menus in RAMPART
 
 **Optional properties**
 * `"config_file" {string}` -- the name of a config file (e.g. `config.yaml`) in the pipeline directory.

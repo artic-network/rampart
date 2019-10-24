@@ -13,7 +13,6 @@
  */
 
 const { verbose, warn } = require("./utils");
-// const { saveFastq } = require("./saveFastq");
 const { modifyConfig } = require("./config");
 const { triggerPostProcessing } = require("./postProcessing.js");
 

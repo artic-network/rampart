@@ -16,6 +16,7 @@ rule binlorry:
         "-o {output.output_prefix:q} "
         "-n {params.min_read_length} "
         "-x {params.max_read_length} "
+        "-v 0 "
         "--filter-by barcode {params.barcodes} "
         "--out-report"
 
