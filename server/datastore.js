@@ -37,7 +37,7 @@ const Datastore = function() {
       This means they will be displayed in the client, even if no reads have arrived for them */
     for (const barcode of Object.keys(global.config.run.barcodeNames)) {
         this.barcodesSeen.add(barcode);
-        const sampleName = this.getSampleName(barcode)
+        const sampleName = this.getSampleName(barcode);
         this.dataPerSample[sampleName] = new SampleData();
     }
 
