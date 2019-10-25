@@ -69,7 +69,7 @@ function ensurePathExists(path, {make=false}={}) {
     if (!fs.existsSync(path)) {
         if (make) {
             log(`Creating path ${path}`);
-            fs.mkdirSync(`"${path}"`, {recursive: true})
+            fs.mkdirSync(`${path}`, {recursive: true})
         } else {
             throw new Error(`ERROR. Path ${path} doesn't exist.`);
         }
