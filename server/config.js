@@ -360,7 +360,7 @@ const getInitialConfig = (args) => {
     };
 
     // Add any display options from the protocol config file
-    if (config.protocol.display) {
+    if (config.protocol.displayOptions) {
         config.display = { ...config.display, ...config.protocol.displayOptions };
     }
 
