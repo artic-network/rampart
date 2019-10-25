@@ -78,8 +78,15 @@ const Datapoint = function(fileNameStem, annotations) {
             endBase: negStrand ? d.start_coords : d.end_coords,
             strand: negStrand ? "-" : "+"
         };
-        readPosition.startFrac = readPosition.startBase / d.ref_len;
-        readPosition.endFrac = readPosition.endBase / d.ref_len;
+        if (global.config.protocol.readOffset) {
+            // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
+            // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
+            readPosition.startFrac = (readPosition.startBase + global.config.protocol.readOffset) / global.config.genome.length;
+            readPosition.endFrac = (readPosition.endBase + global.config.protocol.readOffset) / global.config.genome.length;
+        } else {
+            readPosition.startFrac = readPosition.startBase / d.ref_len;
+            readPosition.endFrac = readPosition.endBase / d.ref_len;
+        }
 
         this.data[barcode].readPositions.push(readPosition);
 
