@@ -131,7 +131,7 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
     }
 
     for (let i = ret.length - 1; i > 0; i--) {
-        for (let j = i - 1; j > 0; j--) {
+        for (let j = i - 1; j >= 0; j--) {
             if (ret[i].time - ret[j].time > TIME_WINDOW) {
                 ret[i].mappedRate = (ret[i].mappedCount - ret[j].mappedCount) / (ret[i].time - ret[j].time);
             }
