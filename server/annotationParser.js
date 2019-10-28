@@ -39,7 +39,6 @@ async function parseAnnotations(fileToParse) {
         warn(`Annotation file, ${fileToParse}, doesn't exist - skipping.`);
         return undefined;
     }
-
     const annotations = await dsv.csvParse(fs.readFileSync(fileToParse).toString());
     verbose(
         "annotation parser",
@@ -73,6 +72,12 @@ const annotationParser = async () => {
         try {
             annotations = await parseAnnotations(fileToParse);
             if (annotations) {
+                if (global.config.run.simulateRealTime && global.config.run.simulateRealTime > 0) {
+                    verbose("annotation parser", `simulating real-time - pausing for ${global.config.run.simulateRealTime} seconds`);
+                    // add a pause in to simulate running in real time. This is intended for when just passing the annotations which
+                    // would otherwise load all at once.
+                    await new Promise(resolve => setTimeout(resolve, global.config.run.simulateRealTime * 1000));
+                }
                 await global.datastore.addAnnotatedSetOfReads(filenameStem, annotations);
             }
         } catch (err) {

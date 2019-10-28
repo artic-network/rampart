@@ -262,7 +262,11 @@ const getInitialConfig = (args) => {
         /* overwrite any JSON defined path with a command line arg */
         config.run.basecalledPath = args.basecalledPath;
     }
+
     try {
+        if (!config.run.basecalledPath) {
+            fatal(`No directory of basecalled reads specified in startup configuration`)
+        }
         config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
         verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
     } catch (err) {
@@ -311,7 +315,7 @@ const getInitialConfig = (args) => {
 
             if (!filepath) {
                 // throw new Error(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'`);
-                warn(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
+                fatal(`Unable to find required file, ${requirement.file}, for pipeline, '${config.pipelines.annotation.name}'\n`);
             }
 
             // set this in config.run so the UI can find it.
@@ -360,7 +364,7 @@ const getInitialConfig = (args) => {
     };
 
     // Add any display options from the protocol config file
-    if (config.protocol.display) {
+    if (config.protocol.displayOptions) {
         config.display = { ...config.display, ...config.protocol.displayOptions };
     }
 
