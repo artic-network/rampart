@@ -103,7 +103,7 @@ const Datapoint = function(fileNameStem, annotations) {
 
         // add a human readable label to unmapped reads.
         if (d.referenceCall === "*" || d.referenceCall === "") {
-            row.referenceCall = UNMAPPED_LABEL;
+            d.referenceCall = UNMAPPED_LABEL;
         }
 
         this.data[barcode].readTopRefHits.push(d.referenceCall);
