@@ -282,7 +282,7 @@ const createReferenceMatchStream = function(refMatchCoverages) {
     for (let xIdx=0; xIdx<nBins; xIdx++) {
         const totalReadsHere = Object.values(refMatchCoverages)
             .map((coverageBins) => coverageBins[xIdx])
-            .reduce((a, b) => a+b)
+            .reduce((a, b) => a+b);
 
         let yPosition = 0;
         global.config.genome.referencePanel.forEach((refInfo, refIdx) => {

@@ -19,9 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
-const { warn, trace, verbose } = require('./utils');
-const { getTimeFromAnnotatedCSV } = require('./readTimes');
-const { UNMAPPED_LABEL } = require('./config');
+const { warn, verbose } = require('./utils');
 
 const parsingQueue = new Deque();
 let isRunning = false; // prevent this being called by parsingQueue.observeRangeChange() when parsingQueue.shift is called
@@ -44,11 +42,6 @@ async function parseAnnotations(fileToParse) {
         "annotation parser",
         `parsed annotation file, ${path.basename(fileToParse, '.csv')} (${annotations.length} lines)`
     );
-    annotations.forEach((row) => {
-        if (row.best_reference === "*" || row.best_reference === "") {
-            row.best_reference = UNMAPPED_LABEL;
-        }
-    });
     return annotations;
 }
 
@@ -66,7 +59,7 @@ const annotationParser = async () => {
         const filenameStem = path.basename(fileToParse, '.csv');
         let annotations;
 
-        verbose("annotation parser", `Parsing annotation for ${filenameStem}`)
+        verbose("annotation parser", `Parsing annotation for ${filenameStem}`);
         verbose("annotation parser", `${parsingQueue.length} files remain in queue`);
 
         try {

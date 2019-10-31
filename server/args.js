@@ -31,8 +31,9 @@ config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedPath', {help: "path to destination directory for annotation CSVs - will be created if it doesn't exist (default: './annotations')"});
 config.addArgument('--referencesPath', {help: "path to a FASTA file containing a panel of reference sequences"});
+config.addArgument('--referencesLabel', {help: "the reference header field to use as a reference label (if not just the reference name)"});
 config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"});
-config.addArgument('--annotationConfig', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
+config.addArgument('--annotationOptions', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
 
 const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
 runtime.addArgument('--clearAnnotated', {action: "storeTrue", help: "remove any annotation files present when RAMPART starts up (force re-annotation of all FASTQs)"});

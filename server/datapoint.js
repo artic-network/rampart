@@ -12,7 +12,7 @@
  *
  */
 
-const { UNASSIGNED_LABEL } = require('./config');
+const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./config');
 
 /**
  * A Datapoint is the annotated results from a single annotated (CSV) file
@@ -90,13 +90,29 @@ const Datapoint = function(fileNameStem, annotations) {
 
         this.data[barcode].readPositions.push(readPosition);
 
-        this.data[barcode].readTopRefHits.push(d.best_reference);
+        // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
+        // taxonomic level).
+        d.referenceCall = d.best_reference;
+        if (global.config.display.referenceLabel) {
+            if (d[global.config.display.referenceLabel]) {
+                d.referenceCall = d[global.config.display.referenceLabel];
+            } else {
+                warn(`Reference label, '${global.config.display.referenceLabel}', not found in annotation CSV file`);
+            }
+        }
+
+        // add a human readable label to unmapped reads.
+        if (d.referenceCall === "*" || d.referenceCall === "") {
+            row.referenceCall = UNMAPPED_LABEL;
+        }
+
+        this.data[barcode].readTopRefHits.push(d.referenceCall);
         this.data[barcode].readLengths.push(d.read_len);
-        if (!this.data[barcode].refMatches[d.best_reference]) {
-            this.data[barcode].refMatches[d.best_reference] = [];
+        if (!this.data[barcode].refMatches[d.referenceCall]) {
+            this.data[barcode].refMatches[d.referenceCall] = [];
         }
         const similarity = d.num_matches / d.aln_block_len;
-        this.data[barcode].refMatches[d.best_reference].push(similarity);
+        this.data[barcode].refMatches[d.referenceCall].push(similarity);
 
     });
 };

@@ -373,6 +373,10 @@ const getInitialConfig = (args) => {
         config.display = { ...config.display, ...config.run.displayOptions };
     }
 
+    if (args.referenceLabel) {
+        config.display.referenceLabel = args.referenceLabel;
+    }
+
     return config;
 };
 
