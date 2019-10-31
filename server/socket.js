@@ -52,7 +52,7 @@ global.CONFIG_UPDATED = () => sendConfig();
  * Client has just connected -- send current state of config + data
  */
 const initialConnection = (socket) => {
-  verbose("socket", "initial connection")
+  verbose("socket", "initial connection");
   sendConfig();
   sendData();
 };
@@ -66,7 +66,7 @@ const setUpIOListeners = (socket) => {
         if (dataRecalcNeeded) {
             warn("DATA RECALC NOT YET IMPLEMENTED")
         }
-    })
+    });
 
     socket.on('triggerPostProcessing', triggerPostProcessing);
 
