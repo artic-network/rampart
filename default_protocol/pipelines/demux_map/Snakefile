@@ -28,6 +28,7 @@ except:
     pass
     # print("No barcodes given, will search for all barcodes within the {} barcode list.".format(config["barcode_set"]))
 
+reference_fields = config["reference_fields"] if config.get("reference_fields") else ""
 
 discard_unassigned = ""
 if str(config["discard_unassigned"]).lower()=="true":
