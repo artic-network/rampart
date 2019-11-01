@@ -25,7 +25,7 @@ export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection,
         /* find index of `d` which mouse is currently over */
         const idx = Math.floor(((mouseX - scales.x.range()[0]) / (scales.x.range()[1] - scales.x.range()[0]))*d.length)
 
-        let html = `<p>@ ${idx*basesPerBin}bp:</p>`;
+        let html = `<p>@ ${Math.round(idx*basesPerBin)}bp:</p>`;
         stream.forEach((dd, ii) => {
           const percMatch = parseInt((dd[idx][1] - dd[idx][0]) * 100, 10);
           if (percMatch > 5) {
