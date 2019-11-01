@@ -93,11 +93,11 @@ const Datapoint = function(fileNameStem, annotations) {
         // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
         // taxonomic level).
         d.referenceCall = d.best_reference;
-        if (global.config.display.referenceLabel) {
-            if (d[global.config.display.referenceLabel]) {
-                d.referenceCall = d[global.config.display.referenceLabel];
+        if (global.config.display.referencesLabel) {
+            if (d[global.config.display.referencesLabel]) {
+                d.referenceCall = d[global.config.display.referencesLabel];
             } else {
-                warn(`Reference label, '${global.config.display.referenceLabel}', not found in annotation CSV file`);
+                warn(`Reference label, '${global.config.display.referencesLabel}', not found in annotation CSV file`);
             }
         }
 

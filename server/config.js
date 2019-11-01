@@ -373,8 +373,8 @@ const getInitialConfig = (args) => {
         config.display = { ...config.display, ...config.run.displayOptions };
     }
 
-    if (args.referenceLabel) {
-        config.display.referenceLabel = args.referenceLabel;
+    if (args.referencesLabel) {
+        config.display.referencesLabel = args.referencesLabel;
     }
 
     return config;
@@ -447,7 +447,7 @@ const updateConfigWithNewBarcodes = () => {
     if (!newBarcodes.length) {
         return;
     }
-    verbose("config", `new barcodes seen! ${newBarcodes.join(" & ")}`);
+    verbose("config", `new barcodes seen: ${newBarcodes.join(", ")}`);
     newBarcodes.forEach((bc) => {
         global.config.run.barcodeNames[bc] = {name: undefined, order: 0}
     });
@@ -474,7 +474,7 @@ const updateReferencesSeen = (referencesSeen) => {
         }
     });
     if (changes.length) {
-        verbose("config", `new references seen: ${changes.join(" & ")}`);
+        verbose("config", `new references seen: ${changes.join(", ")}`);
         global.CONFIG_UPDATED();
     }
 };
