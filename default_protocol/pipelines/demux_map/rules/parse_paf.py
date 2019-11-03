@@ -143,7 +143,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
     report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                  f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
                  f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping['aln_block_len']}")
-    if mapping['ref_opts'] != None:
+    if 'ref_opts' in mapping:
         report.write(f",{','.join(mapping['ref_opts'])}\n")
     else:
         report.write("\n")
@@ -168,7 +168,7 @@ def parse_paf(paf, report, header_dict, reference_options, reference_info):
                 if mapping["read_name"] == last_mapping["read_name"]:
                     # this is another mapping for the same read so set the original one to ambiguous. Don't
                     # set last_mapping in case there is another mapping with the same read name.
-                    last_mapping.ref_hit = '?'
+                    last_mapping['ref_hit'] = '?'
                 else:
                     write_mapping(report, last_mapping, reference_options, reference_info, counts)
                     last_mapping = mapping
