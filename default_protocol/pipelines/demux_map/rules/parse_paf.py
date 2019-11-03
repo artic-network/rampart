@@ -96,54 +96,82 @@ def check_overlap(coords1,coords2):
     else:
         return False, 0 
 
+def parse_line(line, header_dict):
+
+    values = {}
+
+    tokens = line.rstrip('\n').split('\t')
+    values.read_name, values.read_len = tokens[:2]
+    values.barcode, values.start_time = header_dict[values.read_name]
+    values.ref_hit, values.ref_len, values.coord_start, values.coord_end, values.matches, values.aln_block_len = tokens[5:11]
+
+    return values
+
+
+def write_mapping(report, mapping, counts):
+    if mapping.ref_hit == '*' or mapping.ref_hit == '?':
+        # '*' means no mapping, '?' ambiguous mapping (i.e., multiple primary mappings)
+        coord_start, coord_end = 0, 0
+        counts.unmapped += 1
+        if reference_options!=None:
+            mapping.ref_opts = []
+            for k in reference_options:
+                mapping.ref_opts.append(mapping.ref_hit)
+    else:
+        if reference_options!=None:
+            mapping.ref_opts = []
+            for k in reference_options:
+                if len(reference_options[k]) == 1:
+                    mapping.ref_opts.append(reference_info[mapping.ref_hit][k])
+                else:
+                    overlap_list = []
+                    for i in reference_options[k]:
+                        if len(i) == 3:
+                            sub_k,opt_start,opt_end= i
+                            overlap,length = check_overlap((opt_start,opt_end),(int(mapping.coord_start),int(mapping.coord_end)))
+                            if overlap:
+                                overlap_list.append((reference_info[mapping.ref_hit][sub_k],length))
+                    best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
+                    mapping.ref_opts.append(best[0])
+
+    report.write(f"{mapping.read_name},{mapping.read_len},{mapping.start_time},{mapping.barcode},{mapping.ref_hit},{mapping.ref_len},{mapping.coord_start},{mapping.coord_end},{mapping.matches},{mapping.aln_block_len}")
+    if mapping.ref_opts!=None:
+        report.write(f",{','.join(mapping.ref_opts)}\n")
+    else:
+        report.write("\n")
+
 def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_options, reference_info):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
-    unmapped = 0
+    counts = {
+        "unmapped": 0,
+        "ambiguous": 0
+    }
 
-    header_dict=get_barcode_time(reads)
+    header_dict = get_barcode_time(reads)
 
     with open(str(paf),"r") as f:
-        for l in f:
-            ref_option_string = ""
-            tokens=l.rstrip('\n').split()
-            read_name,read_len = tokens[:2]
-            barcode,start_time=header_dict[read_name]
-            ref_hit,ref_len,coord_start,coord_end,matches,aln_block_len=tokens[5:11]
+        last_mapping = None
+        for line in f:
 
-            if ref_hit=='*': #output by minimap2 if read doesn't map
-                coord_start,coord_end=0,0
-                unmapped +=1
-                if reference_options!=None:
-                    
-                    for k in reference_options:
-                        ref_option_string+="NA,"
-            else:
-                if reference_options!=None:
-                    for k in reference_options:
-                        if len(reference_options[k]) == 1:
-                            ref_option_string += reference_info[ref_hit][k] + ','
-                        else:
-                            overlap_list = []
-                            for i in reference_options[k]:
-                                if len(i) == 3:
-                                    sub_k,opt_start,opt_end= i
-                                    overlap,length = check_overlap((opt_start,opt_end),(int(coord_start),int(coord_end)))
-                                    if overlap:
-                                        overlap_list.append((reference_info[ref_hit][sub_k],length))
-                            best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
-                            ref_option_string += best[0] + ','
+            mapping = parse_line(line, header_dict)
 
-            if int(read_len) >= min_read_length and int(read_len) <= max_read_length:
-                report.write(f"{read_name},{read_len},{start_time},{barcode},{ref_hit},{ref_len},{coord_start},{coord_end},{matches},{aln_block_len}")
-                if reference_options!=None:
-                    report.write(f",{ref_option_string.rstrip(',')}\n")
+            if last_mapping:
+                if mapping["read_name"] == last_mapping["read_name"]:
+                    # this is another mapping for the same read so set the original one to ambiguous
+                    last_mapping.ref_hit = '?'
+
                 else:
-                    report.write("\n")
+                    write_mapping(report, last_mapping, counts)
+                    last_mapping = mapping
+            else:
+                last_mapping = mapping
+
+        write_mapping(report, last_mapping, counts)
 
     try:
-        prop_unmapped = unmapped / len(header_dict)
+        prop_unmapped = counts.unmapped / len(header_dict)
         print("Proportion unmapped is {}".format(prop_unmapped))
         if prop_unmapped >0.95:
             print("\nWarning: Very few reads have mapped (less than 5%).\n")
