@@ -68,7 +68,7 @@ def parse_read_header(header):
             pass
     return header_info
 
-def get_barcode_time(reads):
+def get_header_dict(reads):
     #This function parses the fastq file and returns a dictionary
     #with read name as the key and barcode information as the value
     # i.e. barcode_dict[read_name]=barcode
@@ -101,52 +101,54 @@ def parse_line(line, header_dict):
     values = {}
 
     tokens = line.rstrip('\n').split('\t')
-    values.read_name, values.read_len = tokens[:2]
-    values.barcode, values.start_time = header_dict[values.read_name]
-    values.ref_hit, values.ref_len, values.coord_start, values.coord_end, values.matches, values.aln_block_len = tokens[5:11]
+    values["read_name"], values["read_len"] = tokens[:2]
+    values["barcode"], values["start_time"] = header_dict[values["read_name"]]
+    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
 
     return values
 
 
-def write_mapping(report, mapping, counts):
-    if mapping.ref_hit == '*' or mapping.ref_hit == '?':
+def write_mapping(report, mapping, reference_options, reference_info, counts):
+    if mapping["ref_hit"] == '*' or mapping["ref_hit"] == '?':
         # '*' means no mapping, '?' ambiguous mapping (i.e., multiple primary mappings)
-        coord_start, coord_end = 0, 0
-        if (mapping.ref_hit == '*'):
+        mapping['coord_start'], mapping['coord_end'] = 0, 0
+        if (mapping["ref_hit"] == '*'):
             counts["unmapped"] += 1
         else:
             counts["ambiguous"] += 1
 
-    if reference_options!=None:
-            mapping.ref_opts = []
+    if reference_options != None:
+            mapping["ref_opts"] = []
             for k in reference_options:
-                mapping.ref_opts.append(mapping.ref_hit)
+                mapping["ref_opts"].append(mapping["ref_hit"])
     else:
-        if reference_options!=None:
-            mapping.ref_opts = []
+        if reference_options != None:
+            mapping["ref_opts"] = []
             for k in reference_options:
                 if len(reference_options[k]) == 1:
-                    mapping.ref_opts.append(reference_info[mapping.ref_hit][k])
+                    mapping["ref_opts"].append(reference_info[mapping["ref_hit"]][k])
                 else:
                     overlap_list = []
                     for i in reference_options[k]:
                         if len(i) == 3:
-                            sub_k,opt_start,opt_end= i
-                            overlap,length = check_overlap((opt_start,opt_end),(int(mapping.coord_start),int(mapping.coord_end)))
+                            sub_k, opt_start, opt_end = i
+                            overlap, length = check_overlap((opt_start, opt_end),(int(mapping["coord_start"]), int(mapping["coord_end"])))
                             if overlap:
-                                overlap_list.append((reference_info[mapping.ref_hit][sub_k],length))
+                                overlap_list.append((reference_info[mapping["ref_hit"]][sub_k], length))
                     best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
-                    mapping.ref_opts.append(best[0])
+                    mapping["ref_opts"].append(best[0])
 
     counts["total"] += 1
 
-    report.write(f"{mapping.read_name},{mapping.read_len},{mapping.start_time},{mapping.barcode},{mapping.ref_hit},{mapping.ref_len},{mapping.coord_start},{mapping.coord_end},{mapping.matches},{mapping.aln_block_len}")
-    if mapping.ref_opts!=None:
-        report.write(f",{','.join(mapping.ref_opts)}\n")
+    report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
+                 f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
+                 f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping['aln_block_len']}")
+    if mapping['ref_opts'] != None:
+        report.write(f",{','.join(mapping['ref_opts'])}\n")
     else:
         report.write("\n")
 
-def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_options, reference_info):
+def parse_paf(paf, report, header_dict, reference_options, reference_info):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
@@ -156,8 +158,6 @@ def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_op
         "total": 0
     }
 
-    header_dict = get_barcode_time(reads)
-
     with open(str(paf),"r") as f:
         last_mapping = None
         for line in f:
@@ -166,15 +166,17 @@ def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_op
 
             if last_mapping:
                 if mapping["read_name"] == last_mapping["read_name"]:
-                    # this is another mapping for the same read so set the original one to ambiguous
+                    # this is another mapping for the same read so set the original one to ambiguous. Don't
+                    # set last_mapping in case there is another mapping with the same read name.
                     last_mapping.ref_hit = '?'
                 else:
-                    write_mapping(report, last_mapping, counts)
+                    write_mapping(report, last_mapping, reference_options, reference_info, counts)
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
-        write_mapping(report, last_mapping, counts)
+        # write the last last_mapping
+        write_mapping(report, last_mapping, reference_options, reference_info, counts)
 
     try:
         prop_unmapped = counts["unmapped"] / counts["total"]
@@ -197,5 +199,7 @@ if __name__ == '__main__':
             reference_options,ref_option_header = None,''
             reference_info = None
 
+        header_dict = get_header_dict(args.reads)
+
         csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len{ref_option_header}\n")
-        parse_paf(args.paf_file,csv_report,args.reads, args.min_read_length, args.max_read_length,reference_options,reference_info)
+        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info)
