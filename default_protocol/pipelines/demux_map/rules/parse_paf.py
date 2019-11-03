@@ -112,8 +112,12 @@ def write_mapping(report, mapping, counts):
     if mapping.ref_hit == '*' or mapping.ref_hit == '?':
         # '*' means no mapping, '?' ambiguous mapping (i.e., multiple primary mappings)
         coord_start, coord_end = 0, 0
-        counts.unmapped += 1
-        if reference_options!=None:
+        if (mapping.ref_hit == '*'):
+            counts["unmapped"] += 1
+        else:
+            counts["ambiguous"] += 1
+
+    if reference_options!=None:
             mapping.ref_opts = []
             for k in reference_options:
                 mapping.ref_opts.append(mapping.ref_hit)
@@ -134,6 +138,8 @@ def write_mapping(report, mapping, counts):
                     best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
                     mapping.ref_opts.append(best[0])
 
+    counts["total"] += 1
+
     report.write(f"{mapping.read_name},{mapping.read_len},{mapping.start_time},{mapping.barcode},{mapping.ref_hit},{mapping.ref_len},{mapping.coord_start},{mapping.coord_end},{mapping.matches},{mapping.aln_block_len}")
     if mapping.ref_opts!=None:
         report.write(f",{','.join(mapping.ref_opts)}\n")
@@ -146,7 +152,8 @@ def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_op
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
     counts = {
         "unmapped": 0,
-        "ambiguous": 0
+        "ambiguous": 0,
+        "total": 0
     }
 
     header_dict = get_barcode_time(reads)
@@ -161,7 +168,6 @@ def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_op
                 if mapping["read_name"] == last_mapping["read_name"]:
                     # this is another mapping for the same read so set the original one to ambiguous
                     last_mapping.ref_hit = '?'
-
                 else:
                     write_mapping(report, last_mapping, counts)
                     last_mapping = mapping
@@ -171,7 +177,7 @@ def parse_paf(paf, report, reads, min_read_length, max_read_length, reference_op
         write_mapping(report, last_mapping, counts)
 
     try:
-        prop_unmapped = counts.unmapped / len(header_dict)
+        prop_unmapped = counts["unmapped"] / counts["total"]
         print("Proportion unmapped is {}".format(prop_unmapped))
         if prop_unmapped >0.95:
             print("\nWarning: Very few reads have mapped (less than 5%).\n")
