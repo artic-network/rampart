@@ -1,6 +1,6 @@
 {
   "name": "artic-rampart",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "main": "src/electron.js",
   "author": "James Hadfield, Ainé O'Toole, ARTIC network, Nick Loman, Andrew Rambaut",
   "bin": {
@@ -43,7 +43,8 @@
     "build": "react-scripts build",
     "server": "node src/server.js",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall" : "npm run build"
   },
   "browserslist": {
     "production": [
