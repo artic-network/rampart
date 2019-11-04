@@ -43,7 +43,7 @@ const ContractChart = ({handleClick}) => {
  *    It also helps when we change the size of them (e.g. expand) them to simply get
  *    them to reinitialise with new dimensions
  */
-const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket}) => {
+const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket, timeSinceLastDataUpdate}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [expanded, setExpanded] = useState(true);
@@ -186,6 +186,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         menuItems={menuItems}
         handleClick={toggleExpanded}
         isExpanded={expanded}
+        timeSinceLastDataUpdate={timeSinceLastDataUpdate}
       />
       {postProcessingState ? (
         <PostProcessingRunner

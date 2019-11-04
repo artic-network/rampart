@@ -43,6 +43,7 @@ const Renderer = (props) => {
                 config={props.config}
                 openConfigSidebar={() => setSidebarOpenState("config")}
                 socket={props.socket}
+                timeSinceLastDataUpdate={props.timeSinceLastDataUpdate}
             />
         )
     }

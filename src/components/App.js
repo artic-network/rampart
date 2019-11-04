@@ -31,7 +31,8 @@ class App extends Component {
       config: {},
       changePage: (page) => this.setState({mainPage: page}),
       socketPort: undefined,
-      infoMessage: ""
+      infoMessage: "",
+      timeSinceLastDataUpdate: 0 /* INT seconds */
     };
     /* define state setters -- note that it's ok to modify this.state in the constructor */
     this.state.setViewOptions = (newOptions) => {
@@ -66,6 +67,10 @@ class App extends Component {
           this.setState({socketPort: res.socketPort})
         })
     }
+    window.setInterval(
+      () => {this.setState({timeSinceLastDataUpdate: this.state.timeSinceLastDataUpdate+1})},
+      1000 /* won't be exactly 1s but close enough & reset every time data arrives */
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -110,7 +115,8 @@ class App extends Component {
         viewOptions: newViewOptions,
         dataPerSample,
         combinedData,
-        mainPage: "viz"
+        mainPage: "viz",
+        timeSinceLastDataUpdate: 0
       });
     })
     socket.on("config", (newConfig) => {

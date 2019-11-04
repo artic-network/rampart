@@ -17,7 +17,7 @@ import React from 'react';
 import SamplePanel from "./SamplePanel"
 import OverallSummaryPanel from "./OverallSummaryPanel";
 
-const Panels = ({dataPerSample, combinedData, viewOptions, config, openConfigSidebar, socket}) => {
+const Panels = ({dataPerSample, combinedData, viewOptions, config, openConfigSidebar, socket, timeSinceLastDataUpdate}) => {
     if (!dataPerSample || !combinedData) {
         return (
             <h1>????</h1>
@@ -43,6 +43,7 @@ const Panels = ({dataPerSample, combinedData, viewOptions, config, openConfigSid
                     reference={config.reference}
                     socket={socket}
                     config={config}
+                    timeSinceLastDataUpdate={timeSinceLastDataUpdate}
                 />
             ))}
         </>
