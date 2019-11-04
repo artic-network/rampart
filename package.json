@@ -1,6 +1,6 @@
 {
   "name": "artic-rampart",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "main": "src/electron.js",
   "author": "James Hadfield, Ainé O'Toole, ARTIC network, Nick Loman, Andrew Rambaut",
   "bin": {
