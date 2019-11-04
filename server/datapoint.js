@@ -101,8 +101,9 @@ const Datapoint = function(fileNameStem, annotations) {
             }
         }
 
-        // add a human readable label to unmapped reads.
-        if (d.referenceCall === "*" || d.referenceCall === "") {
+        // add a human readable label to unmapped reads. "*" means unmapped, "?" means ambiguous but
+        // call both as unmapped for now.
+        if (d.referenceCall === "*" || d.referenceCall === "?" || d.referenceCall === "") {
             d.referenceCall = UNMAPPED_LABEL;
         }
 
