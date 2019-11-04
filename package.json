@@ -9,6 +9,7 @@
   "repository": "github:artic-network/rampart",
   "private": false,
   "license": "AGPL-3.0-only",
+  "homepage": "/",
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
