@@ -4,15 +4,13 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.7
-  - nodejs=12.11.1
-  - pip=19.3.1
+  - "python>=3"
+  - "nodejs>=12"
+  - pip
+  - snakemake=5.7.4
   - biopython=1.74
-  - pandas=0.25.2
+  - pandas=0.25.3
   - minimap2=2.17
-  - snakemake=5.7.1
-  - watchdog=0.9.0
   - pip:
-    - msgpack==0.6.2
     - binlorry==0.1
     - git+https://github.com/artic-network/Porechop.git@v0.3.1pre

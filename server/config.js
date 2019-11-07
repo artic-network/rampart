@@ -339,9 +339,9 @@ const getInitialConfig = (args) => {
     }
 
     // Add any annotationOptions options from the command line
-    if (args.annotationConfig) {
+    if (args.annotationOptions) {
         // add pass-through options to the annotation script
-        args.annotationConfig.forEach( value => {
+        args.annotationOptions.forEach( value => {
             const values = value.split("=");
             config.pipelines.annotation.configOptions[values[0]] = (values.length > 1 ? values[1] : "");
         });
