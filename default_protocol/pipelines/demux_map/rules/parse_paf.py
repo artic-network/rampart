@@ -1,7 +1,6 @@
 import argparse
 from Bio import SeqIO
 from collections import defaultdict
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
 
@@ -99,7 +98,6 @@ def check_overlap(coords1,coords2):
 def parse_line(line, header_dict):
 
     values = {}
-
     tokens = line.rstrip('\n').split('\t')
     values["read_name"], values["read_len"] = tokens[:2]
     values["barcode"], values["start_time"] = header_dict[values["read_name"]]
@@ -117,10 +115,10 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
         else:
             counts["ambiguous"] += 1
 
-    if reference_options != None:
-            mapping["ref_opts"] = []
-            for k in reference_options:
-                mapping["ref_opts"].append(mapping["ref_hit"])
+        if reference_options != None:
+                mapping["ref_opts"] = []
+                for k in reference_options:
+                    mapping["ref_opts"].append(mapping["ref_hit"])
     else:
         if reference_options != None:
             mapping["ref_opts"] = []
