@@ -5,9 +5,9 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/artic-network/rampart/archive/v1.0.0-alpha.3.tar.gz
+  url: https://github.com/artic-network/rampart/archive/v1.0.1-1.tar.gz
   folder: rampart
-  sha256: d6147050dbc2f97d5cf6d6648837d3c378fb713c06d7bbba47233b831c35b152
+  sha256: 424a9e60cc663234fcabe49b24c8e44a6900e86aa64b9e5d031e95644f3ef4a7
 
 requirements:
   build:
