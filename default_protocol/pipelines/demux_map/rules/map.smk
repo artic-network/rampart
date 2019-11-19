@@ -1,6 +1,6 @@
 rule minimap2:
     input:
-        fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
+        fastq= config["input_path"] + "/{filename_stem}.fastq",
         ref= config["references_file"]
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.paf")
@@ -24,8 +24,6 @@ rule parse_mapping:
         reference_file = config["references_file"],
     params:
         path_to_script = workflow.current_basedir,
-        min_read_length = config["min_read_length"],
-        max_read_length = config["max_read_length"],
         reference_options = f'--reference_options "{reference_fields}"'
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
@@ -35,8 +33,6 @@ rule parse_mapping:
         --paf_file {input.mapped:q} \
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
-        --min_read_length {params.min_read_length} \
-        --max_read_length {params.max_read_length} \
         --reference_file {input.reference_file} \
         {params.reference_options}
         """
