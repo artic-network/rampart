@@ -133,6 +133,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
                             overlap, length = check_overlap((opt_start, opt_end),(int(mapping["coord_start"]), int(mapping["coord_end"])))
                             if overlap:
                                 overlap_list.append((reference_info[mapping["ref_hit"]][sub_k], length))
+                    
                     best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
                     mapping["ref_opts"].append(best[0])
 
