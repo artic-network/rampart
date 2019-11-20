@@ -12,9 +12,6 @@ def parse_args():
     parser.add_argument("--reference_file", action="store", type=str, dest="references")
     parser.add_argument("--reference_options", action="store", type=str, dest="reference_options")
 
-    parser.add_argument("--min_read_length", action="store", type=int, dest="min_read_length")
-    parser.add_argument("--max_read_length", action="store", type=int, dest="max_read_length")
-
     return parser.parse_args()
 
 def parse_reference_options(reference_options):
@@ -100,7 +97,10 @@ def parse_line(line, header_dict):
     values = {}
     tokens = line.rstrip('\n').split('\t')
     values["read_name"], values["read_len"] = tokens[:2]
-    values["barcode"], values["start_time"] = header_dict[values["read_name"]]
+    if values["read_name"] in header_dict:
+        values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
+    else:
+        values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
     values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
 
     return values
@@ -133,9 +133,11 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
                             overlap, length = check_overlap((opt_start, opt_end),(int(mapping["coord_start"]), int(mapping["coord_end"])))
                             if overlap:
                                 overlap_list.append((reference_info[mapping["ref_hit"]][sub_k], length))
-                    
-                    best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
-                    mapping["ref_opts"].append(best[0])
+                    if overlap_list:
+                        best = sorted(overlap_list, key = lambda x : x[1], reverse=True)[0]
+                        mapping["ref_opts"].append(best[0])
+                    else:
+                        mapping["ref_opts"].append("NA")
 
     counts["total"] += 1
 
