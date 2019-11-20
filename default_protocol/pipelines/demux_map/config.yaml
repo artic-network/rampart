@@ -14,7 +14,7 @@ references_file: references.fasta
 ##### Porechop options #####
 
 require_two_barcodes: "True"
-discard_middle: "True"
+discard_middle: "False"
 split_reads: "False"
 discard_unassigned: "False" #default keep unassigned, change to --discard_unassigned if you don't want to see unbarcoded reads
 barcode_set: "native" # [native,rapid,all], defaults to `native`, `all` is much slower

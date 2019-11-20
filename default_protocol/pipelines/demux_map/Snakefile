@@ -46,7 +46,7 @@ else:
 # todo - check that the value is true or false
 split_reads = ""
 if str(config["split_reads"]).lower()=="true":
-    split_reads= " --no_split"
+    split_reads= ""
 else:
     split_reads= " --no_split"
 
