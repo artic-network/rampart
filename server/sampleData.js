@@ -21,29 +21,52 @@ const SampleData = function() {
     this.readsLastSeenTime = undefined;
     this.mappedRate = 0;
     this.refMatchCounts = {};
-    this.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
+    this.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
     this.temporal = new Map();
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
 };
 
-const getCoverageBins = (readPos) => {
-    // get coverage indexes (i.e. bin number) relative to genome positions (fractions)
-    return [
-        Math.floor(readPos.startFrac * global.config.display.numCoverageBins),
-        Math.ceil(readPos.endFrac * global.config.display.numCoverageBins)
-    ];
-};
+// const getCoverageBins = (readPos) => {
+//     // get coverage indexes (i.e. bin number) relative to genome positions (fractions)
+//     return [
+//         Math.floor(readPos.startFrac * global.config.display.numCoverageBins),
+//         Math.ceil(readPos.endFrac * global.config.display.numCoverageBins)
+//     ];
+// };
+//
+//
+// SampleData.prototype.updateCoverage = function(data) {
+//     for (const readPos of data.readPositions) {
+//         const [aIdx, bIdx] = getCoverageBins(readPos);
+//         for (let i=aIdx; i<=bIdx && i<this.coverage.length; i++) {
+//             this.coverage[i]++;
+//         }
+//     }
+// };
 
+const addCoverage = function(readPos, bins, binCount) {
+    const aIdx1 = Math.floor(readPos.startFrac * binCount);
+    const aIdx2 = Math.ceil(readPos.startFrac * binCount);
+    const bIdx1 = Math.floor(readPos.endFrac * binCount);
+
+    if (aIdx1 === bIdx1) {
+        bins[aIdx1] += (readPos.endFrac - readPos.startFrac) * binCount;
+    } else {
+        bins[aIdx1] += aIdx2 - (readPos.startFrac * binCount);
+        for (let i = aIdx2; i < bIdx1; i++) {
+            bins[i] += 1.0;
+        }
+        bins[bIdx1] += (readPos.endFrac * binCount) - bIdx1;
+    }
+};
 
 SampleData.prototype.updateCoverage = function(data) {
     for (const readPos of data.readPositions) {
-        const [aIdx, bIdx] = getCoverageBins(readPos);
-        for (let i=aIdx; i<=bIdx && i<this.coverage.length; i++) {
-            this.coverage[i]++;
-        }
+        addCoverage(readPos, this.coverage, global.config.display.numCoverageBins);
     }
 };
+
 
 SampleData.prototype.updateReadLengthCounts = function(data) {
     const readLengthResolution = global.config.display.readLengthResolution;
@@ -52,23 +75,20 @@ SampleData.prototype.updateReadLengthCounts = function(data) {
         if (this.readLengthCounts[len] === undefined) {
             this.readLengthCounts[len] = 0;
         }
-        this.readLengthCounts[len]++
+        this.readLengthCounts[len]++;
     })
 };
 
 
 SampleData.prototype.updateRefMatchCoverages = function(data) {
     data.readPositions.forEach((readPos, idx) => {
-        const [aIdx, bIdx] = getCoverageBins(readPos);
         const refName = data.readTopRefHits[idx];
         if (!this.refMatchCoverages[refName]) {
             /* unseen reference -- must initialise */
-            this.refMatchCoverages[refName] = Array.from(new Array(global.config.display.numCoverageBins), () => 0)
+            this.refMatchCoverages[refName] = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
         }
-        for (let i=aIdx; i<=bIdx && i<this.refMatchCoverages[refName].length; i++) {
-            this.refMatchCoverages[refName][i]++
-        }
-    })
+        addCoverage(readPos, this.refMatchCoverages[refName], global.config.display.numCoverageBins);
+    });
 };
 
 SampleData.prototype.updateRefMatchCounts = function(data, referencesSeen) {
