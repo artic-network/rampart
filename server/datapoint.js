@@ -63,33 +63,6 @@ const Datapoint = function(fileNameStem, annotations) {
         this.data[barcode].barcodeCount++;
         this.data[barcode].mappedCount++;
 
-        // coerce into integers
-        d.start_coords = parseInt(d.start_coords, 10);
-        d.end_coords = parseInt(d.end_coords, 10);
-        d.ref_len = parseInt(d.ref_len, 10);
-        d.read_len = parseInt(d.read_len, 10);
-        d.num_matches = parseInt(d.num_matches, 10);
-        d.aln_block_len = parseInt(d.aln_block_len, 10);
-
-        /* where the read mapped on the reference */
-        const negStrand = d.start_coords > d.end_coords;
-        const readPosition = {
-            startBase: negStrand ? d.end_coords : d.start_coords,
-            endBase: negStrand ? d.start_coords : d.end_coords,
-            strand: negStrand ? "-" : "+"
-        };
-        if (global.config.display.readOffset) {
-            // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
-            // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
-            readPosition.startFrac = (readPosition.startBase + global.config.display.readOffset) / global.config.genome.length;
-            readPosition.endFrac = (readPosition.endBase + global.config.display.readOffset) / global.config.genome.length;
-        } else {
-            readPosition.startFrac = readPosition.startBase / d.ref_len;
-            readPosition.endFrac = readPosition.endBase / d.ref_len;
-        }
-
-        this.data[barcode].readPositions.push(readPosition);
-
         // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
         // taxonomic level).
         d.referenceCall = d.best_reference;
@@ -105,6 +78,33 @@ const Datapoint = function(fileNameStem, annotations) {
         // call both as unmapped for now.
         if (d.referenceCall === "*" || d.referenceCall === "?" || d.referenceCall === "") {
             d.referenceCall = UNMAPPED_LABEL;
+        } else {
+            // coerce into integers
+            d.start_coords = parseInt(d.start_coords, 10);
+            d.end_coords = parseInt(d.end_coords, 10);
+            d.ref_len = parseInt(d.ref_len, 10);
+            d.read_len = parseInt(d.read_len, 10);
+            d.num_matches = parseInt(d.num_matches, 10);
+            d.aln_block_len = parseInt(d.aln_block_len, 10);
+
+            /* where the read mapped on the reference */
+            const negStrand = d.start_coords > d.end_coords;
+            const readPosition = {
+                startBase: negStrand ? d.end_coords : d.start_coords,
+                endBase: negStrand ? d.start_coords : d.end_coords,
+                strand: negStrand ? "-" : "+"
+            };
+            if (global.config.display.readOffset) {
+                // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
+                // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
+                readPosition.startFrac = (readPosition.startBase + global.config.display.readOffset) / global.config.genome.length;
+                readPosition.endFrac = (readPosition.endBase + global.config.display.readOffset) / global.config.genome.length;
+            } else {
+                readPosition.startFrac = readPosition.startBase / d.ref_len;
+                readPosition.endFrac = readPosition.endBase / d.ref_len;
+            }
+
+            this.data[barcode].readPositions.push(readPosition);
         }
 
         this.data[barcode].readTopRefHits.push(d.referenceCall);
@@ -120,7 +120,7 @@ const Datapoint = function(fileNameStem, annotations) {
 
 Datapoint.prototype.getDataForBarcode = function(barcode) {
     return this.data[barcode];
-}
+};
 
 Datapoint.prototype.getBarcodes = function() {
     return Object.keys(this.data);
