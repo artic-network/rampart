@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright (c) 2019 ARTIC Network http://artic.network
  * https://github.com/artic-network/rampart
  *
@@ -74,7 +74,7 @@ class CoveragePlot extends React.Component {
                     xyValues: this.props.coverage[name].coverage.map((cov, idx) => [parseInt(idx*basesPerBin, 10), cov]),
                     colour: this.props.sampleColours[name]
                 }));
-            const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${yValue}x`);
+            const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${Math.round(yValue)}x`);
             drawSteps({
                 svg: this.state.svg,
                 chartGeom: this.state.chartGeom,
