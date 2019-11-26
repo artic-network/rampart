@@ -108,8 +108,8 @@ SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
     }
 };
 
-SampleData.prototype.coveragePercAboveThreshold = function(threshold) {
-    return (this.coverage.reduce((acc, cv) => cv > threshold ? ++acc : acc, 0)/this.coverage.length)*100;
+SampleData.prototype.coveragePercentAboveThreshold = function(threshold) {
+    return (this.coverage.reduce((acc, cv) => cv > threshold ? acc + Math.max(cv, 1.0) : acc, 0.0) / this.coverage.length) * 100;
 };
 
 SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
@@ -129,10 +129,10 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
         // time: timestamp,
         mappedCount: this.mappedCount,
         mappedRate: 0,
-        under1x:   100.0 - this.coveragePercAboveThreshold(0),
-        over10x:   this.coveragePercAboveThreshold(10),
-        over100x:  this.coveragePercAboveThreshold(100),
-        over1000x: this.coveragePercAboveThreshold(1000)
+        under1x:   100.0 - this.coveragePercentAboveThreshold(0),
+        over10x:   this.coveragePercentAboveThreshold(10),
+        over100x:  this.coveragePercentAboveThreshold(100),
+        over1000x: this.coveragePercentAboveThreshold(1000)
     });
 };
 
