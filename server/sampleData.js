@@ -109,7 +109,7 @@ SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
 };
 
 SampleData.prototype.coveragePercAboveThreshold = function(threshold) {
-    return parseInt((this.coverage.reduce((acc, cv) => cv > threshold ? ++acc : acc, 0)/this.coverage.length)*100, 10);
+    return (this.coverage.reduce((acc, cv) => cv > threshold ? ++acc : acc, 0)/this.coverage.length)*100;
 };
 
 SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
@@ -129,6 +129,7 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
         // time: timestamp,
         mappedCount: this.mappedCount,
         mappedRate: 0,
+        under1x:   100.0 - this.coveragePercAboveThreshold(0),
         over10x:   this.coveragePercAboveThreshold(10),
         over100x:  this.coveragePercAboveThreshold(100),
         over1000x: this.coveragePercAboveThreshold(1000)

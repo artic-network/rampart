@@ -28,24 +28,26 @@ const calcChartGeom = (DOMRect) => ({
     spaceTop: 20
 });
 
-const strokeDashFunction = (i) => { /* i = 0, 1 or 2 */
+const strokeDashFunction = (i) => { /* i = 0, 1, 2 or 3 */
     if (i === 1) {
         return "5";
     } else if (i === 2) {
-        return "2, 8"
+        return "2, 8";
+    } else if (i === 3) {
+        return "1.5 3";
     }
-    return "0, 2";
+    return "0";
 };
 
 const drawProgressLines = (svg, scales, data, colour) => {
     svg.selectAll(".coverageLine").remove();
     svg.selectAll(".coverageLine")
-        .data(["over1000x", "over100x", "over10x"])
+        .data(["over1000x", "over100x", "over10x", "under1x"])
         .enter().append("path")
         .attr("class", "coverageLine")
         .attr("fill", "none")
         .attr("stroke", colour)
-        .attr("stroke-width", 3)
+        .attr("stroke-width", (_, i) => (i === 3 ? 1.5: 3) )
         .attr("stroke-linecap", "round")
         .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
         .attr('d', (coverageKey) => {
@@ -58,47 +60,49 @@ const drawProgressLines = (svg, scales, data, colour) => {
 };
 
 const drawMaxLines = (svg, scales, data, colour) => {
-    const potentialLabels = ["over1000x", "over100x", "over10x"];
+    const potentialLabels = ["over1000x", "over100x", "over10x", "under1x"];
     const timespan = [data[0].time, data[data.length-1].time];
     /* only want to display labels over 10% else they are too visually cluttered with the x axis */
-    const labels = potentialLabels
+    const keys = potentialLabels
         .map((l, i) => ({key: l, coverage: data[data.length - 1][l], originalIdx: i}))
-        .filter((o) => o.coverage > 10);
+        .filter((o, i) => i === 3 || o.coverage > 10);
+    const labels = [">1000x", ">100x", ">10x", "0x"];
 
     svg.selectAll(".maxCoverageLine").remove();
     svg.selectAll(".maxCoverageLine")
-        .data(labels)
+        .data(keys)
         .enter().append("path")
         .attr("class", "maxCoverageLine")
         .attr("fill", "none")
         .attr("stroke", colour)
         .attr("stroke-width", 1)
-        .attr('d', (d) => 
+        .attr('d', (d) =>
             `M ${scales.x(timespan[0])},${scales.y(d.coverage)} L ${scales.x(timespan[1])},${scales.y(d.coverage)}`
-        )
+        );
 
     svg.selectAll(".maxCoverageText").remove();
     svg.selectAll(".maxCoverageText")
-        .data(labels)
+        .data(keys)
         .enter().append("text")
         .attr("class", "maxCoverageText axis")
-        .attr("x", (d) => 
-            scales.x(d.originalIdx === 0 ? timespan[0] : (d.originalIdx === 2 ? timespan[1] : ((timespan[1]-timespan[0])/2)))
+        .attr("x", (d) =>
+            scales.x(d.originalIdx === 0 ? timespan[0] : (d.originalIdx >= 2 ? timespan[1] : ((timespan[1]-timespan[0])/2))) +
+            (d.originalIdx === 0 ? 2 : 0) // add a little bit of space on the left.
         )
         .attr("y", (d) => scales.y(d.coverage))
         .attr("dy", "12px") /* positive values bump down text */
-        .attr("text-anchor", (d) => d.originalIdx === 0 ? "start" : (d.originalIdx === 2 ? "end" : "center"))
+        .attr("text-anchor", (d) => d.originalIdx === 0 ? "start" : (d.originalIdx >= 2 ? "end" : "middle"))
         .attr("baseline-shift", "120%") /* i.e. y value specifies top of text */
         .attr("pointer-events", "none") /* don't capture mouse over */
-        .text((d) => `>${d.key} = ${d.coverage}%`)
+        .text((d) => `${labels[d.originalIdx]} = ${d.coverage.toFixed(1)}%`);
 };
 
 const drawLegend = (svg, chartGeom, colour) => {
     const legend = svg.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.height - chartGeom.spaceBottom + 30})`)
+        .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.height - chartGeom.spaceBottom + 30})`);
 
-    const labels = ["1000x", "100x", "10x"];
+    const labels = [">1000x", ">100x", ">10x", "0x"];
 
     legend.selectAll("line")
         .data([1, 2, 3])
@@ -108,7 +112,7 @@ const drawLegend = (svg, chartGeom, colour) => {
         .attr("stroke-width", 3)
         .attr("stroke", colour)
         .attr("stroke-linecap", "round")
-        .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
+        .style("stroke-dasharray", (_, i) => strokeDashFunction(i));
 
     legend.selectAll("line")
         .data([1, 2, 3])
@@ -117,7 +121,7 @@ const drawLegend = (svg, chartGeom, colour) => {
         .attr("class", "axis")
         .attr("x", 55)
         .attr("y", (_, i) => 15*i + 4)
-        .text((n) => `>${labels[n-1]}`);
+        .text((n) => `${labels[n-1]}`);
 
 };
 
