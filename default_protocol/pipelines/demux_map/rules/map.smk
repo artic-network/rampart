@@ -33,7 +33,7 @@ rule parse_mapping:
         --paf_file {input.mapped:q} \
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
-        --reference_file {input.reference_file} \
+        --reference_file {input.reference_file:q} \
         {params.reference_options}
         """
 #produces a csv report
