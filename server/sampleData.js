@@ -109,7 +109,9 @@ SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
 };
 
 SampleData.prototype.coveragePercentAboveThreshold = function(threshold) {
-    return (this.coverage.reduce((acc, cv) => cv > threshold ? acc + Math.max(cv, 1.0) : acc, 0.0) / this.coverage.length) * 100;
+    return (this.coverage.reduce((acc, cv) => {
+        return cv > threshold ? acc + Math.min(cv, 1.0) : acc;
+    }, 0.0) / this.coverage.length) * 100;
 };
 
 SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
