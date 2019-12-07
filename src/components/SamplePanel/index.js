@@ -134,6 +134,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         className="graphContainer"
         temporalData={sampleData.temporal}
         colour={sampleColour}
+        config={config}
         viewOptions={viewOptions}
         key="coverageOverTime"
         renderProp={ showSinglePanel === "coverageOverTime" ?

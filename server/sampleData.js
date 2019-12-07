@@ -127,15 +127,21 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
 
     const latestExistingTimestamp = Array.from(this.temporal.keys()).pop() || 0;
     const timestamp = timestampOfThisData >= latestExistingTimestamp ? timestampOfThisData : latestExistingTimestamp;
-    this.temporal.set(timestamp, {
+    const temporalData = {
         // time: timestamp,
         mappedCount: this.mappedCount,
         mappedRate: 0,
-        under1x:   100.0 - this.coveragePercentAboveThreshold(0),
-        over10x:   this.coveragePercentAboveThreshold(10),
-        over100x:  this.coveragePercentAboveThreshold(100),
-        over1000x: this.coveragePercentAboveThreshold(1000)
-    });
+        coverages: {}
+    };
+
+    for (const [key, value] of Object.entries(global.config.display.coverageThresholds)) {
+        if (value === 0) {
+            temporalData.coverages[key] = 100.0 - this.coveragePercentAboveThreshold(0);
+        } else {
+            temporalData.coverages[key] = this.coveragePercentAboveThreshold(value);
+        }
+    }
+    this.temporal.set(timestamp, temporalData);
 };
 
 const TIME_WINDOW = 30; // time window for calculating the rate of read aquisition in seconds.

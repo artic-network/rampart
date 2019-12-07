@@ -28,49 +28,50 @@ const calcChartGeom = (DOMRect) => ({
     spaceTop: 20
 });
 
-const strokeDashFunction = (i) => { /* i = 0, 1, 2 or 3 */
-    if (i === 1) {
-        return "5";
-    } else if (i === 2) {
-        return "2, 8";
-    } else if (i === 3) {
+const strokeDashFunction = (coverage, i) => { /* i = 0, 1, 2 or 3 */
+    if (coverage === 0) {
         return "1.5 3";
+    }
+    if (i > 1) {
+        return "2, 8";
+    } else if (i === 1) {
+        return "5";
     }
     return "0";
 };
 
-const drawProgressLines = (svg, scales, data, colour) => {
+const drawProgressLines = (svg, scales, data, colour, coverageThresholds) => {
     svg.selectAll(".coverageLine").remove();
     svg.selectAll(".coverageLine")
-        .data(["over1000x", "over100x", "over10x", "under1x"])
+        .data(Object.keys(coverageThresholds))
         .enter().append("path")
         .attr("class", "coverageLine")
         .attr("fill", "none")
         .attr("stroke", colour)
-        .attr("stroke-width", (_, i) => (i === 3 ? 1.5: 3) )
+        .attr("stroke-width", (key) => (coverageThresholds[key] === 0 ? 1.5: 3) )
         .attr("stroke-linecap", "round")
-        .style("stroke-dasharray", (_, i) => strokeDashFunction(i))
-        .attr('d', (coverageKey) => {
+        .style("stroke-dasharray", (key, i) => strokeDashFunction(coverageThresholds[key], i))
+        .attr('d', (key) => {
             const generator = line()
                 .x((d) => scales.x(d.time)) // d here is the individual time point, {time: ..., over100x: ...}
-                .y((d) => scales.y(d[coverageKey]))
+                .y((d) => scales.y(d.coverages[key]))
                 .curve(curveBasis);
             return generator(data);
         });
 };
 
-const drawMaxLines = (svg, scales, data, colour) => {
-    const potentialLabels = ["over1000x", "over100x", "over10x", "under1x"];
+const drawMaxLines = (svg, scales, data, colour, coverageThresholds) => {
+
     const timespan = [data[0].time, data[data.length-1].time];
+
     /* only want to display labels over 10% else they are too visually cluttered with the x axis */
-    const keys = potentialLabels
-        .map((l, i) => ({key: l, coverage: data[data.length - 1][l], originalIdx: i}))
-        .filter((o, i) => i === 3 || o.coverage > 10);
-    const labels = [">1000x", ">100x", ">10x", "0x"];
+    const thresholds = Object.keys(coverageThresholds)
+        .map((l, i) => ({key: l, coverage: data[data.length - 1].coverages[l], originalIdx: i}))
+        .filter((o, i) => coverageThresholds[o.key] === 0 || o.coverage > 5.0);
 
     svg.selectAll(".maxCoverageLine").remove();
     svg.selectAll(".maxCoverageLine")
-        .data(keys)
+        .data(thresholds)
         .enter().append("path")
         .attr("class", "maxCoverageLine")
         .attr("fill", "none")
@@ -82,7 +83,7 @@ const drawMaxLines = (svg, scales, data, colour) => {
 
     svg.selectAll(".maxCoverageText").remove();
     svg.selectAll(".maxCoverageText")
-        .data(keys)
+        .data(thresholds)
         .enter().append("text")
         .attr("class", "maxCoverageText axis")
         .attr("x", (d) =>
@@ -94,34 +95,35 @@ const drawMaxLines = (svg, scales, data, colour) => {
         .attr("text-anchor", (d) => d.originalIdx === 0 ? "start" : (d.originalIdx >= 2 ? "end" : "middle"))
         .attr("baseline-shift", "120%") /* i.e. y value specifies top of text */
         .attr("pointer-events", "none") /* don't capture mouse over */
-        .text((d) => `${labels[d.originalIdx]} = ${d.coverage.toFixed(1)}%`);
+        .text((d) => `${d.key} = ${d.coverage.toFixed(1)}%`);
 };
 
-const drawLegend = (svg, chartGeom, colour) => {
+const drawLegend = (svg, chartGeom, colour, coverageThresholds) => {
     const legend = svg.append("g")
         .attr("class", "legend")
         .attr("transform", `translate(${chartGeom.spaceLeft}, ${chartGeom.height - chartGeom.spaceBottom + 30})`);
 
-    const labels = [">1000x", ">100x", ">10x", "0x"];
+    const keys = Object.keys(coverageThresholds)
+        .filter((o) => coverageThresholds[o] !== 0);
 
     legend.selectAll("line")
-        .data([1, 2, 3])
+        .data(keys)
         .enter()
         .append("path")
         .attr("d", (d, i) => `M10,${15*i} H50`)
         .attr("stroke-width", 3)
         .attr("stroke", colour)
         .attr("stroke-linecap", "round")
-        .style("stroke-dasharray", (_, i) => strokeDashFunction(i));
+        .style("stroke-dasharray", (key, i) => strokeDashFunction(coverageThresholds[key]));
 
     legend.selectAll("line")
-        .data([1, 2, 3])
+        .data(keys)
         .enter()
         .append("text")
         .attr("class", "axis")
         .attr("x", 55)
         .attr("y", (_, i) => 15*i + 4)
-        .text((n) => `${labels[n-1]}`);
+        .text((d) => `${d}`);
 
 };
 
@@ -135,7 +137,7 @@ class CoverageOverTime extends React.Component {
         const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
         const yScale = calcYScale(chartGeom, 100);
         const colour = d3color(this.props.colour);
-        drawLegend(svg, chartGeom, colour)
+        drawLegend(svg, chartGeom, colour, this.props.config.display.coverageThresholds);
         this.setState({svg, chartGeom, yScale, colour});
     }
     componentDidUpdate(prevProps) {
@@ -144,8 +146,8 @@ class CoverageOverTime extends React.Component {
         const timeMax = (parseInt(finalDataPt.time/30, 10) +1) * 30;
         const scales = {x: calcXScale(this.state.chartGeom, timeMax), y: this.state.yScale};
         drawAxes(this.state.svg, this.state.chartGeom, scales, {xTicks: 4, yTicks:5, isTime: true, ySuffix: "%"});
-        drawProgressLines(this.state.svg, scales, this.props.temporalData, this.state.colour);
-        drawMaxLines(this.state.svg, scales, this.props.temporalData, this.state.colour);
+        drawProgressLines(this.state.svg, scales, this.props.temporalData, this.state.colour, this.props.config.display.coverageThresholds);
+        drawMaxLines(this.state.svg, scales, this.props.temporalData, this.state.colour, this.props.config.display.coverageThresholds);
     }
     render() {
         return (
