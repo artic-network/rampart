@@ -114,7 +114,7 @@ const drawLegend = (svg, chartGeom, colour, coverageThresholds) => {
         .attr("stroke-width", 3)
         .attr("stroke", colour)
         .attr("stroke-linecap", "round")
-        .style("stroke-dasharray", (key, i) => strokeDashFunction(coverageThresholds[key]));
+        .style("stroke-dasharray", (key, i) => strokeDashFunction(coverageThresholds[key], i));
 
     legend.selectAll("line")
         .data(keys)
