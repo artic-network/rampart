@@ -76,6 +76,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     // if true then the heat is relative to the largest value, if false then it is the percentage
     // of reads by sample
     const SHOW_RELATIVE_HEAT = false;
+    const SHOW_LEGEND = false;
 
     for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
@@ -102,9 +103,9 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
 
     svg.selectAll("*").remove();
 
-    const charPx = 8; /* guesstimate of character pixel width */
-    const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
-    const textFn = (d) => {
+    const referenceName = (d) => {
+        const charPx = 8; /* guesstimate of character pixel width */
+        const allowedChars = Math.floor(chartGeom.spaceLeft / charPx);
         if (d.name.length > allowedChars) {
             return `${d.name.slice(0,allowedChars-2)}...`;
         }
@@ -117,7 +118,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .enter()
         .append("text")
         .attr("class", "refLabel axis")
-        .text(textFn)
+        .text(referenceName)
         .attr('y', (refName, refIdx) => scales.y(refIdx+1) + 0.5*cellDims.height)
         .attr('x', chartGeom.spaceLeft - 8 /* - cellDims.height */)
         .attr("text-anchor", "end")
@@ -135,18 +136,31 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     //     .attr('y', (refName, refIdx) => scales.y(refIdx+1))
     //     .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
-    /* render the column labels (barcodes) on the bottom */
-    // svg.selectAll(".sampleNames")
-    //     .data(names)
-    //     .enter()
-    //     .append("text")
-    //     .attr("class", "sampleNames axis")
-    //     .text((name, idx) => idx + 1)
-    //     .attr('x', (name, idx) => scales.x(idx) + 0.5*cellDims.width)
-    //     .attr('y', chartGeom.height - chartGeom.spaceBottom + 5)
-    //     .attr("text-anchor", "middle")
-    //     .attr("font-size", "12px")
-    //     .attr("alignment-baseline", "hanging");
+    if (!SHOW_LEGEND || SHOW_RELATIVE_HEAT) {
+        const sampleName = (d) => {
+            const charPx = 4; /* guesstimate of character pixel width */
+            const allowedChars = Math.floor(chartGeom.spaceBottom / charPx);
+            if (d.length > allowedChars) {
+                return `${d.slice(0,allowedChars-2)}...`;
+            }
+            return d;
+        };
+        /* render the column labels (barcodes) on the bottom */
+        svg.selectAll(".sampleName")
+            .data(names)
+            .enter()
+            .append("g")
+            .attr("class", "sampleNames axis")
+            .append("text")
+            .attr("class", "axis")
+            .attr("transform", (name, idx) => `rotate(-45 ${scales.x(idx) + 0.5 * cellDims.width} ${chartGeom.height - chartGeom.spaceBottom + 10})`)
+            .text(sampleName)
+            .attr('x', (name, idx) => scales.x(idx) + 0.5 * cellDims.width)
+            .attr('y', chartGeom.height - chartGeom.spaceBottom + 10)
+            .attr("text-anchor", "end")
+            .attr("font-size", "12px")
+            .attr("alignment-baseline", "hanging");
+    }
 
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
@@ -191,7 +205,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
-    if (!SHOW_RELATIVE_HEAT) {
+    if (SHOW_LEGEND && !SHOW_RELATIVE_HEAT) {
         /* render the legend (bottom) -- includes coloured cells & text */
         const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
         let legendWidth = chartGeom.width - chartGeom.spaceRight - 2 * chartGeom.legendPadding;

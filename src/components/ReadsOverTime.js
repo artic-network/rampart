@@ -32,6 +32,7 @@ const calcChartGeom = (DOMRect) => ({
     spaceTop: 10
 });
 
+
 const getMaxsOfReadsOverTime = (readsOverTime) => {
     const finalPoint = readsOverTime.slice(-1)[0];
 
