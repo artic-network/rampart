@@ -93,7 +93,9 @@ const drawLine = (svg, scales, data, showRate, infoRef) => {
         .attr('d', () => (lineGenerator(xyData)))
 
     /* append a div over the entire graph to catch onHover mouse events */
+    svg.selectAll(".mouseRect").remove();
     svg.append("rect")
+        .attr("class", "mouseRect")
         .attr("x", `${scales.x.range()[0]}px`)
         .attr("width", `${scales.x.range()[1] - scales.x.range()[0]}px`)
         .attr("y", `${scales.y.range()[1]}px`)
@@ -102,7 +104,7 @@ const drawLine = (svg, scales, data, showRate, infoRef) => {
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
-}
+};
 
 class ReadsOverTime extends React.Component {
     constructor(props) {
