@@ -365,6 +365,7 @@ const getInitialConfig = (args) => {
             // ">2000x": 2000, ">200x": 200, ">20x": 20, "0x": 0
             ">1000x": 1000, ">100x": 100, ">10x": 10, "0x": 0
         },
+        relativeReferenceMapping: false,
         logYAxis: false
     };
 
@@ -394,6 +395,9 @@ const getInitialConfig = (args) => {
 const modifyConfig = (clientSettings) => {
     if (clientSettings.hasOwnProperty("logYAxis")) {
         global.config.display.logYAxis = clientSettings.logYAxis;
+    }
+    if (clientSettings.hasOwnProperty("relativeReferenceMapping")) {
+        global.config.display.relativeReferenceMapping = clientSettings.relativeReferenceMapping;
     }
     return false;
 };

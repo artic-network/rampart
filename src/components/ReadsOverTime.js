@@ -89,7 +89,7 @@ const drawLine = (svg, scales, data, showRate, infoRef) => {
         .attr("class", "readsLine")
         .attr("fill", "none")
         .attr("stroke", defaultLineColour)
-        .attr("stroke-width", 5)
+        .attr("stroke-width", 3)
         .attr('d', () => (lineGenerator(xyData)))
 
     /* append a div over the entire graph to catch onHover mouse events */

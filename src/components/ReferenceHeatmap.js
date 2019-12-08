@@ -17,6 +17,7 @@ import {mouse, select} from "d3-selection";
 import {calcScales} from "../utils/commonFunctions";
 import {heatColourScale} from "../utils/colours";
 import {referenceDiscreteColours} from "../utils/colours";
+import {getRelativeReferenceMapping} from "../utils/config";
 
 const EMPTY_CELL_COLOUR = "rgba(256, 256, 256, 0.15)"
 
@@ -48,7 +49,7 @@ const calcCellDims = (chartGeom, numSamples, numReferences) => {
 }
 
 
-const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartGeom, infoRef}) => {
+const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartGeom, relativeReferenceMapping, infoRef}) => {
     /* convert the refMatchPerSample data from raw counts to percentages & change to a d3-friendly struct.
     Input format:
       refMatchPerSample[sampleIdx][reference_idx] = INT
@@ -73,10 +74,11 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         }
     }
 
+    // relativeReferenceMapping
     // if true then the heat is relative to the largest value, if false then it is the percentage
     // of reads by sample
-    const SHOW_RELATIVE_HEAT = false;
-    const SHOW_LEGEND = false;
+
+    const showLegend = false;
 
     for (let sampleIdx=0; sampleIdx<names.length; sampleIdx++) {
         for (let refIdx=0; refIdx<referencePanel.length; refIdx++) {
@@ -84,7 +86,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
             const sampleTotal = parseInt(data[names[sampleIdx]].refMatches['total']) || 1;
             const percentOfSample = (100.0 * count) / sampleTotal;
             const percentOfTotal = (100.0 * count) / total;
-            const heat = (100.0 * count) / (SHOW_RELATIVE_HEAT ? maxCount : sampleTotal);
+            const heat = (100.0 * count) / (relativeReferenceMapping ? maxCount : sampleTotal);
             d3data[dataIdx] = {
                 sampleIdx,
                 refIdx,
@@ -136,7 +138,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
     //     .attr('y', (refName, refIdx) => scales.y(refIdx+1))
     //     .attr("fill", (refName, refIdx) => referenceDiscreteColours[refIdx]);
 
-    if (!SHOW_LEGEND || SHOW_RELATIVE_HEAT) {
+    if (!showLegend) {
         const sampleName = (d) => {
             const charPx = 4; /* guesstimate of character pixel width */
             const allowedChars = Math.floor(chartGeom.spaceBottom / charPx);
@@ -205,7 +207,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
         .on("mouseout", handleMouseOut)
         .on("mousemove", handleMouseMove);
 
-    if (SHOW_LEGEND && !SHOW_RELATIVE_HEAT) {
+    if (showLegend && relativeReferenceMapping) {
         /* render the legend (bottom) -- includes coloured cells & text */
         const legendDataValues = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
         let legendWidth = chartGeom.width - chartGeom.spaceRight - 2 * chartGeom.legendPadding;
@@ -246,7 +248,7 @@ const drawHeatMap = ({names, referencePanel, data, svg, scales, cellDims, chartG
 class ReferenceHeatmap extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {chartGeom: {}, hoverWidth: 0, svg: undefined};
+        this.state = {chartGeom: {}, relativeReferenceMapping: false, hoverWidth: 0, svg: undefined};
     }
     redraw() {
         /* currently redo everything, but we could make this much much smarter */
@@ -267,6 +269,7 @@ class ReferenceHeatmap extends React.Component {
             scales,
             cellDims,
             chartGeom,
+            relativeReferenceMapping: getRelativeReferenceMapping(this.props.config),
             infoRef: this.infoRef
         });
     }

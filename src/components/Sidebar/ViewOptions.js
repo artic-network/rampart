@@ -16,7 +16,7 @@ import React, {useState} from 'react';
 import { SwatchesPicker } from 'react-color';
 import { IoIosCloseCircle, IoMdColorFill } from "react-icons/io";
 import { availableColours } from "../../utils/colours";
-import { getLogYAxis } from "../../utils/config";
+import {getLogYAxis, getRelativeReferenceMapping} from "../../utils/config";
 import Toggle from "../toggle";
 
 const ColourPicker = ({currentColour, name, onChange, onCancel}) => {
@@ -83,7 +83,13 @@ const ViewOptions = ({config, setConfig, viewOptions, setViewOptions}) => {
         toggleOn={getLogYAxis(config)}
       />
 
-      <h2>{"Sample & Reference colours"}</h2>
+        <Toggle
+            labelLeft="Mapping proportion relative to sample"
+            handleToggle={() => setConfig({relativeReferenceMapping: !getRelativeReferenceMapping(config)})}
+            toggleOn={getRelativeReferenceMapping(config)}
+        />
+
+        <h2>{"Sample & Reference colours"}</h2>
       <p>
         <span>{"Click on any colour to change it "}</span>
         <IoMdColorFill className="icon150"/>
