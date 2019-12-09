@@ -16,7 +16,7 @@ import React from 'react';
 import PropTypes from "prop-types";
 import logo from "../images/logo.png";
 import { makeTimeFormatter } from "../utils/commonFunctions";
-import { getLogYAxis } from "../utils/config";
+import {getLogYAxis, getRelativeReferenceMapping} from "../utils/config";
 
 class Header extends React.Component {
   constructor(props) {
@@ -25,6 +25,9 @@ class Header extends React.Component {
       switch(event.keyCode) {
         case 76: // key: "l"
           this.props.setConfig({logYAxis: !getLogYAxis(this.props.config)});
+          break;
+        case 82: // key: "r"
+          this.props.setConfig({relativeReferenceMapping: !getRelativeReferenceMapping(this.props.config)});
           break;
         default:
           break;

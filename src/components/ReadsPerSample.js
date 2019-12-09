@@ -21,10 +21,10 @@ import { getLogYAxis } from "../utils/config";
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
   width: DOMRect.width > 500 ? 500 : DOMRect.width,
-  height: DOMRect.height - 20, // title line
+  height: DOMRect.height, // title line
   spaceLeft: 60,
   spaceRight: 0,
-  spaceBottom: 70,
+  spaceBottom: 90,
   spaceTop: 10
 });
 
@@ -106,21 +106,29 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
       .on("mousemove", handleMouseMove);
 
   /* render the column labels (sample numbers or names) on the bottom */
-  // svg.selectAll(".sampleName")
-  //     .data(samples)
-  //     .enter()
-  //     .append("g")
-  //     .attr("class", "sampleName")
-  //     .attr("transform", "translate(40,40) rotate(-135deg)")
-  //     .append("text")
-  //     .attr("class", "axis")
-  //     // .text((name, idx) => idx + 1)
-  //     .text((name, idx) => name)
-  //     .attr('x', (name, idx) => scales.x(idx))
-  //     .attr('y', chartGeom.height - chartGeom.spaceBottom + 10)
-  //     .attr("text-anchor", "end")
-  //     .attr("font-size", "12px")
-  //     .attr("alignment-baseline", "hanging");
+  const sampleName = (d) => {
+    const charPx = 4; /* guesstimate of character pixel width */
+    const allowedChars = Math.floor(chartGeom.spaceBottom / charPx);
+    if (d.length > allowedChars) {
+      return `${d.slice(0,allowedChars-2)}...`;
+    }
+    return d;
+  };
+  svg.selectAll(".sampleName")
+      .data(samples)
+      .enter()
+      .append("g")
+      .attr("class", "sampleName")
+      .append("text")
+      .attr("class", "axis")
+      .attr("transform", (name, idx) => `rotate(-45 ${scales.x(idx)} ${chartGeom.height - chartGeom.spaceBottom + 10})`)
+      // .text((name, idx) => idx + 1)
+      .text(sampleName)
+      .attr('x', (name, idx) => scales.x(idx))
+      .attr('y', chartGeom.height - chartGeom.spaceBottom + 10)
+      .attr("text-anchor", "end")
+      .attr("font-size", "12px")
+      .attr("alignment-baseline", "hanging");
 };
 
 

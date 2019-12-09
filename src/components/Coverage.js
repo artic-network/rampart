@@ -35,7 +35,7 @@ const calcChartGeom = (DOMRect) => ({
 const getMaxCoverage = (data) => {
     const trueMax = max(Object.keys(data).map((name) => data[name].maxCoverage));
     return (parseInt(trueMax / 50, 10) + 1) * 50;
-}
+};
 
 class CoveragePlot extends React.Component {
     constructor(props) {

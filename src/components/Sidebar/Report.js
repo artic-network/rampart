@@ -22,26 +22,31 @@ const TimeInfo = ({data}) => {
       return sampleData.temporal[sampleData.temporal.length-1].time;
     }
     return maxTime
-  }, 0)
+  }, 0);
   return (
     <div>
       <div className="caption">Time Information</div>
       <div>{`Latest FASTQ indicates run time of ${timeFormatter(maxTime)}`}</div>
     </div>
   )
-}
+};
 
 const CurrentCoverageStats = ({data, config}) => {
-  const names = Object.keys(data).filter((name) => name!=="all");
+    const coverageThresholds = config.display.coverageThresholds;
+    const names = Object.keys(data).filter((name) => name!=="all");
+
   return (
     <table>
       <caption>Approx Genome Coverages</caption>
       <thead className="sideways">
         <tr>
           <th/>
-          <th>10x</th>
-          <th>100x</th>
-          <th>1000x</th>
+                {Object.keys(coverageThresholds).map((label) => {
+                    return (
+                        <th>{label}</th>
+                    );
+                }
+            )}
         </tr>
       </thead>
       <tbody>
@@ -57,16 +62,19 @@ const CurrentCoverageStats = ({data, config}) => {
           return (
             <tr key={name}>
               <th>{name}</th>
-              <td>{temporalData.over10x + "%"}</td>
-              <td>{temporalData.over100x + "%"}</td>
-              <td>{temporalData.over1000x + "%"}</td>
+                {Object.keys(temporalData.coverages).map((label) => {
+                        return (
+                            <td>{temporalData.coverages[label].toFixed(2) + "%"}</td>
+                        );
+                    }
+                )}
             </tr>
           )
         })}
       </tbody>
     </table>
   );
-}
+};
 
 
 const ReferenceMatches = ({data, config}) => {
@@ -108,19 +116,19 @@ const ReferenceMatches = ({data, config}) => {
       </tbody>
     </table>
   );
-}
+};
 
 const ReadCounts = ({data, config}) => {
   const names = Object.keys(data);
 
   const getReadLengths = (readLengths) => {
-    if (!readLengths.xyValues.length) {
+    if (!readLengths.xyValues.length || readLengths.xyValues[0][0] === null) {
       return {min: "NA", mode: "NA", max: "NA", median: "NA"};
     }
     /* must get rid of the 0 count entries, which are added for viz purposes */
     const xyVals = readLengths.xyValues.filter((xy) => xy[1]!==0);
-    const min = xyVals[0][0];
-    const max = xyVals[xyVals.length-1][0];
+    const min = xyVals[0][0] | 0;
+    const max = xyVals[xyVals.length-1][0] | 0;
     const n = xyVals.reduce((pv, cv) => pv+cv[1], 0);
     const medianIdx = xyVals.reduce(
       (acc, cv, idx) => acc[1]>n/2 ? acc : [idx, acc[1] + cv[1]],
@@ -131,7 +139,7 @@ const ReadCounts = ({data, config}) => {
       [0, 0] // [0]: x value with max count so far, [1]: max count so far
     );
     return {min: min+"bp", max: max+"bp", median: `${xyVals[medianIdx][0]}bp`, mode: `${mode[0]}bp (n=${mode[1]})`}
-  }
+  };
 
   return (
     <table>
@@ -163,7 +171,7 @@ const ReadCounts = ({data, config}) => {
       </tbody>
     </table>
   );
-}
+};
 
 
 const Report = ({dataPerSample, config}) => {

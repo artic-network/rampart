@@ -37,13 +37,13 @@ class App extends Component {
     /* define state setters -- note that it's ok to modify this.state in the constructor */
     this.state.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
-    }
+    };
     this.state.setConfig = (opts) => {
       /* the ultimate source of truth for the config resides is the server. A request (by the client)
       to set the config results in a socket call. The server will then return the new config
       (see `registerServerListeners` below) potentially with an updated set of data */
       this.state.socket.emit('config', opts);
-    }
+    };
     this.state.clearWarningMessage = () => {
       this.setState({warningMessage: ""})
     }
@@ -52,14 +52,14 @@ class App extends Component {
   componentDidMount() {
     /* get the socket port to open */
     if (process.env.NODE_ENV === "development") {
-      console.log("Dev mode -- socket opening on 3001. This is hardcoded & cannot be changed")
+      console.log("Dev mode -- socket opening on 3001. This is hardcoded & cannot be changed");
       this.setState({socketPort: 3001})
     } else {
       const apiAddress = `http://localhost:${window.location.port}/getSocketPort`;
-      console.log(`Querying rampart.js server @ ${apiAddress} for what port to open socket on...`)
+      console.log(`Querying rampart.js server @ ${apiAddress} for what port to open socket on...`);
       fetch(apiAddress)
         .then((res) => {
-          console.log(res)
+          console.log(res);
           return res.json()
         })
         .then((res) => {
@@ -75,7 +75,7 @@ class App extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (!prevState.socketPort && this.state.socketPort) {
-      console.log(`Opening socket on ${this.state.socketPort} & registering listeners`)
+      console.log(`Opening socket on ${this.state.socketPort} & registering listeners`);
       const socket = io(`http://localhost:${this.state.socketPort}`);
       this.registerServerListeners(socket);
       this.setState({socket});
@@ -89,7 +89,7 @@ class App extends Component {
     // });
     socket.on("infoMessage", (infoMessage) => {
       this.setState({infoMessage});
-    })
+    });
     socket.on("data", (response) => {
       console.log("App got new data", response);
       const { dataPerSample, combinedData, viewOptions} = response;
@@ -103,10 +103,10 @@ class App extends Component {
       newViewOptions.sampleColours = {};
       currentSamples.filter((name) => samplesInData.includes(name)).forEach((name) => {
         newViewOptions.sampleColours[name] = this.state.viewOptions.sampleColours[name];
-      })
+      });
       newSamples.forEach((name, idx) => {
         newViewOptions.sampleColours[name] = newColours[idx];
-      })
+      });
       if (newSamples.includes("unassigned")) {
         newViewOptions.sampleColours.unassigned = "#979797";
       }
@@ -118,11 +118,11 @@ class App extends Component {
         mainPage: "viz",
         timeSinceLastDataUpdate: 0
       });
-    })
+    });
     socket.on("config", (newConfig) => {
       console.log("App got new config:", newConfig);
       this.setState({config: newConfig});
-    })
+    });
 
     socket.on("showWarningMessage", (warningMessage) => this.setState({warningMessage}));
   }

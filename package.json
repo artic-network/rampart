@@ -6,10 +6,13 @@
   "bin": {
     "rampart": "./rampart.js"
   },
-  "repository": "github:artic-network/rampart",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artic-network/rampart.git"
+  },
   "private": false,
   "license": "AGPL-3.0-only",
-  "homepage": "/",
+  "homepage": "http:///",
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
@@ -45,7 +48,7 @@
     "server": "node src/server.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "postinstall" : "npm run build"
+    "postinstall": "npm run build"
   },
   "browserslist": {
     "production": [
@@ -58,5 +61,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "Read Assignment, Mapping, and Phylogenetic Analysis in Real Time.",
+  "bugs": {
+    "url": "https://github.com/artic-network/rampart/issues"
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": []
 }
