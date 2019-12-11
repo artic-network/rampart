@@ -17,12 +17,14 @@
  * Initialise via `new SampleData()`.
  */
 const SampleData = function() {
+    this.processedCount = 0;
     this.mappedCount = 0;
     this.readsLastSeenTime = undefined;
-    this.mappedRate = 0;
+    this.processedRate = 0;
     this.refMatchCounts = {};
     this.coverage = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
     this.temporal = new Map();
+    this.readLengthMappedCounts = {};
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
 };
@@ -70,13 +72,20 @@ SampleData.prototype.updateCoverage = function(data) {
 
 SampleData.prototype.updateReadLengthCounts = function(data) {
     const readLengthResolution = global.config.display.readLengthResolution;
+    data.readLengthsMapped.forEach((n) => {
+        const len = parseInt(n/readLengthResolution, 10) * readLengthResolution;
+        if (this.readLengthMappedCounts[len] === undefined) {
+            this.readLengthMappedCounts[len] = 0;
+        }
+        this.readLengthMappedCounts[len]++;
+    });
     data.readLengths.forEach((n) => {
         const len = parseInt(n/readLengthResolution, 10) * readLengthResolution;
         if (this.readLengthCounts[len] === undefined) {
             this.readLengthCounts[len] = 0;
         }
         this.readLengthCounts[len]++;
-    })
+    });
 };
 
 
@@ -101,9 +110,10 @@ SampleData.prototype.updateRefMatchCounts = function(data, referencesSeen) {
     }
 };
 
-SampleData.prototype.updateMappedCount = function(mappedCount, timestamp) {
+SampleData.prototype.updateReadCounts = function(mappedCount, processedCount, timestamp) {
     this.mappedCount += mappedCount;
-    if (mappedCount > 0) {
+    this.processedCount += processedCount;
+    if (processedCount > 0) {
         this.readsLastSeenTime = timestamp;
     }
 };
@@ -130,7 +140,8 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
     const temporalData = {
         // time: timestamp,
         mappedCount: this.mappedCount,
-        mappedRate: 0,
+        processedCount: this.processedCount,
+        processedRate: 0,
         coverages: {}
     };
 
@@ -162,7 +173,7 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
     for (let i = ret.length - 1; i > 0; i--) {
         for (let j = i - 1; j >= 0; j--) {
             if (ret[i].time - ret[j].time > TIME_WINDOW) {
-                ret[i].mappedRate = (ret[i].mappedCount - ret[j].mappedCount) / (ret[i].time - ret[j].time);
+                ret[i].processedRate = (ret[i].processedCount - ret[j].processedCount) / (ret[i].time - ret[j].time);
             }
         }
     }

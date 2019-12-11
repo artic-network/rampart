@@ -117,6 +117,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         title={"Read Lengths"}
         width={(showSinglePanel === "readLength" || !singleRow) ? "100%" : "25%"}
         xyValues={sampleData.readLengths.xyValues}
+        xyValuesMapped={sampleData.readLengthsMapped.xyValues}
         colour={sampleColour}
         config={config}
         viewOptions={viewOptions}

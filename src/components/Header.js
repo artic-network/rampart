@@ -62,9 +62,9 @@ class Header extends React.Component {
     //   )
     // }
 
-    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped ` : "no data yet ";
-    const rateMsg = this.props.combinedData && this.props.combinedData.mappedRate >= 0 ?
-        `${Math.round(this.props.combinedData.mappedRate)} reads/sec` : "calculating rate...";
+    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped | ${this.props.combinedData.processedCount} processed ` : "no data yet ";
+    const rateMsg = this.props.combinedData && this.props.combinedData.processedRate >= 0 ?
+        `${Math.round(this.props.combinedData.processedRate)} reads/sec` : "calculating rate...";
     const title = this.props.config.run ? `${this.props.config.run.title}` : "untitled";
     return (
       <div>

@@ -84,7 +84,7 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
             this.dataPerSample[sampleName] = new SampleData();
         }
         const sampleData = this.dataPerSample[sampleName];
-        sampleData.updateMappedCount(barcodeData.mappedCount, datapoint.getTimestamp());
+        sampleData.updateReadCounts(barcodeData.mappedCount, barcodeData.processedCount, datapoint.getTimestamp());
         sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
         sampleData.updateCoverage(barcodeData);
         sampleData.updateReadLengthCounts(barcodeData);
@@ -187,11 +187,13 @@ Datastore.prototype.getDataForClient = function() {
     for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
         summarisedData[sampleName] = {
             mappedCount: sampleData.mappedCount,
+            processedCount: sampleData.processedCount,
             readsLastSeen: sampleData.readsLastSeenTime > 0 ? (this.currentTimestamp - sampleData.readsLastSeenTime) / 1000 : 0,
             refMatches: refMatchesAcrossSamples[sampleName],
             coverage: sampleData.coverage,
             maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
             temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
+            readLengthsMapped: summariseReadLengths(sampleData.readLengthMappedCounts),
             readLengths: summariseReadLengths(sampleData.readLengthCounts),
             refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
         }
@@ -199,6 +201,7 @@ Datastore.prototype.getDataForClient = function() {
 
     /* Part II - summarise the overall data, i.e. all samples combined */
     const combinedData = {
+        processedCount: Object.values((this.dataPerSample)).map((d) => d.processedCount).reduce((pv, cv) => pv+cv, 0),
         mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
         readsLastSeen: Math.min(...Object.values(summarisedData).map((d) => d.readsLastSeen)),
         temporal: summariseOverallTemporalData(summarisedData)

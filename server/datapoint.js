@@ -51,7 +51,9 @@ const Datapoint = function(fileNameStem, annotations) {
             this.data[barcode] = {
                 barcodeCount: 0,
                 mappedCount: 0,
+                processedCount: 0,
                 readPositions: [],
+                readLengthsMapped: [],
                 readLengths: [],
                 readTopRefHits: [],
                 refMatches: {},
@@ -61,7 +63,7 @@ const Datapoint = function(fileNameStem, annotations) {
 
         this.data[barcode].fastqPosition.push(index);
         this.data[barcode].barcodeCount++;
-        this.data[barcode].mappedCount++;
+        this.data[barcode].processedCount++;
 
         // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
         // taxonomic level).
@@ -105,6 +107,9 @@ const Datapoint = function(fileNameStem, annotations) {
             }
 
             this.data[barcode].readPositions.push(readPosition);
+
+            this.data[barcode].mappedCount++;
+            this.data[barcode].readLengthsMapped.push(d.read_len);
         }
 
         this.data[barcode].readTopRefHits.push(d.referenceCall);
