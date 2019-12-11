@@ -122,7 +122,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
     const els = [];
     els.push(charts.coverage);
     if (combinedData.temporal.length > 1) els.push(charts.readsOverTime);
-    els.push(charts.readsPerSample);
+    if (dataPerSample.length > 1) els.push(charts.readsPerSample);
     els.push(charts.referenceHeatmap);
     return els;
   };
