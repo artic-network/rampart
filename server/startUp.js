@@ -41,10 +41,17 @@ const processExistingData = async () => {
     const fastqs = await getFilesFromDirectory(global.config.run.basecalledPath, 'fastq');
 
     const pathsOfBasecalledFastqs = fastqs.sort((a, b) => {
+        // attempt to sort using a numerical field
         const regex = /(\d+)\.fastq/;
-        const ai = parseInt(a.match(regex)[1], 10)
-        const bi = parseInt(b.match(regex)[1], 10)
-        return ai - bi;
+        const ai = a.match(regex);
+        const bi = b.match(regex);
+
+        if (ai && ai.length > 1 && bi && bi.length > 1) {
+            return parseInt(ai[1], 10) - parseInt(bi[1], 10);
+        }
+
+        // no numerical fields so sort alphabetically
+        return a.localeCompare(b);
     });
     log(`  * Found ${pathsOfBasecalledFastqs.length} basecalled fastqs in ${prettyPath(global.config.run.basecalledPath)}`);
 
@@ -62,10 +69,17 @@ const processExistingData = async () => {
         const csvs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
 
         const pathsOfAnnotatedCSVs = csvs.sort((a, b) => {
+            // attempt to sort using a numerical field
             const regex = /(\d+)\.csv/;
-            const ai = parseInt(a.match(regex)[1], 10)
-            const bi = parseInt(b.match(regex)[1], 10)
-            return ai - bi;
+            const ai = a.match(regex);
+            const bi = b.match(regex);
+
+            if (ai && ai.length > 1 && bi && bi.length > 1) {
+                return parseInt(ai[1], 10) - parseInt(bi[1], 10);
+            }
+
+            // no numerical fields so sort alphabetically
+            return a.localeCompare(b);
         });
 
         log(`  * Found ${pathsOfAnnotatedCSVs.length} annotated CSV files in ${prettyPath(global.config.run.annotatedPath)}`);
