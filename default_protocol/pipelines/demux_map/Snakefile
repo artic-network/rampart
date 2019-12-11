@@ -13,20 +13,26 @@ elif str(config["barcode_set"]).lower()=="rapid":
     barcode_set= " --rapid_barcodes"
 elif str(config["barcode_set"]).lower()=="pcr":
     barcode_set=" --pcr_barcodes"
+elif str(config["barcode_set"]).lower()=="none":
+    barcode_set=" --native_barcodes"
 elif str(config["barcode_set"]).lower()=="all":
     barcode_set=""
 
 # todo - check that the barcode labels fit the required format (text followed by an integer)
 limit_barcodes_to = ""
-try:
-    barcodes = config["limit_barcodes_to"].split(',')
-    barcode_string = ""
-    for i in barcodes:
-        barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
-    limit_barcodes_to = " --limit_barcodes_to {}".format(barcode_string)
-except:
-    pass
-    # print("No barcodes given, will search for all barcodes within the {} barcode list.".format(config["barcode_set"]))
+if str(config["barcode_set"]).lower()=="none":
+    # limit to an arbitrary barcode (it will be ignored)
+    limit_barcodes_to = " --limit_barcodes_to 1"
+else:
+    try:
+        barcodes = config["limit_barcodes_to"].split(',')
+        barcode_string = ""
+        for i in barcodes:
+            barcode_string+=" {}".format(i.lstrip("NB").lstrip("BC").lstrip("barcode"))
+        limit_barcodes_to = " --limit_barcodes_to {}".format(barcode_string)
+    except:
+        pass
+        # print("No barcodes given, will search for all barcodes within the {} barcode list.".format(config["barcode_set"]))
 
 reference_fields = config["reference_fields"] if config.get("reference_fields") else ""
 
