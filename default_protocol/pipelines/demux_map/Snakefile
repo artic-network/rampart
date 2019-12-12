@@ -5,7 +5,7 @@
 config["output_path"] = config["output_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")
 
-# todo - check that 'barcode_set' is one of 'native', 'rapid', `pcr` or 'all' and throw error if not
+# todo - check that 'barcode_set' is one of 'native', 'rapid', `pcr`, `none` or 'all' and throw error if not
 barcode_set = " --native_barcodes"
 if str(config["barcode_set"]).lower()=="native":
     barcode_set= " --native_barcodes"
