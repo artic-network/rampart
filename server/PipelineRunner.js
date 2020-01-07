@@ -125,8 +125,7 @@ class PipelineRunner {
                     const message = data.toString();
                     if (message.startsWith("####")) {
                         // pass message to front end
-                        global.io.emit("infoMessage", `${options.pipeline.name} // ${options.sampleName} // ${message.substring(4).trim()}`);
-
+                        global.io.emit("infoMessage", `${this._name} // ${message.substring(4).trim()}`);
                     }
                     out.push(message);
                     verbose(`pipeline (${this._name})`, message);
