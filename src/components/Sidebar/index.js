@@ -17,6 +17,7 @@ import { IoIosCloseCircle, IoMdSettings, IoIosOptions, IoMdToday } from "react-i
 import Config from "./Config";
 import Report from "./Report";
 import ViewOptions from "./ViewOptions";
+import Filters from "./Filters";
 
 /**
  * React component to render & control a sidebar which transitions
@@ -44,6 +45,7 @@ const SidebarContainer = ({title, open, onChange, children, idx}) => {
 export const sidebarButtonNames = [
     {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
     {label: (<div><IoIosOptions/><span>settings</span></div>), value: "viewOptions"},
+    {label: (<div><IoIosOptions/><span>filters</span></div>), value: "readFilters"},
     {label: (<div><IoMdToday/><span>report</span></div>), value: "report"}
 ]
 
@@ -53,7 +55,8 @@ const Sidebar = ({config, setConfig, combinedData, dataPerSample, viewOptions, s
     const sidebars = {
       config: (<Config config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
       viewOptions: (<ViewOptions config={config} setConfig={setConfig} viewOptions={viewOptions} setViewOptions={setViewOptions}/>),
-      report: (<Report dataPerSample={dataPerSample} config={config}/>)
+      report: (<Report dataPerSample={dataPerSample} config={config}/>),
+      readFilters: (<Filters config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>)
     };
 
 

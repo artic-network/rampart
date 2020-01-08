@@ -231,7 +231,7 @@ div.header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  height:125px;
+  height: 155px;
 }
 div.header .logo {
   float: left;

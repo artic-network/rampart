@@ -426,6 +426,7 @@ const summariseOverallTemporalData = (summarisedData) => {
 function filterReads(reads, filters) {
     return reads.filter((read) => {
         if (filters.maxReadLength && read.readLength > filters.maxReadLength) return false;
+        if (filters.minReadLength && read.readLength < filters.minReadLength) return false;
         return true;
     });
 }
