@@ -134,6 +134,29 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 };
 
 
+/** When the UI triggers a change in read filtering (or removes it) then this prototype can
+ * modify `this.filteredDataPerSample` accordingly. Note that the client is not made aware
+ * of this change via this function.
+ */
+Datastore.prototype.changeReadFilters = function() {
+    const filters = global.config.display.filters;
+    this.filteredDataPerSample = {};
+    console.log("CHANGE READ FILTERS", filters)
+    /* note that if filters were removed, then we leave filteredDataPerSample as an empty object */
+    if (Object.keys(filters).length) {
+        /* we have enabled filters or mofified them */
+        for (const sampleName of Object.keys(this.dataPerSample)) {
+            this.filteredDataPerSample[sampleName] = new SampleData();
+            const barcodes = this.getBarcodesForSampleName(sampleName);
+            const barcodeReads = this.reads.filter((read) => barcodes.has(read.barcode));
+            updateSampleDataWithNewReads(
+                this.filteredDataPerSample[sampleName],
+                filterReads(barcodeReads, filters)
+            );
+        }
+    }
+}
+
 /**
  * Get Barcode -> sample name via the (global) config
  */
@@ -143,6 +166,14 @@ Datastore.prototype.getSampleName = function(barcode) {
     }
     return barcode;
 };
+
+Datastore.prototype.getBarcodesForSampleName = function(sampleName) {
+    return new Set(
+        [...this.barcodesSeen].filter(
+            (barcode) => this.getSampleName(barcode) === sampleName
+        )
+    );
+}
 
 
 Datastore.prototype.getBarcodesSeen = function() {
