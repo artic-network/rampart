@@ -17,6 +17,7 @@ import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
 import '../styles/rampart.css';
+import 'rc-slider/assets/index.css';
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Modal from "./modal";
 import Sidebar, {sidebarButtonNames} from "./Sidebar/index";

@@ -20,6 +20,7 @@ const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
 const { warn, verbose } = require('./utils');
+const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./config');
 
 const parsingQueue = new Deque();
 let isRunning = false; // prevent this being called by parsingQueue.observeRangeChange() when parsingQueue.shift is called
@@ -83,6 +84,67 @@ const annotationParser = async () => {
     }
 };
 
+
+
+const createReadsFromAnnotation = (fastqStem, annotations) => {
+    const reads = [];
+    const barcodes = new Set();
+    annotations.forEach((d, index) => {
+        const dataPoint = new Map();
+        const barcode =  d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
+        barcodes.add(barcode);
+        dataPoint.barcode = barcode;
+        dataPoint.fastqPosition = index;
+        dataPoint.fastqStem = fastqStem;
+
+        /* the reference call is the reference we mapped to. */
+        let referenceCall = d.best_reference;
+        if (global.config.display.referencesLabel) {
+            if (d[global.config.display.referencesLabel]) {
+                referenceCall = d[global.config.display.referencesLabel];
+            } else {
+                warn(`Reference label, '${global.config.display.referencesLabel}', not found in annotation CSV file`);
+            }
+        }
+
+        const readLength = parseInt(d.read_len, 10);
+        // "*" means unmapped, "?" means ambiguous but call both as unmapped for now.
+        if (referenceCall === "*" || referenceCall === "?" || referenceCall === "") {
+            dataPoint.mapped = false;
+            referenceCall = UNMAPPED_LABEL
+        } else {
+            dataPoint.mapped = true;
+            // coerce values into integers
+            const ref_len = parseInt(d.ref_len, 10);
+            const start_coords = parseInt(d.start_coords, 10);
+            const end_coords = parseInt(d.end_coords, 10);
+            const negStrand = start_coords > end_coords;
+            dataPoint.startBase = negStrand ? end_coords : start_coords;
+            dataPoint.endBase = negStrand ? start_coords : end_coords;
+            dataPoint.strand = negStrand ? "-" : "+";
+
+            // calculate read position as a fraction of the genome
+            if (global.config.display.readOffset) {
+                // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
+                // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
+                dataPoint.startFrac = (dataPoint.startBase + global.config.display.readOffset) / global.config.genome.length;
+                dataPoint.startFrac = (dataPoint.endBase + global.config.display.readOffset) / global.config.genome.length;
+            } else {
+                dataPoint.startFrac = dataPoint.startBase / ref_len;
+                dataPoint.endFrac = dataPoint.endBase / ref_len;
+            }
+        }
+        dataPoint.readLength = readLength;
+        dataPoint.topRefHit = referenceCall;
+        dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.aln_block_len, 10);
+        dataPoint.time = (new Date(d.start_time)).getTime();
+
+        reads.push(dataPoint);
+    });
+    return {reads, barcodes};
+}
+
 module.exports = {
-    addToParsingQueue
+    addToParsingQueue,
+    createReadsFromAnnotation
 };

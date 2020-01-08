@@ -67,10 +67,12 @@ class App extends Component {
           this.setState({socketPort: res.socketPort})
         })
     }
-    window.setInterval(
-      () => {this.setState({timeSinceLastDataUpdate: this.state.timeSinceLastDataUpdate+1})},
-      1000 /* won't be exactly 1s but close enough & reset every time data arrives */
-    );
+    // TODO - reinstate using `Context` so that we don't get all the components constantly
+    // rerendering
+    // window.setInterval(
+    //   () => {this.setState({timeSinceLastDataUpdate: this.state.timeSinceLastDataUpdate+1})},
+    //   1000 /* won't be exactly 1s but close enough & reset every time data arrives */
+    // );
   }
 
   componentDidUpdate(prevProps, prevState) {

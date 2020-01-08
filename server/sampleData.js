@@ -47,75 +47,108 @@ const SampleData = function() {
 //     }
 // };
 
-const addCoverage = function(readPos, bins, binCount) {
-    const aIdx1 = Math.floor(readPos.startFrac * binCount);
-    const aIdx2 = Math.ceil(readPos.startFrac * binCount);
-    const bIdx1 = Math.floor(readPos.endFrac * binCount);
+/**
+ * Modifies `bins` in place
+ */
+const addCoverage = function(read, bins, binCount) {
+    const aIdx1 = Math.floor(read.startFrac * binCount);
+    const aIdx2 = Math.ceil(read.startFrac * binCount);
+    const bIdx1 = Math.floor(read.endFrac * binCount);
 
     if (aIdx1 === bIdx1) {
-        bins[aIdx1] += (readPos.endFrac - readPos.startFrac) * binCount;
+        bins[aIdx1] += (read.endFrac - read.startFrac) * binCount;
     } else {
-        bins[aIdx1] += aIdx2 - (readPos.startFrac * binCount);
+        bins[aIdx1] += aIdx2 - (read.startFrac * binCount);
         for (let i = aIdx2; i < bIdx1; i++) {
             bins[i] += 1.0;
         }
-        bins[bIdx1] += (readPos.endFrac * binCount) - bIdx1;
+        bins[bIdx1] += (read.endFrac * binCount) - bIdx1;
     }
 };
 
-SampleData.prototype.updateCoverage = function(data) {
-    for (const readPos of data.readPositions) {
-        addCoverage(readPos, this.coverage, global.config.display.numCoverageBins);
-    }
+/**
+ * Modifies `this.coverage`
+ */
+SampleData.prototype.updateCoverage = function(reads) {
+    reads.forEach((read) => {
+        addCoverage(read, this.coverage, global.config.display.numCoverageBins);
+    })
 };
 
-
-SampleData.prototype.updateReadLengthCounts = function(data) {
+/**
+ * Modifies `this.readLengthCounts` and `this.readLengthMappedCounts`
+ */
+SampleData.prototype.updateReadLengthCounts = function(reads) {
     const readLengthResolution = global.config.display.readLengthResolution;
-    data.readLengthsMapped.forEach((n) => {
-        const len = parseInt(n/readLengthResolution, 10) * readLengthResolution;
-        if (this.readLengthMappedCounts[len] === undefined) {
-            this.readLengthMappedCounts[len] = 0;
-        }
-        this.readLengthMappedCounts[len]++;
-    });
-    data.readLengths.forEach((n) => {
-        const len = parseInt(n/readLengthResolution, 10) * readLengthResolution;
+    reads.forEach((read) => {
+        const len = parseInt(read.readLength/readLengthResolution, 10) * readLengthResolution;
+        /* mapped or not, add to `this.readLengthCounts` */
         if (this.readLengthCounts[len] === undefined) {
             this.readLengthCounts[len] = 0;
         }
         this.readLengthCounts[len]++;
-    });
-};
-
-
-SampleData.prototype.updateRefMatchCoverages = function(data) {
-    data.readPositions.forEach((readPos, idx) => {
-        const refName = data.readTopRefHits[idx];
-        if (!this.refMatchCoverages[refName]) {
-            /* unseen reference -- must initialise */
-            this.refMatchCoverages[refName] = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
+        /* add mapped reads to `this.readLengthMappedCounts` */
+        if (read.mapped) {
+            if (this.readLengthMappedCounts[len] === undefined) {
+                this.readLengthMappedCounts[len] = 0;
+            }
+            this.readLengthMappedCounts[len]++;
         }
-        addCoverage(readPos, this.refMatchCoverages[refName], global.config.display.numCoverageBins);
-    });
+    })
 };
 
-SampleData.prototype.updateRefMatchCounts = function(data, referencesSeen) {
-    for (const [ref, values] of Object.entries(data.refMatches)) {
+/**
+ * Update `this.readsLastSeenTime`. Before we had one timestamp per fastq
+ * The current implementation sets this to be the _latest_ read time in `reads`
+ */
+SampleData.prototype.updateTimestamps = function(reads) {
+    if (!this.processedCount) return; // no reads yet
+    reads.forEach((read) => {
+        if (!this.readsLastSeenTime || read.time > this.readsLastSeenTime) {
+            this.readsLastSeenTime = read.time;
+        }
+    })
+}
+
+/**
+ * update per-reference-match coverage stats
+ * modifies `this.refMatchCoverages` in place
+ */
+SampleData.prototype.updateRefMatchCoverages = function(reads) {
+    reads.forEach((read) => {
+        /* initialise unseen reference */
+        if (!this.refMatchCoverages[read.topRefHit]) {
+            this.refMatchCoverages[read.topRefHit] = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
+        }
+        addCoverage(read, this.refMatchCoverages[read.topRefHit], global.config.display.numCoverageBins);
+    })
+};
+
+/**
+ * Updates `this.refMatchCounts`.
+ * Returns set of references observed in these reads.
+ */
+SampleData.prototype.updateRefMatchCounts = function(reads) {
+    const referencesSeen = new Set();
+    reads.forEach((read) => {
+        const ref =  read.topRefHit;
         referencesSeen.add(ref);
         if (!this.refMatchCounts[ref]) {
             this.refMatchCounts[ref] = 0;
         }
-        this.refMatchCounts[ref] += values.length;
-    }
+        this.refMatchCounts[ref]++;
+    })
+    return referencesSeen;
 };
 
-SampleData.prototype.updateReadCounts = function(mappedCount, processedCount, timestamp) {
-    this.mappedCount += mappedCount;
-    this.processedCount += processedCount;
-    if (processedCount > 0) {
-        this.readsLastSeenTime = timestamp;
-    }
+/**
+ * Update this.mappedCount and this.processedCount
+ */
+SampleData.prototype.updateReadCounts = function(reads) {
+    this.processedCount += reads.length;
+    reads.forEach((read) => {
+        if (read.mapped) this.mappedCount++;
+    })
 };
 
 SampleData.prototype.coveragePercentAboveThreshold = function(threshold) {
@@ -124,7 +157,7 @@ SampleData.prototype.coveragePercentAboveThreshold = function(threshold) {
     }, 0.0) / this.coverage.length) * 100;
 };
 
-SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
+SampleData.prototype.updateTemporalData = function(reads) {
     /* this.temporal[t] is the state of the world at time `t` */
     /* this.temporal is a map where the insertion order is guaranteed to be chronological */
 
@@ -135,8 +168,21 @@ SampleData.prototype.updateTemporalData = function(data, timestampOfThisData) {
     if we have already observed a "newer" timestamp than the one we're trying to add
     then we update the data associated with that rather than creating a new entry */
 
+    if (!this.processedCount) return; // no reads yet
+
+    /* Jan 8 2020 - we now have times for all `reads` but here i'm using the "first" timestamp
+    of the reads to define them all. This keeps the behavior similar to the previous implementation.
+    This can be improved. TODO. */
+    const timestampOfThisData = reads[0].time;
+
+    /* Update this.readsLastSeenTime */
+    if (!this.readsLastSeenTime || timestampOfThisData > this.readsLastSeenTime) {
+        this.readsLastSeenTime = timestampOfThisData;
+    }
+
     const latestExistingTimestamp = Array.from(this.temporal.keys()).pop() || 0;
     const timestamp = timestampOfThisData >= latestExistingTimestamp ? timestampOfThisData : latestExistingTimestamp;
+    
     const temporalData = {
         // time: timestamp,
         mappedCount: this.mappedCount,
@@ -181,4 +227,29 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
     return ret;
 };
 
-module.exports = { default: SampleData };
+/**
+ * Update a `SampleData` object with a collection of new reads
+ * @param {SampleData} sampleData 
+ * @param {array} reads
+ * @returns {obj} Keys:
+ *                {set} referencesSeen
+ */
+const updateSampleDataWithNewReads = (sampleData, reads) => {
+
+    sampleData.updateReadCounts(reads);
+
+    const referencesSeen = sampleData.updateRefMatchCounts(reads);
+
+    sampleData.updateCoverage(reads);
+    
+    sampleData.updateReadLengthCounts(reads);
+
+    sampleData.updateRefMatchCoverages(reads);
+
+    sampleData.updateTemporalData(reads);
+
+    return {referencesSeen};
+}
+
+
+module.exports = { SampleData, updateSampleDataWithNewReads };

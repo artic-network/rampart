@@ -365,6 +365,8 @@ const getInitialConfig = (args) => {
             // ">2000x": 2000, ">200x": 200, ">20x": 20, "0x": 0
             ">1000x": 1000, ">100x": 100, ">10x": 10, "0x": 0
         },
+        filters: {},
+        // filters: {"maxReadLength": 600}, // TMP TODO
         relativeReferenceMapping: false,
         logYAxis: false
     };
@@ -388,19 +390,34 @@ const getInitialConfig = (args) => {
 
 /**
  * update the global config object via client provided data
- * @param {Object} clientSettings new config paramaters send from the client
- * @returns {Boolean} whether a data recalculation is necessary
- * @sideEffect modifies global.config in place
+ * @param {Object} clientSettings new config paramaters sent from the client
+ * @returns {undefined}
+ * @sideEffect (1) modifies global.config in place
+ *             (2) notifies client of updated config
+ *             (3) [potentially] triggers data updates & notifies client of updated data
  */
 const modifyConfig = (clientSettings) => {
+    console.log("MODIFY CONFIG.", clientSettings); // turn to debug statement
+    let dataHasChanged = false;
+
     if (clientSettings.hasOwnProperty("logYAxis")) {
         global.config.display.logYAxis = clientSettings.logYAxis;
     }
+
     if (clientSettings.hasOwnProperty("relativeReferenceMapping")) {
         global.config.display.relativeReferenceMapping = clientSettings.relativeReferenceMapping;
     }
-    return false;
+
+    if (clientSettings.hasOwnProperty("filters")) {
+        global.config.display.filters = clientSettings.filters; // check for equality?
+        global.datastore.changeReadFilters();
+        dataHasChanged = true;
+    }
+
+    global.CONFIG_UPDATED();
+    if (dataHasChanged) global.NOTIFY_CLIENT_DATA_UPDATED();
 };
+
 
 // const modifyConfig = ({config: newConfig, refFasta, refJsonPath, refJsonString}) => {
 

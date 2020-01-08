@@ -231,7 +231,7 @@ div.header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  height:125px;
+  height: 155px;
 }
 div.header .logo {
   float: left;
@@ -303,6 +303,22 @@ div.sidebar {
   position: absolute;
   right: 0px;
 }
+
+
+/* ------------- F I L T E R S    S I D E B A R ------------------- */
+.filters .references {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0px 20px;
+}
+.filters .references .item {
+  padding-right: 30px;
+}
+.filters .references .item > input:checked {
+    background-color: var(--artic-red);
+}
+
 
 /* -------------------- REPORT -------------------------- */
 .report {
@@ -619,9 +635,20 @@ span.hoverColourSquare + span {
   color: var(--light-text);
 }
 
-/* ----------------- MODAL CONTENTS --------------------- */
-.save-reads-refereences-containter {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+/* ---------- SLIDERS ---------- */
+.slider .rc-slider-track {
+    background-color: var(--artic-red);
+}
+.slider .rc-slider-mark-text-active {
+    color: var(--artic-red);
+}
+.slider .rc-slider-handle {
+    border-color: var(--artic-red);
+}
+.slider .rc-slider-handle:hover {
+    border-color: var(--artic-red);
+    background-color: var(--artic-red);
+}
+.slider .rc-slider-dot-active {
+    border-color: var(--artic-red);
 }

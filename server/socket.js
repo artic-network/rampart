@@ -60,13 +60,7 @@ const initialConnection = (socket) => {
 const setUpIOListeners = (socket) => {
     verbose("socket", "setUpIOListeners (socket for client - server communication)");
 
-    socket.on('config', (clientOptions) => {
-        const dataRecalcNeeded = modifyConfig(clientOptions);
-        sendConfig();
-        if (dataRecalcNeeded) {
-            warn("DATA RECALC NOT YET IMPLEMENTED")
-        }
-    });
+    socket.on('config', (clientOptions) => modifyConfig(clientOptions));
 
     socket.on('triggerPostProcessing', triggerPostProcessing);
 
