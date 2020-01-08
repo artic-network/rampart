@@ -428,8 +428,8 @@ function filterReads(reads, filters) {
         if (filters.maxReadLength && read.readLength > filters.maxReadLength) return false;
         if (filters.minReadLength && read.readLength < filters.minReadLength) return false;
         if (filters.references && !filters.references.includes(read.topRefHit)) return false;
-        if (filters.maxRefSimilarity && read.topRefHitSimilarity > filters.maxRefSimilarity) return false;
-        if (filters.minRefSimilarity && read.topRefHitSimilarity < filters.minRefSimilarity) return false;
+        if (filters.maxRefSimilarity && read.topRefHitSimilarity*100 > filters.maxRefSimilarity) return false;
+        if (filters.minRefSimilarity && read.topRefHitSimilarity*100 < filters.minRefSimilarity) return false;
         return true;
     });
 }

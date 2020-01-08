@@ -17,12 +17,12 @@ import React, { useReducer } from 'react';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 
-const Filters = ({config, setConfig, closeSidebar, dataPerSample}) => {
+const Filters = ({config, setConfig, closeSidebar, dataPerSample, combinedData}) => {
 
     // When this Component loads, check the config for any filters already set and
     // set the internal state to mirror these
     const [state, dispatch] = useReducer(reducer, {config, dataPerSample}, init);
-    console.log("<Filters> internal state:", state)
+    // console.log("<Filters> internal state:", state)
 
     return (
         <div className="filters">
@@ -76,6 +76,8 @@ const Filters = ({config, setConfig, closeSidebar, dataPerSample}) => {
             <button className="modernButton" onClick={() => dispatch({type: "reset", closeSidebar, setConfig})}>
                 reset filters
             </button>
+
+            <p>{`Current filtering results in ${combinedData.mappedCount} reads mapped (${combinedData.processedCount} processed)`}</p>
         </div>
     );
 
@@ -108,13 +110,14 @@ function init({config, dataPerSample}) {
             config.display.filters.minRefSimilarity || 0,
             config.display.filters.maxRefSimilarity || 100,
         ],
-        referencesSelected
+        referencesSelected,
+        filters: config.display.filters,
     };
 }
 
 function reducer(state, action) {
     let newState;
-    const filters = {}; // represents filter state for the server
+    const filters = {...state.filters}; // represents filter state for the server
     switch (action.type) {
         case 'readLengthBounds':
             newState = {...state, readLengthBounds: action.data};
@@ -150,6 +153,7 @@ function reducer(state, action) {
     // Could (should) debounce this, as it's somewhat expensive & will appear laggy
     // As data updates on the server cannot be interrupted
     action.setConfig({filters});
+    newState.filters = filters;
     return newState;
 }
 
