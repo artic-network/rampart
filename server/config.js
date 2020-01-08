@@ -365,6 +365,8 @@ const getInitialConfig = (args) => {
             // ">2000x": 2000, ">200x": 200, ">20x": 20, "0x": 0
             ">1000x": 1000, ">100x": 100, ">10x": 10, "0x": 0
         },
+        // filters: {},
+        filters: {"maxReadLength": 600}, // TMP TODO
         relativeReferenceMapping: false,
         logYAxis: false
     };

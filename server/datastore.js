@@ -24,11 +24,13 @@ const { UNMAPPED_LABEL } = require('./config');
  */
 const Datastore = function() {
     this.reads = [];
-    /* processed data is per sample name & designed so that new data is added without requiring
-    any expensive recompute */
-    this.dataPerSample = {};
-    this.barcodesSeen = new Set();
 
+    /* We store processed data per sample name & the structures are such that new reads can be
+    cheaply added in */
+    this.dataPerSample = {};
+    this.filteredDataPerSample = {}; 
+
+    this.barcodesSeen = new Set()
     this.timestampAdjustment = undefined;
     this.currentTimestamp = undefined;
 
@@ -38,6 +40,13 @@ const Datastore = function() {
         this.barcodesSeen.add(barcode);
         const sampleName = this.getSampleName(barcode);
         this.dataPerSample[sampleName] = new SampleData();
+    }
+
+    // TMP -- this should be instantiated when filters change / are set.
+    // doing here as there's no UI for this yet
+    // TODO
+    for (const key of Object.keys(this.dataPerSample)) {
+        this.filteredDataPerSample[key] = new SampleData();
     }
 
 };
@@ -88,17 +97,33 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
     [...barcodes].forEach((barcode) => {
         /* update barcodes seen and if this means we're seeing new "samples" then initialise them */
         this.barcodesSeen.add(barcode);
+        const barcodeReads = reads.filter((d) => d.barcode === barcode);
         const sampleName = this.getSampleName(barcode);
+
+        /* update `dataPerSample`, which contains the "overall" summary of the run so far,
+        i.e. it represents a summary of `this.reads` given the current barcode-sample mapping. */
         if (!this.dataPerSample[sampleName]) {
             this.dataPerSample[sampleName] = new SampleData();
         }
-        
-        /* for the reads associated with this barcode, update the `sampleData` for this sampleName */
         const {referencesSeen: referencesSeenThisBarcode} = updateSampleDataWithNewReads(
             this.dataPerSample[sampleName],
-            reads.filter((d) => d.barcode === barcode)
+            barcodeReads
         );
         [...referencesSeenThisBarcode].forEach((ref) => referencesSeen.add(ref));
+
+        /* if filtering is in effect, then in addition to keeping `sampleData` up to date we want to
+        update `filteredSampleData`. Note that if the filter specs change, then this gets a complete
+        recompute, this is simply the way we add in new data to the currently enabled filters */
+        const filters = global.config.display.filters;
+        if (filters) {
+            if (!this.filteredDataPerSample[sampleName]) {
+                this.filteredDataPerSample[sampleName] = new SampleData();
+            }
+            updateSampleDataWithNewReads(
+                this.filteredDataPerSample[sampleName],
+                filterReads(barcodeReads, filters)
+            );
+        }
     })
 
 
@@ -191,10 +216,14 @@ const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
 Datastore.prototype.getDataForClient = function() {
     timerStart("getDataForClient");
 
+    const dataToVisualise = Object.keys(global.config.display.filters).length ?
+        this.filteredDataPerSample :
+        this.dataPerSample;
+
     /* Part I - summarise each sample (i.e. each sample name, i.e. this.dataPerSample */
     const summarisedData = {};
-    const refMatchesAcrossSamples = whichReferencesToDisplay(this.dataPerSample, global.config.display.referenceMapCountThreshold, global.config.display.maxReferencePanelSize);
-    for (const [sampleName, sampleData] of Object.entries(this.dataPerSample)) {
+    const refMatchesAcrossSamples = whichReferencesToDisplay(dataToVisualise, global.config.display.referenceMapCountThreshold, global.config.display.maxReferencePanelSize);
+    for (const [sampleName, sampleData] of Object.entries(dataToVisualise)) {
         summarisedData[sampleName] = {
             mappedCount: sampleData.mappedCount,
             processedCount: sampleData.processedCount,
@@ -211,8 +240,8 @@ Datastore.prototype.getDataForClient = function() {
 
     /* Part II - summarise the overall data, i.e. all samples combined */
     const combinedData = {
-        processedCount: Object.values((this.dataPerSample)).map((d) => d.processedCount).reduce((pv, cv) => pv+cv, 0),
-        mappedCount: Object.values((this.dataPerSample)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
+        processedCount: Object.values((dataToVisualise)).map((d) => d.processedCount).reduce((pv, cv) => pv+cv, 0),
+        mappedCount: Object.values((dataToVisualise)).map((d) => d.mappedCount).reduce((pv, cv) => pv+cv, 0),
         readsLastSeen: Math.min(...Object.values(summarisedData).map((d) => d.readsLastSeen)),
         temporal: summariseOverallTemporalData(summarisedData)
     };
@@ -362,5 +391,12 @@ const summariseOverallTemporalData = (summarisedData) => {
     return ret;
 };
 
+
+function filterReads(reads, filters) {
+    return reads.filter((read) => {
+        if (filters.maxReadLength && read.readLength > filters.maxReadLength) return false;
+        return true;
+    });
+}
 
 module.exports = { default: Datastore };
