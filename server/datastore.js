@@ -13,7 +13,7 @@
  */
 
 const { createReadsFromAnnotation } = require("./annotationParser");
-const SampleData = require("./sampleData").default;
+const { SampleData, updateSampleDataWithNewReads } = require("./sampleData");
 const { timerStart, timerEnd } = require('./timers');
 const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
 const { UNMAPPED_LABEL } = require('./config');
@@ -94,23 +94,11 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
         }
         
         /* for the reads associated with this barcode, update the `sampleData` for this sampleName */
-        const sampleData = this.dataPerSample[sampleName];
-        const barcodeReads = reads.filter((d) => d.barcode === barcode);
-        
-        sampleData.updateReadCounts(barcodeReads);
-
-        const referencesSeenThisBarcode = sampleData.updateRefMatchCounts(barcodeReads);
+        const {referencesSeen: referencesSeenThisBarcode} = updateSampleDataWithNewReads(
+            this.dataPerSample[sampleName],
+            reads.filter((d) => d.barcode === barcode)
+        );
         [...referencesSeenThisBarcode].forEach((ref) => referencesSeen.add(ref));
-
-        sampleData.updateCoverage(barcodeReads);
-        
-        // TODO -- bug in here!
-        sampleData.updateReadLengthCounts(barcodeReads);
-
-        sampleData.updateRefMatchCoverages(barcodeReads);
-
-        sampleData.updateTemporalData(barcodeReads);
-
     })
 
 

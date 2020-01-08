@@ -227,4 +227,29 @@ SampleData.prototype.summariseTemporalData = function(timestampAdjustment) {
     return ret;
 };
 
-module.exports = { default: SampleData };
+/**
+ * Update a `SampleData` object with a collection of new reads
+ * @param {SampleData} sampleData 
+ * @param {array} reads
+ * @returns {obj} Keys:
+ *                {set} referencesSeen
+ */
+const updateSampleDataWithNewReads = (sampleData, reads) => {
+
+    sampleData.updateReadCounts(reads);
+
+    const referencesSeen = sampleData.updateRefMatchCounts(reads);
+
+    sampleData.updateCoverage(reads);
+    
+    sampleData.updateReadLengthCounts(reads);
+
+    sampleData.updateRefMatchCoverages(reads);
+
+    sampleData.updateTemporalData(reads);
+
+    return {referencesSeen};
+}
+
+
+module.exports = { SampleData, updateSampleDataWithNewReads };
