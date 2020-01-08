@@ -12,7 +12,7 @@
  *
  */
 
-const { createDatapointsFromAnnotation } = require("./datapoint");
+const { createReadsFromAnnotation } = require("./annotationParser");
 const SampleData = require("./sampleData").default;
 const { timerStart, timerEnd } = require('./timers');
 const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
@@ -23,8 +23,7 @@ const { UNMAPPED_LABEL } = require('./config');
  * Prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {
-    /* datapoints represent reads */
-    this.datapoints = [];
+    this.reads = [];
     /* processed data is per sample name & designed so that new data is added without requiring
     any expensive recompute */
     this.dataPerSample = {};
@@ -62,7 +61,7 @@ Datastore.prototype.updateTimestamp = function(reads) {
 
 /**
  * Add newly annotated data to the datastore.
- * Side effect 1: Adds a new datapoint to `this.datapoints`. (1 FASTQ == 1 CSV == 1 DATAPOINT).
+ * Side effect 1: Adds new reads to `this.reads`
  * Side effect 2: Updates `this.dataPerSample` as needed.
  * Side effect 3: trigger server-client data updates.
  *
@@ -73,18 +72,17 @@ Datastore.prototype.updateTimestamp = function(reads) {
  */
 Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations) {
 
-    /* create new datapoints for each read */
-    const {datapoints, barcodes} = createDatapointsFromAnnotation(fileNameStem, annotations);
-    
-    /* store these datapoints */
-    this.datapoints.push(...datapoints);
+    const {reads, barcodes} = createReadsFromAnnotation(fileNameStem, annotations);
+
+    /* store these reads */
+    this.reads.push(...reads);
 
     /* update the run timestamps etc */
-    this.updateTimestamp(datapoints)
+    this.updateTimestamp(reads)
 
 
     /* update `dataPerSample`, which contains the "overall" summary of the run so far,
-    i.e. it represents a summary of `this.datapoints` given the current barcode-sample mapping.
+    i.e. it represents a summary of `this.reads` given the current barcode-sample mapping.
     We do this "per barcode" */
     const referencesSeen = new Set();
     [...barcodes].forEach((barcode) => {
@@ -97,21 +95,21 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
         
         /* for the reads associated with this barcode, update the `sampleData` for this sampleName */
         const sampleData = this.dataPerSample[sampleName];
-        const datapointsThisBarcode = datapoints.filter((d) => d.barcode === barcode);
+        const barcodeReads = reads.filter((d) => d.barcode === barcode);
         
-        sampleData.updateReadCounts(datapointsThisBarcode);
+        sampleData.updateReadCounts(barcodeReads);
 
-        const referencesSeenThisBarcode = sampleData.updateRefMatchCounts(datapointsThisBarcode);
+        const referencesSeenThisBarcode = sampleData.updateRefMatchCounts(barcodeReads);
         [...referencesSeenThisBarcode].forEach((ref) => referencesSeen.add(ref));
 
-        sampleData.updateCoverage(datapointsThisBarcode);
+        sampleData.updateCoverage(barcodeReads);
         
         // TODO -- bug in here!
-        sampleData.updateReadLengthCounts(datapointsThisBarcode);
+        sampleData.updateReadLengthCounts(barcodeReads);
 
-        sampleData.updateRefMatchCoverages(datapointsThisBarcode);
+        sampleData.updateRefMatchCoverages(barcodeReads);
 
-        sampleData.updateTemporalData(datapointsThisBarcode);
+        sampleData.updateTemporalData(barcodeReads);
 
     })
 
@@ -242,24 +240,26 @@ Datastore.prototype.getDataForClient = function() {
 
 
 Datastore.prototype.collectFastqFilesAndIndices = function({sampleName, minReadLen=0, maxReadLen=10000000}) {
-    const barcodes = [];
-    Object.keys(global.config.run.barcodeNames).forEach((key) => {
-        if (key === sampleName) barcodes.push(key);
-        if (global.config.run.barcodeNames[key].name === sampleName) barcodes.push(key);
-    });
+    console.log("This functionality is being removed & will be replaced with a better interface")
+    process.exit(2)
+    // const barcodes = [];
+    // Object.keys(global.config.run.barcodeNames).forEach((key) => {
+    //     if (key === sampleName) barcodes.push(key);
+    //     if (global.config.run.barcodeNames[key].name === sampleName) barcodes.push(key);
+    // });
 
-    const matches = [];
+    // const matches = [];
 
-    this.datapoints.forEach((datapoint) => {
-        barcodes.forEach((barcode) => {
-            const result = datapoint.getFastqPositionsMatchingFilters(barcode, minReadLen, maxReadLen);
-            if (result) {
-                matches.push(result);
-            }
-        })
-    });
+    // this.reads.forEach((read) => {
+    //     barcodes.forEach((barcode) => {
+    //         const result = datapoint.getFastqPositionsMatchingFilters(barcode, minReadLen, maxReadLen);
+    //         if (result) {
+    //             matches.push(result);
+    //         }
+    //     })
+    // });
 
-    return matches;
+    // return matches;
 };
 
 
