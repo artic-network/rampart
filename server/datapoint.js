@@ -15,6 +15,7 @@
 const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./config');
 const { warn } = require("./utils");
 
+
 /**
  * A Datapoint is the annotated results from a single annotated (CSV) file
  * which is generated from a single FASTQ file. A `Datapoint` object contains
@@ -29,130 +30,188 @@ const { warn } = require("./utils");
  *                            end_coords,num_matches,aln_block_len
  * @param {Integer} timestamp timestamp representing this set of reads
  */
-const Datapoint = function(fileNameStem, annotations) {
-    this.data = {};
-    this.fastqName = fileNameStem;
+// const Datapoint = function(fileNameStem, annotations) {
+//     this.data = {};
+//     this.fastqName = fileNameStem;
 
-    this.startTime = undefined;
-    this.endTime = undefined;
+//     this.startTime = undefined;
+//     this.endTime = undefined;
 
+//     annotations.forEach((d, index) => {
+//         d.start_time = (new Date(d.start_time)).getTime();
+
+//         if (!this.startTime || d.start_time < this.startTime) {
+//             this.startTime = d.start_time;
+//         }
+//         if (!this.endTime || d.start_time > this.endTime) {
+//             this.endTime = d.start_time;
+//         }
+
+//         const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
+
+//         if (!this.data[barcode]) {
+//             this.data[barcode] = {
+//                 barcodeCount: 0,
+//                 mappedCount: 0,
+//                 processedCount: 0,
+//                 readPositions: [],
+//                 readLengthsMapped: [],
+//                 readLengths: [],
+//                 readTopRefHits: [],
+//                 refMatches: {},
+//                 fastqPosition: [],
+//             };
+//         }
+
+//         this.data[barcode].fastqPosition.push(index);
+//         this.data[barcode].barcodeCount++;
+//         this.data[barcode].processedCount++;
+
+//         // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
+//         // taxonomic level).
+//         d.referenceCall = d.best_reference;
+//         if (global.config.display.referencesLabel) {
+//             if (d[global.config.display.referencesLabel]) {
+//                 d.referenceCall = d[global.config.display.referencesLabel];
+//             } else {
+//                 warn(`Reference label, '${global.config.display.referencesLabel}', not found in annotation CSV file`);
+//             }
+//         }
+
+//         // add a human readable label to unmapped reads. "*" means unmapped, "?" means ambiguous but
+//         // call both as unmapped for now.
+//         if (d.referenceCall === "*" || d.referenceCall === "?" || d.referenceCall === "") {
+//             d.referenceCall = UNMAPPED_LABEL;
+//         } else {
+//             // coerce into integers
+//             d.start_coords = parseInt(d.start_coords, 10);
+//             d.end_coords = parseInt(d.end_coords, 10);
+//             d.ref_len = parseInt(d.ref_len, 10);
+//             d.read_len = parseInt(d.read_len, 10);
+//             d.num_matches = parseInt(d.num_matches, 10);
+//             d.aln_block_len = parseInt(d.aln_block_len, 10);
+
+//             /* where the read mapped on the reference */
+//             const negStrand = d.start_coords > d.end_coords;
+//             const readPosition = {
+//                 startBase: negStrand ? d.end_coords : d.start_coords,
+//                 endBase: negStrand ? d.start_coords : d.end_coords,
+//                 strand: negStrand ? "-" : "+"
+//             };
+//             if (global.config.display.readOffset) {
+//                 // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
+//                 // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
+//                 readPosition.startFrac = (readPosition.startBase + global.config.display.readOffset) / global.config.genome.length;
+//                 readPosition.endFrac = (readPosition.endBase + global.config.display.readOffset) / global.config.genome.length;
+//             } else {
+//                 readPosition.startFrac = readPosition.startBase / d.ref_len;
+//                 readPosition.endFrac = readPosition.endBase / d.ref_len;
+//             }
+
+//             this.data[barcode].readPositions.push(readPosition);
+
+//             this.data[barcode].mappedCount++;
+//             this.data[barcode].readLengthsMapped.push(d.read_len);
+//         }
+
+//         this.data[barcode].readTopRefHits.push(d.referenceCall);
+//         this.data[barcode].readLengths.push(d.read_len);
+//         if (!this.data[barcode].refMatches[d.referenceCall]) {
+//             this.data[barcode].refMatches[d.referenceCall] = [];
+//         }
+//         const similarity = d.num_matches / d.aln_block_len;
+//         this.data[barcode].refMatches[d.referenceCall].push(similarity);
+
+//     });
+// };
+
+// Datapoint.prototype.getDataForBarcode = function(barcode) {
+//     return this.data[barcode];
+// };
+
+// Datapoint.prototype.getBarcodes = function() {
+//     return Object.keys(this.data);
+// };
+
+// Datapoint.prototype.getTimestamp = function() {
+//     return this.startTime;
+// };
+
+
+// Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minReadLen, maxReadLen) {
+//     const barcodeData = this.data[barcode];
+//     if (barcodeData) {
+//         const fastqPositions = [];
+//         for (let i=0; i<barcodeData.readLengths.length; i++) {
+//             // MATCH FILTERS
+//             if (
+//                 barcodeData.readLengths[i] >= minReadLen &&
+//                 barcodeData.readLengths[i] <= maxReadLen
+//             ) {
+//                 fastqPositions.push(barcodeData.fastqPosition[i])
+//             }
+//         }
+//         return [this.fastqName, fastqPositions]
+//     }
+//     return false;
+// };
+
+const createDatapointsFromAnnotation = (fastqStem, annotations) => {
+    const datapoints = [];
+    const barcodes = new Set();
     annotations.forEach((d, index) => {
-        d.start_time = (new Date(d.start_time)).getTime();
+        const dataPoint = new Map();
+        const barcode =  d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
+        barcodes.add(barcode);
+        dataPoint.barcode = barcode;
+        dataPoint.fastqPosition = index;
+        dataPoint.fastqStem = fastqStem;
 
-        if (!this.startTime || d.start_time < this.startTime) {
-            this.startTime = d.start_time;
-        }
-        if (!this.endTime || d.start_time > this.endTime) {
-            this.endTime = d.start_time;
-        }
-
-        const barcode = d.barcode === "none" ? UNASSIGNED_LABEL : d.barcode;
-
-        if (!this.data[barcode]) {
-            this.data[barcode] = {
-                barcodeCount: 0,
-                mappedCount: 0,
-                processedCount: 0,
-                readPositions: [],
-                readLengthsMapped: [],
-                readLengths: [],
-                readTopRefHits: [],
-                refMatches: {},
-                fastqPosition: [],
-            };
-        }
-
-        this.data[barcode].fastqPosition.push(index);
-        this.data[barcode].barcodeCount++;
-        this.data[barcode].processedCount++;
-
-        // the reference call for a read can be a different column in the CSV (i.e., it may be a higher
-        // taxonomic level).
-        d.referenceCall = d.best_reference;
+        /* the reference call is the reference we mapped to. */
+        let referenceCall = d.best_reference;
         if (global.config.display.referencesLabel) {
             if (d[global.config.display.referencesLabel]) {
-                d.referenceCall = d[global.config.display.referencesLabel];
+                referenceCall = d[global.config.display.referencesLabel];
             } else {
                 warn(`Reference label, '${global.config.display.referencesLabel}', not found in annotation CSV file`);
             }
         }
 
-        // add a human readable label to unmapped reads. "*" means unmapped, "?" means ambiguous but
-        // call both as unmapped for now.
-        if (d.referenceCall === "*" || d.referenceCall === "?" || d.referenceCall === "") {
-            d.referenceCall = UNMAPPED_LABEL;
+        const readLength = parseInt(d.read_len, 10);
+        // "*" means unmapped, "?" means ambiguous but call both as unmapped for now.
+        if (referenceCall === "*" || referenceCall === "?" || referenceCall === "") {
+            dataPoint.mapped = false;
+            referenceCall = UNMAPPED_LABEL
         } else {
-            // coerce into integers
-            d.start_coords = parseInt(d.start_coords, 10);
-            d.end_coords = parseInt(d.end_coords, 10);
-            d.ref_len = parseInt(d.ref_len, 10);
-            d.read_len = parseInt(d.read_len, 10);
-            d.num_matches = parseInt(d.num_matches, 10);
-            d.aln_block_len = parseInt(d.aln_block_len, 10);
+            dataPoint.mapped = true;
+            // coerce values into integers
+            const ref_len = parseInt(d.ref_len, 10);
+            const start_coords = parseInt(d.start_coords, 10);
+            const end_coords = parseInt(d.end_coords, 10);
+            const negStrand = start_coords > end_coords;
+            dataPoint.startBase = negStrand ? end_coords : start_coords;
+            dataPoint.endBase = negStrand ? start_coords : end_coords;
+            dataPoint.strand = negStrand ? "-" : "+";
 
-            /* where the read mapped on the reference */
-            const negStrand = d.start_coords > d.end_coords;
-            const readPosition = {
-                startBase: negStrand ? d.end_coords : d.start_coords,
-                endBase: negStrand ? d.start_coords : d.end_coords,
-                strand: negStrand ? "-" : "+"
-            };
+            // calculate read position as a fraction of the genome
             if (global.config.display.readOffset) {
                 // if a readOffset has been provided then all the reads are being mapped to a subgenomic region and
                 // the start and end fractions need to be adjusted so the coverage fits on the full genome plot.
-                readPosition.startFrac = (readPosition.startBase + global.config.display.readOffset) / global.config.genome.length;
-                readPosition.endFrac = (readPosition.endBase + global.config.display.readOffset) / global.config.genome.length;
+                dataPoint.startFrac = (dataPoint.startBase + global.config.display.readOffset) / global.config.genome.length;
+                dataPoint.startFrac = (dataPoint.endBase + global.config.display.readOffset) / global.config.genome.length;
             } else {
-                readPosition.startFrac = readPosition.startBase / d.ref_len;
-                readPosition.endFrac = readPosition.endBase / d.ref_len;
+                dataPoint.startFrac = dataPoint.startBase / ref_len;
+                dataPoint.endFrac = dataPoint.endBase / ref_len;
             }
-
-            this.data[barcode].readPositions.push(readPosition);
-
-            this.data[barcode].mappedCount++;
-            this.data[barcode].readLengthsMapped.push(d.read_len);
         }
+        dataPoint.readLength = readLength;
+        dataPoint.topRefHit = referenceCall;
+        dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.aln_block_len, 10);
+        dataPoint.time = (new Date(d.start_time)).getTime();
 
-        this.data[barcode].readTopRefHits.push(d.referenceCall);
-        this.data[barcode].readLengths.push(d.read_len);
-        if (!this.data[barcode].refMatches[d.referenceCall]) {
-            this.data[barcode].refMatches[d.referenceCall] = [];
-        }
-        const similarity = d.num_matches / d.aln_block_len;
-        this.data[barcode].refMatches[d.referenceCall].push(similarity);
-
+        datapoints.push(dataPoint);
     });
-};
+    return {datapoints, barcodes};
+}
 
-Datapoint.prototype.getDataForBarcode = function(barcode) {
-    return this.data[barcode];
-};
-
-Datapoint.prototype.getBarcodes = function() {
-    return Object.keys(this.data);
-};
-
-Datapoint.prototype.getTimestamp = function() {
-    return this.startTime;
-};
-
-
-Datapoint.prototype.getFastqPositionsMatchingFilters = function(barcode, minReadLen, maxReadLen) {
-    const barcodeData = this.data[barcode];
-    if (barcodeData) {
-        const fastqPositions = [];
-        for (let i=0; i<barcodeData.readLengths.length; i++) {
-            // MATCH FILTERS
-            if (
-                barcodeData.readLengths[i] >= minReadLen &&
-                barcodeData.readLengths[i] <= maxReadLen
-            ) {
-                fastqPositions.push(barcodeData.fastqPosition[i])
-            }
-        }
-        return [this.fastqName, fastqPositions]
-    }
-    return false;
-};
-
-module.exports = { default: Datapoint };
+module.exports = { createDatapointsFromAnnotation };

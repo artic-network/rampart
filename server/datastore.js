@@ -12,7 +12,7 @@
  *
  */
 
-const Datapoint = require("./datapoint").default;
+const { createDatapointsFromAnnotation } = require("./datapoint");
 const SampleData = require("./sampleData").default;
 const { timerStart, timerEnd } = require('./timers');
 const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
@@ -23,7 +23,7 @@ const { UNMAPPED_LABEL } = require('./config');
  * Prototypes provide the interface for data in and data out.
  */
 const Datastore = function() {
-    /* datapoints are essentially the raw data */
+    /* datapoints represent reads */
     this.datapoints = [];
     /* processed data is per sample name & designed so that new data is added without requiring
     any expensive recompute */
@@ -43,12 +43,17 @@ const Datastore = function() {
 
 };
 
-this._RATE_SMOOTHING_WINDOW = 60000;
+// this._RATE_SMOOTHING_WINDOW = 60000;
+
 /**
  * this prototype should be called every time any timestamp is seen.
  * It ensures `this.timestampAdjustment` is the earliest timestamp
  */
-Datastore.prototype.updateTimestamp = function(timestamp) {
+Datastore.prototype.updateTimestamp = function(reads) {
+    /* Jan 8 2020 - we now have times for all `reads` but here i'm using the "first" timestamp
+    of the reads to define them all. This keeps the behavior similar to the previous implementation.
+    This can be improved. TODO. */
+    const timestamp = reads[0].time;
     if (!this.timestampAdjustment || this.timestampAdjustment > timestamp) {
         this.timestampAdjustment = timestamp;
     }
@@ -68,31 +73,50 @@ Datastore.prototype.updateTimestamp = function(timestamp) {
  */
 Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations) {
 
-    /* step 1: create the datapoint (1 FASTQ == 1 CSV == 1 DATAPOINT) */
-    const datapoint = new Datapoint(fileNameStem, annotations);
-    this.datapoints.push(datapoint);
-    this.updateTimestamp(datapoint.getTimestamp());
+    /* create new datapoints for each read */
+    const {datapoints, barcodes} = createDatapointsFromAnnotation(fileNameStem, annotations);
+    
+    /* store these datapoints */
+    this.datapoints.push(...datapoints);
 
-    /* step 2: update `dataPerSample`, which is a summary of the run so far */
+    /* update the run timestamps etc */
+    this.updateTimestamp(datapoints)
+
+
+    /* update `dataPerSample`, which contains the "overall" summary of the run so far,
+    i.e. it represents a summary of `this.datapoints` given the current barcode-sample mapping.
+    We do this "per barcode" */
     const referencesSeen = new Set();
-    datapoint.getBarcodes().forEach((barcode) => {
+    [...barcodes].forEach((barcode) => {
+        /* update barcodes seen and if this means we're seeing new "samples" then initialise them */
         this.barcodesSeen.add(barcode);
-        const barcodeData = datapoint.getDataForBarcode(barcode);
         const sampleName = this.getSampleName(barcode);
-        /* initialise this.dataPerSample[sampleName] if a new sample name has been observed */
         if (!this.dataPerSample[sampleName]) {
             this.dataPerSample[sampleName] = new SampleData();
         }
+        
+        /* for the reads associated with this barcode, update the `sampleData` for this sampleName */
         const sampleData = this.dataPerSample[sampleName];
-        sampleData.updateReadCounts(barcodeData.mappedCount, barcodeData.processedCount, datapoint.getTimestamp());
-        sampleData.updateRefMatchCounts(barcodeData, referencesSeen);
-        sampleData.updateCoverage(barcodeData);
-        sampleData.updateReadLengthCounts(barcodeData);
-        sampleData.updateRefMatchCoverages(barcodeData); /* update per-reference-match coverage stats */
-        sampleData.updateTemporalData(barcodeData, datapoint.getTimestamp());
-    });
+        const datapointsThisBarcode = datapoints.filter((d) => d.barcode === barcode);
+        
+        sampleData.updateReadCounts(datapointsThisBarcode);
 
-    /* step 3: trigger server-client data updates as needed */
+        const referencesSeenThisBarcode = sampleData.updateRefMatchCounts(datapointsThisBarcode);
+        [...referencesSeenThisBarcode].forEach((ref) => referencesSeen.add(ref));
+
+        sampleData.updateCoverage(datapointsThisBarcode);
+        
+        // TODO -- bug in here!
+        sampleData.updateReadLengthCounts(datapointsThisBarcode);
+
+        sampleData.updateRefMatchCoverages(datapointsThisBarcode);
+
+        sampleData.updateTemporalData(datapointsThisBarcode);
+
+    })
+
+
+    /* trigger server-client data updates */
     updateConfigWithNewBarcodes();
     updateReferencesSeen(referencesSeen);
     global.NOTIFY_CLIENT_DATA_UPDATED()
