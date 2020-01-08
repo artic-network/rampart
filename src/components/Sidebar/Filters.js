@@ -117,7 +117,7 @@ function init({config, dataPerSample}) {
 
 function reducer(state, action) {
     let newState;
-    const filters = {...state.filters}; // represents filter state for the server
+    let filters = {...state.filters}; // represents filter state for the server
     switch (action.type) {
         case 'readLengthBounds':
             newState = {...state, readLengthBounds: action.data};
@@ -140,8 +140,8 @@ function reducer(state, action) {
             break;
         case 'reset':
             /* instead of modifying state (and getting the slider to update appropriately)
-            we just close the sidebar!
-            By not modifying `filters` the server interprets this as "no filters set" */
+            we just close the sidebar! */
+            filters = {};
             action.closeSidebar();
             break;
         default:
