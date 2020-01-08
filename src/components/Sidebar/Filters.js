@@ -17,27 +17,58 @@ import React, { useReducer } from 'react';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 
-const Filters = ({config, setConfig, closeSidebar}) => {
+const Filters = ({config, setConfig, closeSidebar, dataPerSample}) => {
 
     // When this Component loads, check the config for any filters already set and
     // set the internal state to mirror these
-    const [state, dispatch] = useReducer(reducer, config, init);
+    const [state, dispatch] = useReducer(reducer, {config, dataPerSample}, init);
     console.log("<Filters> internal state:", state)
 
     return (
-        <div>
+        <div className="filters">
             <h2>Filter reads</h2>
 
-            <p>Read Lengths</p>
+            <p>Restrict analysis to these read lengths:</p>
             <div style={{width: 400, margin: "30px 20px 30px 20px"}}>
                 <Slider.Range
+                    className="slider"
                     allowCross={false}
-                    marks={createRangeMarks(state.readLengthBoundsInData)}
+                    marks={createRangeMarksForReadLengths(state.readLengthBoundsInData)}
                     min={state.readLengthBoundsInData[0]}
                     max={state.readLengthBoundsInData[1]}
                     step={config.display.readLengthResolution}
                     defaultValue={state.readLengthBounds}
                     onAfterChange={(data) => dispatch({type: 'readLengthBounds', data, setConfig})}
+                    handle={sliderHandle}
+                />
+            </div>
+
+            <p>Restrict to reads mapping to these references:</p>
+            <div className="references">
+                {Object.keys(state.referencesSelected).map((refName) => (
+                    <div key={refName} className="item">
+                        {refName}
+                        <input
+                            type="checkbox"
+                            defaultChecked={state.referencesSelected[refName]}
+                            value={state.referencesSelected[refName]}
+                            onChange={() => dispatch({type: 'references', data: refName, setConfig})}
+                        />
+                    </div>
+                ))}
+            </div>
+
+            <p>Restrict to reads which map to references with similarity:</p>
+            <div style={{width: 400, margin: "30px 20px 30px 20px"}}>
+                <Slider.Range
+                    className="slider"
+                    allowCross={false}
+                    marks={{0: "0%", 20: "20%", 40: "40%", 60: "60%", 80: "80%", 100: "100%"}}
+                    min={0}
+                    max={100}
+                    step={5}
+                    defaultValue={state.refSimilarity}
+                    onAfterChange={(data) => dispatch({type: 'refSimilarity', data, setConfig})}
                     handle={sliderHandle}
                 />
             </div>
@@ -50,20 +81,34 @@ const Filters = ({config, setConfig, closeSidebar}) => {
 
 };
 
-function init(config) {
+function init({config, dataPerSample}) {
     // TODO -- pass in data here to extract appropriate values
     if (!Object.keys(config).length) {
         console.log("FATAL -- THIS HAPPENS WHEN SERVER HASN'T SENT DATA YET")
         return {};
     }
-    const readLengthBoundsInData = [0, 2000];
+    const readLengthBoundsInData = [0, 2000]; // TODO
+
+    const referencesSelected = {};
+    Object.values(dataPerSample).forEach((d) => {
+        Object.keys(d.refMatches).filter((n) => n !== "total" && n!== "unmapped").forEach((n) => {
+            // TODO - enable unmapped, but it's called something different on the server
+            // start with the references unselected unless included in the filter
+            referencesSelected[n] = config.display.filters.references && config.display.filters.references.includes(n);
+        });
+    });
 
     return {
         readLengthBoundsInData,
         readLengthBounds: [
             config.display.filters.minReadLength || readLengthBoundsInData[0],
             config.display.filters.maxReadLength || readLengthBoundsInData[1]
-        ]
+        ],
+        refSimilarity: [
+            config.display.filters.minRefSimilarity || 0,
+            config.display.filters.maxRefSimilarity || 100,
+        ],
+        referencesSelected
     };
 }
 
@@ -75,6 +120,20 @@ function reducer(state, action) {
             newState = {...state, readLengthBounds: action.data};
             if (action.data[0] !== state.readLengthBoundsInData[0]) filters.minReadLength = action.data[0];
             if (action.data[1] !== state.readLengthBoundsInData[1]) filters.maxReadLength = action.data[1];
+            break;
+        case 'references':
+            const referencesSelected = {...state.referencesSelected};
+            referencesSelected[action.data] = !referencesSelected[action.data];
+            newState = {...state, referencesSelected};
+            filters.references = Object.keys(referencesSelected).filter((name) => referencesSelected[name]);
+            if (!filters.references.length) {
+                delete filters.references;
+            }
+            break;
+        case 'refSimilarity':
+            newState = {...state, refSimilarity: action.data};
+            if (action.data[0] !== 0) filters.minRefSimilarity = action.data[0];
+            if (action.data[1] !== 100) filters.maxRefSimilarity = action.data[1];
             break;
         case 'reset':
             /* instead of modifying state (and getting the slider to update appropriately)
@@ -94,7 +153,7 @@ function reducer(state, action) {
     return newState;
 }
 
-function createRangeMarks(bounds) {
+function createRangeMarksForReadLengths(bounds) {
     const nMarks = 5;
     const step = (bounds[1]-bounds[0]) / (nMarks-1);
     const marks = {};
@@ -110,7 +169,7 @@ function sliderHandle(props) {
       <Tooltip
         prefixCls="rc-slider-tooltip"
         overlay={value}
-        visible
+        visible={dragging}
         placement="top"
         key={index}
       >

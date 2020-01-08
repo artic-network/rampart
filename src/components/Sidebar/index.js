@@ -50,13 +50,11 @@ export const sidebarButtonNames = [
 ]
 
 const Sidebar = ({config, setConfig, combinedData, dataPerSample, viewOptions, setViewOptions, sidebarOpen, setSidebarOpenState}) => {
-
-
     const sidebars = {
       config: (<Config config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
       viewOptions: (<ViewOptions config={config} setConfig={setConfig} viewOptions={viewOptions} setViewOptions={setViewOptions}/>),
       report: (<Report dataPerSample={dataPerSample} config={config}/>),
-      readFilters: (<Filters config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>)
+      readFilters: (<Filters config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)} dataPerSample={dataPerSample} />)
     };
 
 
