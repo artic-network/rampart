@@ -389,28 +389,38 @@ const getInitialConfig = (args) => {
 };
 
 /**
- * update the global config object via client provided data
+ * A reducer to update the global config object via client provided data.
+ * The `action` here doesn't (necessarily) have a `type`, we instead interogate
+ * the properties of the action make (potentially multiple) modifications to the
+ * config object.
  * @param {Object} clientSettings new config paramaters sent from the client
  * @returns {undefined}
  * @sideEffect (1) modifies global.config in place
  *             (2) notifies client of updated config
  *             (3) [potentially] triggers data updates & notifies client of updated data
  */
-const modifyConfig = (clientSettings) => {
-    console.log("MODIFY CONFIG.", clientSettings); // turn to debug statement
+const modifyConfig = (action) => {
+    verbose("config", `Modifying the following parts of the config: ${Object.keys(action).join(", ")}`);
+
     let dataHasChanged = false;
 
-    if (clientSettings.hasOwnProperty("logYAxis")) {
-        global.config.display.logYAxis = clientSettings.logYAxis;
+    if (action.hasOwnProperty("logYAxis")) {
+        global.config.display.logYAxis = action.logYAxis;
     }
 
-    if (clientSettings.hasOwnProperty("relativeReferenceMapping")) {
-        global.config.display.relativeReferenceMapping = clientSettings.relativeReferenceMapping;
+    if (action.hasOwnProperty("relativeReferenceMapping")) {
+        global.config.display.relativeReferenceMapping = action.relativeReferenceMapping;
     }
 
-    if (clientSettings.hasOwnProperty("filters")) {
-        global.config.display.filters = clientSettings.filters; // check for equality?
+    if (action.hasOwnProperty("filters")) {
+        global.config.display.filters = action.filters; // TODO: check for equality?
         global.datastore.changeReadFilters();
+        dataHasChanged = true;
+    }
+
+    if (action.hasOwnProperty("barcodeNames")) {
+        global.config.run.barcodeNames = action.barcodeNames
+        global.datastore.recalcSampleData();
         dataHasChanged = true;
     }
 

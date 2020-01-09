@@ -17,6 +17,7 @@ import PropTypes from "prop-types";
 import Select from "react-select";
 import { IoIosSave } from "react-icons/io";
 import BarcodeNames from "./BarcodeNames";
+import { isEqual } from "lodash";
 
 const SaveConfig = ({handleClick}) => (
     <button className="modernButton" onClick={handleClick}>
@@ -27,7 +28,7 @@ const SaveConfig = ({handleClick}) => (
 const Config = ({config, setConfig, closeSidebar}) => {
     /* since changing config is done on the server (the client just displays
      * it) we want to maintain a temporary copy here, and then flush it to the server */
-    const [configCopy, dispatch] = useReducer(reducer, JSON.parse(JSON.stringify(config)));
+    const [barcodeNames, setBarcodeNames] = useState(JSON.parse(JSON.stringify(config.run.barcodeNames)));
 
     if (!Object.keys(config).length) {
         // should do this in the parent!
@@ -37,8 +38,13 @@ const Config = ({config, setConfig, closeSidebar}) => {
     }
 
     const submit = () => {
-        console.log("Sending Config To Server. Barcode names:", configCopy.run.barcodeNames);
-        setConfig({config: configCopy});
+        const action = computeAction(config, barcodeNames);
+        if (!action) {
+            console.warn("Not sending config to server as there are no changes!")
+            return;
+        }
+        console.log("Calling setConfig", action);
+        setConfig(action);
         closeSidebar();
     }
 
@@ -47,10 +53,7 @@ const Config = ({config, setConfig, closeSidebar}) => {
 
             <h1>Set Config</h1>
 
-            <BarcodeNames
-                barcodeNames={configCopy.run.barcodeNames}
-                setBarcodeNames={(barcodeName, sampleName) => dispatch({type: "barcodeNames", barcodeName, sampleName})}
-            />
+            <BarcodeNames barcodeNames={barcodeNames} setBarcodeNames={setBarcodeNames} />
 
             <SaveConfig handleClick={submit}/>
 
@@ -59,17 +62,18 @@ const Config = ({config, setConfig, closeSidebar}) => {
 
 }
 
-function reducer(state, action) {
-    switch (action.type) {
-        case 'barcodeNames':
-            // iterate shallow copies for those parts of state which will change
-            const newState = {...state, run: {...state.run, barcodeNames: {...state.run.barcodeNames}}};
-            newState.run.barcodeNames[action.barcodeName].name = action.sampleName;
-            return newState;
-        default:
-            console.error("ERROR: This reducer should not fallthrough.");
-            return state;
+function computeAction(config, barcodeNames) {
+    // what's changed? Do some diffs to then tell the server what parts of the config
+    // have changed. This function should be developed in conjunction with `modifyConfig`
+    // on the server side
+    const action = {};
+    if (!isEqual(config.run.barcodeNames, barcodeNames)) {
+        action.barcodeNames = barcodeNames;
     }
+    if (Object.keys(action).length) {
+        return action;
+    }
+    return false;
 }
 
 export default Config;

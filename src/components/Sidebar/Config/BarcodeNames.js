@@ -34,7 +34,9 @@ const BarcodeNames = ({barcodeNames, setBarcodeNames}) => {
                                 type="text"
                                 value={barcodeNames[barcodeName].name}
                                 onChange={(event) => {
-                                    setBarcodeNames(barcodeName, event.target.value)
+                                    const newState = {...barcodeNames};
+                                    newState[barcodeName].name = event.target.value;
+                                    setBarcodeNames(newState)
                                 }}
                             />
                         </label>

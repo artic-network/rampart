@@ -38,12 +38,12 @@ class App extends Component {
     this.state.setViewOptions = (newOptions) => {
       this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     };
-    this.state.setConfig = (opts) => {
-      /* the ultimate source of truth for the config resides is the server. A request (by the client)
-      to set the config results in a socket call. The server will then return the new config
-      (see `registerServerListeners` below) potentially with an updated set of data */
-      this.state.socket.emit('config', opts);
-    };
+    /**
+     * `setConfig(action)` will trigger the server to update its config (which is the "source of truth")
+     * and potentially recompute aspects of the data to be visualised. The client will be notified
+     * of such updates via socket signals (see `registerServerListeners` below).
+     */
+    this.state.setConfig = (action) => this.state.socket.emit('config', action);
     this.state.clearWarningMessage = () => {
       this.setState({warningMessage: ""})
     }
