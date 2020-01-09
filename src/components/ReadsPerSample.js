@@ -64,8 +64,7 @@ const calcYScale = (chartGeom, maxReads, log) => {
 };
 
 
-const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples, infoRef, data) => {
-
+const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples, infoRef, data, goToSamplePanel) => {
   function handleMouseMove(d, i) {
     /* NOTE - we're using an ordinal scale so things are a little different here */
     const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
@@ -103,7 +102,8 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
       .attr("fill", (count, sampleIdx) => colours[sampleIdx])
       .attr("height", (count) => chartGeom.height - chartGeom.spaceBottom - scales.y(count))
       .on("mouseout", handleMouseOut)
-      .on("mousemove", handleMouseMove);
+      .on("mousemove", handleMouseMove)
+      .on("click", (d, i) => goToSamplePanel(samples[i]));
 
   /* render the column labels (sample numbers or names) on the bottom */
   const sampleName = (d) => {
@@ -156,7 +156,7 @@ class ReadsPerSample extends React.Component {
       counts.push(this.props.data[name].mappedCount || 0);
       colours.push(this.props.viewOptions.sampleColours[name] || "white");
     });
-    drawColumns(this.state.svg, chartGeom, scales, counts, barWidth, colours, samples, this.infoRef, this.props.data);
+    drawColumns(this.state.svg, chartGeom, scales, counts, barWidth, colours, samples, this.infoRef, this.props.data, this.props.goToSamplePanel);
   }
   componentDidMount() {
     const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
