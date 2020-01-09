@@ -17,6 +17,7 @@ const { SampleData, updateSampleDataWithNewReads } = require("./sampleData");
 const { timerStart, timerEnd } = require('./timers');
 const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
 const { UNMAPPED_LABEL } = require('./config');
+const { verbose } = require("./utils");
 
 /**
  * The main store of all annotated data.
@@ -141,9 +142,9 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 Datastore.prototype.changeReadFilters = function() {
     const filters = global.config.display.filters;
     this.filteredDataPerSample = {};
-    console.log("CHANGE READ FILTERS", filters)
     /* note that if filters were removed, then we leave filteredDataPerSample as an empty object */
     if (Object.keys(filters).length) {
+        verbose("datastore", `Recomputing data under the following filters ${JSON.stringify(filters)}`);
         /* we have enabled filters or mofified them */
         for (const sampleName of Object.keys(this.dataPerSample)) {
             this.filteredDataPerSample[sampleName] = new SampleData();
@@ -155,6 +156,29 @@ Datastore.prototype.changeReadFilters = function() {
             );
         }
     }
+}
+
+/**
+ * A somewhat crude function which recomputes the sampleData objects
+ * for all sample names. Useful if things such as barcode - sampleName
+ * maps have changed. In the future there are plenty of optimisations
+ * that can be done here.
+ */
+Datastore.prototype.recalcSampleData = function() {
+    verbose("datastore", `Recomputing all data from reads`);
+    this.dataPerSample = {};
+    [...this.barcodesSeen].forEach((barcode) => {
+        const sampleName = this.getSampleName(barcode);
+        if (!this.dataPerSample[sampleName]) {
+            this.dataPerSample[sampleName] = new SampleData();
+        }
+        updateSampleDataWithNewReads(
+            this.dataPerSample[sampleName],
+            this.reads.filter((d) => d.barcode === barcode)
+        );
+    })
+    /* If filters are set then recompute everything with these applied */
+    this.changeReadFilters();
 }
 
 /**
