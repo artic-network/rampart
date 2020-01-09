@@ -12,9 +12,7 @@
  *
  */
 
-import React, {useRef, useState, useReducer} from 'react';
-import PropTypes from "prop-types";
-import Select from "react-select";
+import React, {useState} from 'react';
 import { IoIosSave } from "react-icons/io";
 import BarcodeNames from "./BarcodeNames";
 import { isEqual } from "lodash";

@@ -24,7 +24,6 @@ import PanelManager from "./PanelManager";
 
 const Renderer = (props) => {
     const [sidebarOpen, setSidebarOpenState] = useState(false);
-  
     return (
         <div className="mainContainer">
             <Header

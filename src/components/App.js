@@ -16,7 +16,7 @@ import React, { Component } from 'react';
 import Renderer from './Renderer';
 import io from 'socket.io-client';
 import WindowMonitor from './WindowMonitor';
-import { createSampleColours, createReferenceColours } from "../utils/colours";
+import { createSampleColours } from "../utils/colours";
 
 class App extends Component {
   constructor(props) {
@@ -131,6 +131,7 @@ class App extends Component {
 
   render() {
     const props = {...this.state};
+    if (!props.socket) return null; /* hold off until this is open (opens in <1s) */
     return (
       <WindowMonitor>
         <Renderer {...props}/>

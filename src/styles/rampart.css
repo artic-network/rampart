@@ -394,13 +394,9 @@ th.rotate {
   height: 30px;
   min-height: 30px;
 }
-.panelContainer.expanded.singleRow {
+.panelContainer.expanded {
   height: 370px;
   min-height: 370px;
-}
-.panelContainer.expanded.multiRow {
-  height: 1000px;
-  min-height: 1000px;
 }
 .panelContainer > .infoRow {
   display: flex;

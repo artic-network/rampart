@@ -41,7 +41,6 @@ const ContractChart = ({handleClick}) => {
 const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket, timeSinceLastDataUpdate, panelExpanded, setPanelExpanded}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
-  const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
   const [postProcessingState, setPostProcessingState] = useState(false);
@@ -78,7 +77,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     coverage: (
       <CoveragePlot
         className="graphContainer"
-        width={(showSinglePanel === "coverage" || !singleRow) ? "100%" : "40%"}
+        width={(showSinglePanel === "coverage") ? "100%" : "40%"}
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchCoveragesStream}
@@ -96,7 +95,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
       <ReadLengthDistribution
         className="graphContainer"
         title={"Read Lengths"}
-        width={(showSinglePanel === "readLength" || !singleRow) ? "100%" : "25%"}
+        width={(showSinglePanel === "readLength") ? "100%" : "25%"}
         xyValues={sampleData.readLengths.xyValues}
         xyValuesMapped={sampleData.readLengthsMapped.xyValues}
         colour={sampleColour}
@@ -112,7 +111,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     coverageOverTime: (
       <CoverageOverTime
         title={"Coverage Progress"}
-        width={(showSinglePanel === "coverageOverTime" || !singleRow) ? "100%" : "30%"}
+        width={(showSinglePanel === "coverageOverTime") ? "100%" : "30%"}
         className="graphContainer"
         temporalData={sampleData.temporal}
         colour={sampleColour}
@@ -130,36 +129,20 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
   const renderCharts = () => {
     if (!panelExpanded) return null;
-    if (singleRow) {
-      const chartsToShow = showSinglePanel ?
-        charts[showSinglePanel] :
-        [charts.coverage, charts.readLength, charts.coverageOverTime];
-      return (
-        <div className="panelFlexRow">
-          {chartsToShow}
-        </div>
-      )
-    }
-    /* multi row! */
+    const chartsToShow = showSinglePanel ?
+    charts[showSinglePanel] :
+    [charts.coverage, charts.readLength, charts.coverageOverTime];
     return (
-      <div className="panelFlexColumn">
-        <div className="panelFlexRow">
-          {charts.coverage}
-        </div>
-        <div className="panelFlexRow">
-          {charts.readLength}
-        </div>
-        <div className="panelFlexRow">
-          {charts.coverageOverTime}
-        </div>
-      </div>
-    );
+    <div className="panelFlexRow">
+        {chartsToShow}
+    </div>
+    )
   };
 
   /* ----------------- R E N D E R ---------------- */
   return (
     <div
-      className={`panelContainer ${panelExpanded ? "expanded" : "collapsed"} ${singleRow ? "singleRow" : "multiRow"}`}
+      className={`panelContainer ${panelExpanded ? "expanded" : "collapsed"}`}
       style={{borderColor: sampleColour}}
     >
       <InfoRow
