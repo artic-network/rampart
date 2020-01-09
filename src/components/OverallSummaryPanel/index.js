@@ -101,7 +101,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, 
             <ReferenceHeatmap
                 className="graphContainer"
                 width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
-                title="Reference Matches"
+                title={config.display.relativeReferenceMapping ? "Relative Reference Matches" : "Reference Matches"}
                 data={dataPerSample}
                 config={config}
                 referencePanel={config.genome.referencePanel}
