@@ -12,6 +12,9 @@
  *
  */
 
+/* THIS FILE IS NOT USED BUT REMAINS AS WE CAN INCORPORATE CERTAIN SECTIONS
+INTO THE "NEW" CONFIG SIDEBAR */
+ 
 import React, {useRef, useState, useReducer} from 'react';
 import PropTypes from "prop-types";
 import Select from "react-select";

@@ -394,13 +394,9 @@ th.rotate {
   height: 30px;
   min-height: 30px;
 }
-.panelContainer.expanded.singleRow {
-  height: 370px;
-  min-height: 370px;
-}
-.panelContainer.expanded.multiRow {
-  height: 1000px;
-  min-height: 1000px;
+.panelContainer.expanded {
+  height: 720px;
+  min-height: 720px;
 }
 .panelContainer > .infoRow {
   display: flex;
@@ -429,6 +425,7 @@ th.rotate {
 .panelFlexRow {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   justify-content: space-between;
   height: calc(100% - 26px);
 }
@@ -443,6 +440,7 @@ th.rotate {
 .graphContainer {
   margin: auto;
   height: 100%;
+  max-height: 350px;
   position: relative;
 }
 .chartTitle {

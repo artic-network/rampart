@@ -133,10 +133,12 @@ const createReadsFromAnnotation = (fastqStem, annotations) => {
                 dataPoint.startFrac = dataPoint.startBase / ref_len;
                 dataPoint.endFrac = dataPoint.endBase / ref_len;
             }
+
+            // only store ref matches for mapped reads
+            dataPoint.topRefHit = referenceCall;
+            dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.aln_block_len, 10);
         }
         dataPoint.readLength = readLength;
-        dataPoint.topRefHit = referenceCall;
-        dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.aln_block_len, 10);
         dataPoint.time = (new Date(d.start_time)).getTime();
 
         reads.push(dataPoint);

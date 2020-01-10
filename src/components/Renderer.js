@@ -18,37 +18,12 @@ import Header from "./Header";
 import Footer from "./Footer";
 import '../styles/rampart.css';
 import 'rc-slider/assets/index.css';
-import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 import Modal from "./modal";
 import Sidebar, {sidebarButtonNames} from "./Sidebar/index";
-import Panels from "./Panels";
+import PanelManager from "./PanelManager";
 
 const Renderer = (props) => {
     const [sidebarOpen, setSidebarOpenState] = useState(false);
-
-    const renderMainPage = () => {
-        if (props.mainPage === "chooseBasecalledDirectory") {
-            return (
-                <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/>
-            );
-        } else if (props.mainPage === "loading") {
-            return (
-                <h1>LOADING</h1>
-            );
-        }
-        return (
-            <Panels
-                dataPerSample={props.dataPerSample}
-                combinedData={props.combinedData}
-                viewOptions={props.viewOptions}
-                config={props.config}
-                openConfigSidebar={() => setSidebarOpenState("config")}
-                socket={props.socket}
-                timeSinceLastDataUpdate={props.timeSinceLastDataUpdate}
-            />
-        )
-    }
-  
     return (
         <div className="mainContainer">
             <Header
@@ -63,7 +38,18 @@ const Renderer = (props) => {
                 infoMessage={props.infoMessage}
             />
 
-            {renderMainPage()}
+            {props.mainPage === "loading" ?
+                (<h1>LOADING</h1>) :
+                (<PanelManager
+                        dataPerSample={props.dataPerSample}
+                        combinedData={props.combinedData}
+                        viewOptions={props.viewOptions}
+                        config={props.config}
+                        openConfigSidebar={() => setSidebarOpenState("config")}
+                        socket={props.socket}
+                        timeSinceLastDataUpdate={props.timeSinceLastDataUpdate}
+                />)
+            }
 
             <div id="contextMenuPortal"/>
 
@@ -92,6 +78,16 @@ const Renderer = (props) => {
     )
 }
 
+/* UNUSED CODE: The following was a switch to enable the
+    startup page where you could select the basecalled directory
+    etc via the UI:
+import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
+
+if (props.mainPage === "chooseBasecalledDirectory") {
+    return (
+        <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/>
+    );
+*/
 
 Renderer.propTypes = {
   dataPerSample: PropTypes.object,

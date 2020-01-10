@@ -12,12 +12,12 @@
  *
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import CoveragePlot from "../Coverage";
 import ReadLengthDistribution from "../ReadLengthDistribution";
 import CoverageOverTime from "../CoverageOverTime";
+import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
-// import SaveDemuxedReads from "./saveDemuxedReadsModal";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
 
@@ -37,28 +37,26 @@ const ContractChart = ({handleClick}) => {
 };
 
 /**
- * Why are we using this transition / setTimeout stuff?
- *    The charts, upon initial rendering, calculate the SVG dimentions from the DOM they're in.
- *    Therefore we can't render them until after the CSS transitions have happened.
- *    It also helps when we change the size of them (e.g. expand) them to simply get
- *    them to reinitialise with new dimensions
+ * A panel representing an individual sample
  */
-const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket, timeSinceLastDataUpdate}) => {
+const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket, timeSinceLastDataUpdate, panelExpanded, setPanelExpanded}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
-  const [expanded, setExpanded] = useState(true);
-  const [singleRow, setSingleRow] = useState(true);
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
   const [postProcessingState, setPostProcessingState] = useState(false);
-  const transitionStarted = (duration=600) => { /* CSS transition is 0.5s */
+  
+  /* When the parent tells us to expand / contract the panel, we want to trigger a transition. Why?
+   *    The charts, upon initial rendering, calculate the SVG dimentions from the DOM they're in.
+   *    Therefore we can't render them until after the CSS transitions have happened.
+   *    It also helps when we change the size of them (e.g. expand) them to simply get
+   *    them to reinitialise with new dimensions
+   */
+  useEffect(() => {
+    const duration = 600; /* CSS transition is 0.5s */
     setTransitionInProgress(true);
     setTimeout(() => setTransitionInProgress(false), duration);
-  }
-  const toggleExpanded = () => {
-    transitionStarted();
-    setExpanded(!expanded);
-  }
+  }, [panelExpanded]);
 
   const goToChart = (chartName, duration=0) => {
     setTransitionInProgress(true);
@@ -73,31 +71,14 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
 
   /* ------------- MENU OPTIONS -------------------- */
   const menuItems = [];
-  // if (!expanded) {
-  //   menuItems.push({label: "Expand panel", callback: toggleExpanded})
-  // } else {
-  //   menuItems.push({label: "Contract panel", callback: toggleExpanded})
-  //   if (singleRow) {
-  //     if (showSinglePanel === false) {
-  //       menuItems.push({label: "Expand Coverage", callback: () => {transitionStarted(0); setShowSinglePanel("coverage")}});
-  //       menuItems.push({label: "Expand Read Lengths", callback: () => {transitionStarted(0); setShowSinglePanel("readLength")}});
-  //       menuItems.push({label: "Expand Coverage vs Time", callback: () => {transitionStarted(0); setShowSinglePanel("coverageOverTime")}});
-  //     } else {
-  //       menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(0); setShowSinglePanel(false)}});
-  //     }
-  //     menuItems.push({label: "Show All (vertically)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(false);}});
-  //   } else {
-  //     menuItems.push({label: "Show All (horisontally)", callback: () => {transitionStarted(); setShowSinglePanel(false); setSingleRow(true);}});
-  //   }
-    menuItems.push(...getPostProcessingMenuItems(config, setPostProcessingState));
-  // }
+  menuItems.push(...getPostProcessingMenuItems(config, setPostProcessingState));
 
   /* ----------------- C H A R T S ----------------------- */
   const charts = {
     coverage: (
       <CoveragePlot
         className="graphContainer"
-        width={(showSinglePanel === "coverage" || !singleRow) ? "100%" : "40%"}
+        width={(showSinglePanel === "coverage") ? "100%" : "40%"}
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchCoveragesStream}
@@ -115,7 +96,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
       <ReadLengthDistribution
         className="graphContainer"
         title={"Read Lengths"}
-        width={(showSinglePanel === "readLength" || !singleRow) ? "100%" : "25%"}
+        width={(showSinglePanel === "readLength") ? "100%" : "25%"}
         xyValues={sampleData.readLengths.xyValues}
         xyValuesMapped={sampleData.readLengthsMapped.xyValues}
         colour={sampleColour}
@@ -131,7 +112,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     coverageOverTime: (
       <CoverageOverTime
         title={"Coverage Progress"}
-        width={(showSinglePanel === "coverageOverTime" || !singleRow) ? "100%" : "30%"}
+        width={(showSinglePanel === "coverageOverTime") ? "100%" : "30%"}
         className="graphContainer"
         temporalData={sampleData.temporal}
         colour={sampleColour}
@@ -143,42 +124,43 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
             (<ExpandChart handleClick={() => goToChart("coverageOverTime")}/>)
         }
       />
+    ),
+    refSimilarity: (
+        <RefSimilarity
+            title={"Read mapping similarities"}
+            width={(showSinglePanel === "refSimilarity") ? "100%" : "50%"}
+            key="refSimilarity"
+            className="graphContainer"
+            colour={sampleColour}
+            data={Object.keys(sampleData.refMatchSimilarities).map(
+                (refName) => ({refName, similarities: sampleData.refMatchSimilarities[refName]})
+            )}
+            renderProp={ showSinglePanel === "refSimilarity" ?
+                (<ContractChart handleClick={() => goToChart(false)}/>) :
+                (<ExpandChart handleClick={() => goToChart("refSimilarity")}/>)
+        }
+        />
     )
+
   };
 
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
   const renderCharts = () => {
-    if (!expanded) return null;
-    if (singleRow) {
-      const chartsToShow = showSinglePanel ?
-        charts[showSinglePanel] :
-        [charts.coverage, charts.readLength, charts.coverageOverTime];
-      return (
-        <div className="panelFlexRow">
-          {chartsToShow}
-        </div>
-      )
-    }
-    /* multi row! */
+    if (!panelExpanded) return null;
+    const chartsToShow = showSinglePanel ?
+    charts[showSinglePanel] :
+    [charts.coverage, charts.readLength, charts.coverageOverTime, charts.refSimilarity];
     return (
-      <div className="panelFlexColumn">
-        <div className="panelFlexRow">
-          {charts.coverage}
-        </div>
-        <div className="panelFlexRow">
-          {charts.readLength}
-        </div>
-        <div className="panelFlexRow">
-          {charts.coverageOverTime}
-        </div>
-      </div>
-    );
+    <div className="panelFlexRow">
+        {chartsToShow}
+    </div>
+    )
   };
 
   /* ----------------- R E N D E R ---------------- */
   return (
     <div
-      className={`panelContainer ${expanded ? "expanded" : "collapsed"} ${singleRow ? "singleRow" : "multiRow"}`}
+      className={`panelContainer ${panelExpanded ? "expanded" : "collapsed"}`}
       style={{borderColor: sampleColour}}
     >
       <InfoRow
@@ -186,8 +168,8 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         sampleData={sampleData}
         sampleColour={sampleColour}
         menuItems={menuItems}
-        handleClick={toggleExpanded}
-        isExpanded={expanded}
+        handleClick={() => setPanelExpanded(sampleName, !panelExpanded)}
+        isExpanded={panelExpanded}
         timeSinceLastDataUpdate={timeSinceLastDataUpdate}
       />
       {postProcessingState ? (

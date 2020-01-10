@@ -15,7 +15,6 @@
 import React from 'react';
 import PropTypes from "prop-types";
 import logo from "../images/logo.png";
-import { makeTimeFormatter } from "../utils/commonFunctions";
 import {getLogYAxis, getRelativeReferenceMapping} from "../utils/config";
 
 class Header extends React.Component {
@@ -34,7 +33,7 @@ class Header extends React.Component {
       }
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
       document.addEventListener("keydown", this.handleKeyDown);
   }
   renderButtons() {

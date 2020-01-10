@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { select, mouse } from "d3-selection";
-import { line, curveBasis, curveLinear } from "d3-shape";
+import { line, curveBasis } from "d3-shape";
 import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
 import {defaultLineColour} from "../utils/colours";
 import { getLogYAxis } from "../utils/config";

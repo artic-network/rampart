@@ -37,7 +37,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config}) => {
+const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, goToSamplePanel}) => {
 
     /* -----------    STATE MANAGEMENT    ------------------- */
     const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -90,6 +90,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
                 config={config}
                 viewOptions={viewOptions}
                 key="readsPerSample"
+                goToSamplePanel={goToSamplePanel}
                 renderProp={ chartToDisplay === "readsPerSample" ?
                     (<ContractChart handleClick={() => goToChart(false)}/>) :
                     (<ExpandChart handleClick={() => goToChart("readsPerSample")}/>)
@@ -100,7 +101,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config})
             <ReferenceHeatmap
                 className="graphContainer"
                 width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
-                title="Reference Matches"
+                title={config.display.relativeReferenceMapping ? "Relative Reference Matches" : "Reference Matches"}
                 data={dataPerSample}
                 config={config}
                 referencePanel={config.genome.referencePanel}
