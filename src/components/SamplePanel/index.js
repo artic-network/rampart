@@ -127,7 +127,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     ),
     refSimilarity: (
         <RefSimilarity
-            title={"Reference Similarity"}
+            title={"Read mapping similarities"}
             width={(showSinglePanel === "refSimilarity") ? "100%" : "50%"}
             key="refSimilarity"
             className="graphContainer"
