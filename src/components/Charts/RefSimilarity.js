@@ -45,7 +45,7 @@ const RefSimilarity = ({width, title, className, colour, data, renderProp}) => {
 
     /* magic parameters: */
     const maxViolins = 5;
-    const minReadsPerViolin = 100;
+    const minReadsPerViolin = 50;
     const violinResolution = 50; // how many bins (vertical components of each violin)
 
     /* When the width has changed we should recompute the bounding box */

@@ -135,7 +135,9 @@ SampleData.prototype.updateRefMatchSimilarities = function(reads) {
         if (!this.refMatchSimilarities[read.topRefHit]) {
             this.refMatchSimilarities[read.topRefHit] = [];
         }
-        this.refMatchSimilarities[read.topRefHit].push(read.topRefHitSimilarity);
+        if (read.topRefHitSimilarity) { // unmapped reads won't have this property
+            this.refMatchSimilarities[read.topRefHit].push(read.topRefHitSimilarity);
+        }
     })
 };
 
