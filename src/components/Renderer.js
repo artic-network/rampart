@@ -27,8 +27,6 @@ const Renderer = (props) => {
     return (
         <div className="mainContainer">
             <Header
-                viewOptions={props.viewOptions}
-                setViewOptions={props.setViewOptions}
                 config={props.config}
                 setConfig={props.setConfig}
                 sidebarButtonNames={sidebarButtonNames}
@@ -43,7 +41,6 @@ const Renderer = (props) => {
                 (<PanelManager
                         dataPerSample={props.dataPerSample}
                         combinedData={props.combinedData}
-                        viewOptions={props.viewOptions}
                         config={props.config}
                         openConfigSidebar={() => setSidebarOpenState("config")}
                         socket={props.socket}
@@ -59,8 +56,6 @@ const Renderer = (props) => {
                 setConfig={props.setConfig}
                 combinedData={props.combinedData}
                 dataPerSample={props.dataPerSample}
-                viewOptions={props.viewOptions}
-                setViewOptions={props.setViewOptions}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpenState={setSidebarOpenState}
             />

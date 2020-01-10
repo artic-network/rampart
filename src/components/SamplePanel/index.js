@@ -39,7 +39,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * A panel representing an individual sample
  */
-const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions, reference, socket, timeSinceLastDataUpdate, panelExpanded, setPanelExpanded}) => {
+const SamplePanel = ({sampleName, sampleData, config, reference, socket, timeSinceLastDataUpdate, panelExpanded, setPanelExpanded}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [showSinglePanel, setShowSinglePanel] = useState(false);
@@ -67,7 +67,10 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
   /* -------------- DATA TRANSFORMS ----------------- */
   const coverageData = {};
   coverageData[sampleName] = sampleData;
-
+  const sampleConfig = config.run.samples.filter((d) => d.name === sampleName).shift();
+  const sampleColour = sampleConfig ? sampleConfig.colour : "#FFFFFF";
+  const sampleColours = {}; /* dataformat needed by <CoveragePlot> */
+  sampleColours[sampleName] = sampleColour;
 
   /* ------------- MENU OPTIONS -------------------- */
   const menuItems = [];
@@ -82,7 +85,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         canShowReferenceMatches={true}
         coverage={coverageData}
         referenceStream={sampleData.refMatchCoveragesStream}
-        sampleColours={viewOptions.sampleColours}
+        sampleColours={sampleColours}
         fillIn={true}
         config={config}
         key="coveragePlot"
@@ -101,7 +104,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         xyValuesMapped={sampleData.readLengthsMapped.xyValues}
         colour={sampleColour}
         config={config}
-        viewOptions={viewOptions}
         key="readLengths"
         renderProp={ showSinglePanel === "readLength" ?
             (<ContractChart handleClick={() => goToChart(false)}/>) :
@@ -117,7 +119,6 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
         temporalData={sampleData.temporal}
         colour={sampleColour}
         config={config}
-        viewOptions={viewOptions}
         key="coverageOverTime"
         renderProp={ showSinglePanel === "coverageOverTime" ?
             (<ContractChart handleClick={() => goToChart(false)}/>) :

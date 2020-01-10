@@ -37,7 +37,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * See <Panel> for why we use timeouts here
  */
-const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, goToSamplePanel}) => {
+const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePanel}) => {
 
     /* -----------    STATE MANAGEMENT    ------------------- */
     const [chartToDisplay, setChartToDisplay] = useState(false);
@@ -49,6 +49,12 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, 
     };
 
 
+    /* -------------- DATA TRANSFORMS ----------------- */
+    // TODO -- this is temporary to get colours working on the server
+    const sampleColours = {};
+    config.run.samples.forEach((d) => {sampleColours[d.name] = d.colour || "#FFFFFF"});
+    Object.keys(dataPerSample).forEach((name) => {if (!sampleColours[name]) {sampleColours[name] = "#FFFFFF"}});
+
     /* ----------------- C H A R T S ----------------------- */
     const charts = {
         coverage: (
@@ -57,7 +63,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, 
                 width={chartToDisplay === "coverage" ? "85%" : "35%"}
                 canShowReferenceMatches={false}
                 coverage={dataPerSample}
-                sampleColours={viewOptions.sampleColours}
+                sampleColours={sampleColours}
                 key="cov"
                 config={config}
                 renderProp={ chartToDisplay === "coverage" ?
@@ -72,7 +78,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, 
                 width={chartToDisplay === "readsOverTime" ? "85%" : "22%"}
                 title={"Mapped reads over time"}
                 temporalData={combinedData.temporal}
-                viewOptions={viewOptions}
                 key="readsOverTime"
                 config={config}
                 renderProp={ chartToDisplay === "readsOverTime" ?
@@ -88,7 +93,7 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, viewOptions, config, 
                 title="Mapped Reads / Sample"
                 data={dataPerSample}
                 config={config}
-                viewOptions={viewOptions}
+                sampleColours={sampleColours}
                 key="readsPerSample"
                 goToSamplePanel={goToSamplePanel}
                 renderProp={ chartToDisplay === "readsPerSample" ?

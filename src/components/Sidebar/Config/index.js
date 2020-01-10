@@ -26,7 +26,7 @@ const SaveConfig = ({handleClick}) => (
 const Config = ({config, setConfig, closeSidebar}) => {
     /* since changing config is done on the server (the client just displays
      * it) we want to maintain a temporary copy here, and then flush it to the server */
-    const [barcodeNames, setBarcodeNames] = useState(JSON.parse(JSON.stringify(config.run.barcodeNames)));
+    const [barcodeToSamples, setBarcodeToSamples] = useState(getBarcodeToSampleMap(config));
 
     if (!Object.keys(config).length) {
         // should do this in the parent!
@@ -36,7 +36,7 @@ const Config = ({config, setConfig, closeSidebar}) => {
     }
 
     const submit = () => {
-        const action = computeAction(config, barcodeNames);
+        const action = computeAction(config, barcodeToSamples);
         if (!action) {
             console.warn("Not sending config to server as there are no changes!")
             return;
@@ -51,7 +51,7 @@ const Config = ({config, setConfig, closeSidebar}) => {
 
             <h1>Set Config</h1>
 
-            <BarcodeNames barcodeNames={barcodeNames} setBarcodeNames={setBarcodeNames} />
+            <BarcodeNames barcodeToSamples={barcodeToSamples} setBarcodeToSamples={setBarcodeToSamples} />
 
             <SaveConfig handleClick={submit}/>
 
@@ -60,13 +60,26 @@ const Config = ({config, setConfig, closeSidebar}) => {
 
 }
 
-function computeAction(config, barcodeNames) {
+function getBarcodeToSampleMap(config) {
+    // order preserved here (config is array, this returns a Map)
+    const barcodeToSamples = new Map();
+    config.run.samples.forEach((sample) => {
+        sample.barcodes.forEach((barcode) => {
+            barcodeToSamples.set(barcode, sample.name);
+        });
+    });
+    return barcodeToSamples;
+
+}
+
+function computeAction(config, barcodeToSamples) {
     // what's changed? Do some diffs to then tell the server what parts of the config
     // have changed. This function should be developed in conjunction with `modifyConfig`
     // on the server side
     const action = {};
-    if (!isEqual(config.run.barcodeNames, barcodeNames)) {
-        action.barcodeNames = barcodeNames;
+    if (!isEqual(getBarcodeToSampleMap(config), barcodeToSamples)) {
+        /* the socket doesn't send `Map` objects, so we convert to an array */
+        action.barcodeToSamples = [...barcodeToSamples.entries()];
     }
     if (Object.keys(action).length) {
         return action;

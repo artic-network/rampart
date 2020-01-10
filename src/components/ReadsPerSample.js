@@ -154,7 +154,7 @@ class ReadsPerSample extends React.Component {
     const colours = [];
     samples.forEach((name) => {
       counts.push(this.props.data[name].mappedCount || 0);
-      colours.push(this.props.viewOptions.sampleColours[name] || "white");
+      colours.push(this.props.sampleColours[name]);
     });
     drawColumns(this.state.svg, chartGeom, scales, counts, barWidth, colours, samples, this.infoRef, this.props.data, this.props.goToSamplePanel);
   }

@@ -16,7 +16,6 @@ import { mouse } from "d3-selection";
 import { area } from "d3-shape";
 
 export const drawStream = ({svg, scales, stream, referencePanel, hoverSelection, basesPerBin}) => {
-    console.log("drawStream", {svg, scales, stream, referencePanel, hoverSelection})
     function handleMouseMove(d, i) {
         const [mouseX, mouseY] = mouse(this); // [x, y] x starts from left, y starts from top
         const left  = mouseX > 0.5 * scales.x.range()[1] ? "" : `${mouseX + 16}px`;

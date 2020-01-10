@@ -20,7 +20,7 @@
 const fs = require('fs');
 // const path = require('path')
 const { normalizePath, getAbsolutePath, verbose, log, warn, fatal } = require("./utils");
-const { getNthReferenceColour } = require("./colours");
+const { newReferenceColour, newSampleColour } = require("./colours");
 
 const DEFAULT_PROTOCOL_PATH = "default_protocol";
 const PROTOCOL_FILENAME= "protocol.json";
@@ -171,6 +171,16 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
 
 }
 
+const getBarcodesInConfig = (config) => {
+    const barcodesDefined = new Set();
+    config.run.samples.forEach((s) => {
+        s.barcodes.forEach((b) => {
+            barcodesDefined.add(b);
+        })
+    })
+    return barcodesDefined;
+}
+
 const getInitialConfig = (args) => {
     const serverDir = __dirname;
     const rampartSourceDir = serverDir.substring(0, serverDir.length - 7); // no trailing slash
@@ -197,7 +207,8 @@ const getInitialConfig = (args) => {
             title: `Started @ ${(new Date()).toISOString()}`,
             annotatedPath: "annotations",
             clearAnnotated: false,
-            simulateRealTime: 0
+            simulateRealTime: 0,
+            samples: []
         }
     };
 
@@ -207,40 +218,35 @@ const getInitialConfig = (args) => {
     config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
     config.run = { ...config.run, ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME) };
 
+    /* overwrite any title with a command-line specified one */
     if (args.title) {
         config.run.title = args.title;
     }
 
-    config.run.barcodeNames = {};
+
+    /* set up sample information. It's ok to leave this blank, as we observe "new" barcodes
+    in the data then this will be updated. This is the _only_ place we set up the links
+    between barcodes and samples in order to prevent out-of-sync bugs */
     if (config.run.samples) {
-
-        // if barcode names have been specified then limit demuxing to only those barcodes...
-        config.run.samples.forEach((sample, index) => {
-            sample.barcodes.forEach((barcode) => {
-                // // find an integer in the barcode name
-                // const matches = barcode.match(/(\d\d?)/);
-                // if (matches) {
-                //     limitBarcodesTo.push(parseInt(matches[1]));
-                // }
-                config.run.barcodeNames[barcode] = {name: sample.name, order: index};
-            });
-        });
+        // TODO: error checking
     }
-
     // override with any barcode names on the arguments
     if (args.barcodeNames) {
-        const count = Object.keys(config.run.barcodeNames).length;
-        args.barcodeNames.forEach((raw, index) => {
-            const [barcode, name] = raw.split('=');
-            if (barcode in config.run.barcodeNames) {
-                // just override the name (not the order)
-                config.run.barcodeNames[barcode].name = name;
-            } else {
-                // add a new name at the end
-                config.run.barcodeNames[barcode] = {name, order: index + count}
-            }
+        const newBarcodesToSamples = [];
+        args.barcodeNames.forEach((raw) => {
+            let [barcode, name] = raw.split('=');
+            if (!name) name=barcode;
+            newBarcodesToSamples.push([barcode, name]);
         });
+        modifySamplesAndBarcodes(config, newBarcodesToSamples);
     }
+
+    /* add in colours (this lends itself nicely to one day allowing them to be specified 
+        in the config - the reason we don't yet do this is that colours which aren't in
+        the colour picker will cause problems. */
+    config.run.samples.forEach((s, i) => {
+        s.colour = newSampleColour(s.name);
+    })
 
     // todo - check config objects for correctness
     assert(config.genome, "No genome description has been provided");
@@ -334,8 +340,11 @@ const getInitialConfig = (args) => {
         config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.run.annotationOptions };
     }
 
-    if (Object.keys(config.run.barcodeNames).length > 0) {
-        config.pipelines.annotation.configOptions["limit_barcodes_to"] = Object.keys(config.run.barcodeNames).join(',');
+    // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
+
+    if (config.run.samples.length) {
+        config.pipelines.annotation.configOptions["limit_barcodes_to"] = [...getBarcodesInConfig(config)].join(',');
+        verbose("config", `Limiting barcodes to: ${config.pipelines.annotation.configOptions["limit_barcodes_to"]}`)
     }
 
     // Add any annotationOptions options from the command line
@@ -418,8 +427,13 @@ const modifyConfig = (action) => {
         dataHasChanged = true;
     }
 
-    if (action.hasOwnProperty("barcodeNames")) {
-        global.config.run.barcodeNames = action.barcodeNames
+    if (action.hasOwnProperty("barcodeToSamples")) {
+        modifySamplesAndBarcodes(global.config, action.barcodeToSamples);
+        global.config.run.samples.forEach((s, i) => {
+            if (!s.colour) {
+                s.colour = newSampleColour(s.name);
+            }
+        })
         global.datastore.recalcSampleData();
         dataHasChanged = true;
     }
@@ -473,24 +487,6 @@ const modifyConfig = (action) => {
 
 
 /**
- * The config contains a list of "seen" barcodes which the client therefore knows about.
- * If we observe a new barcode, then the config needs updating, and the client needs to
- * be notified.
- */
-const updateConfigWithNewBarcodes = () => {
-    const newBarcodes = global.datastore.getBarcodesSeen()
-        .filter((bc) => !Object.keys(global.config.run.barcodeNames).includes(bc));
-    if (!newBarcodes.length) {
-        return;
-    }
-    verbose("config", `new barcodes seen: ${newBarcodes.join(", ")}`);
-    newBarcodes.forEach((bc) => {
-        global.config.run.barcodeNames[bc] = {name: undefined, order: 0}
-    });
-    global.CONFIG_UPDATED();
-};
-
-/**
  * RAMPART doesn't know what references are out there, we can only add them as we see them
  * This updates the config store of the references, and triggers a client update if there are changes
  * @param {set} referencesSeen
@@ -503,7 +499,7 @@ const updateReferencesSeen = (referencesSeen) => {
             global.config.genome.referencePanel.push({
                 name: ref,
                 description: "to do",
-                colour: getNthReferenceColour(global.config.genome.referencePanel.length),
+                colour: newReferenceColour(ref),
                 display: false
             });
             changes.push(ref);
@@ -534,12 +530,42 @@ const updateWhichReferencesAreDisplayed = (refsToDisplay) => {
 };
 
 
+/**Modify the config to reflect new data.
+ * `newBarcodesToSamples` has format [[bc, name], ...]
+ * TODO: preserve ordering where possible -- e.g. a name swap for 1 barcode shouln't change order
+ */
+function modifySamplesAndBarcodes(config, newBarcodesToSamples) {
+
+    /* step 1: remove already-set barcodes which match those on cmd line */
+    const newBarcodes = newBarcodesToSamples.map((d) => d[0]);
+    config.run.samples.forEach((sample) => {
+        sample.barcodes = sample.barcodes.filter((b) => !newBarcodes.includes(b))
+    })
+
+    /* step 2: add in barcodes to existing samples or create new samples as needed */
+    newBarcodesToSamples.forEach(([newBarcode, newSampleName]) => {
+        let added = false
+        config.run.samples.forEach((sample) => {
+            if (sample.name === newSampleName) {
+                sample.barcodes.push(newBarcode);
+                added = true;
+            }
+        })
+        if (!added) {
+            config.run.samples.push({name: newSampleName, description: "", barcodes: [newBarcode]})
+        }
+    });
+
+    /* step 3: remove samples without any barcodes */
+    config.run.samples = config.run.samples.filter((s) => !!s.barcodes.length);
+}
+
 module.exports = {
     getInitialConfig,
     modifyConfig,
-    updateConfigWithNewBarcodes,
     updateWhichReferencesAreDisplayed,
     updateReferencesSeen,
     UNMAPPED_LABEL,
-    UNASSIGNED_LABEL
+    UNASSIGNED_LABEL,
+    getBarcodesInConfig
 };
