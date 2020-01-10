@@ -16,6 +16,7 @@ import React, {useState, useEffect} from 'react';
 import CoveragePlot from "../Coverage";
 import ReadLengthDistribution from "../ReadLengthDistribution";
 import CoverageOverTime from "../CoverageOverTime";
+import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
@@ -123,7 +124,24 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
             (<ExpandChart handleClick={() => goToChart("coverageOverTime")}/>)
         }
       />
+    ),
+    refSimilarity: (
+        <RefSimilarity
+            title={"Reference Similarity"}
+            width={(showSinglePanel === "refSimilarity") ? "100%" : "50%"}
+            key="refSimilarity"
+            className="graphContainer"
+            colour={sampleColour}
+            data={Object.keys(sampleData.refMatchSimilarities).map(
+                (refName) => ({refName, similarities: sampleData.refMatchSimilarities[refName]})
+            )}
+            renderProp={ showSinglePanel === "refSimilarity" ?
+                (<ContractChart handleClick={() => goToChart(false)}/>) :
+                (<ExpandChart handleClick={() => goToChart("refSimilarity")}/>)
+        }
+        />
     )
+
   };
 
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
@@ -131,7 +149,7 @@ const SamplePanel = ({sampleName, sampleData, sampleColour, config, viewOptions,
     if (!panelExpanded) return null;
     const chartsToShow = showSinglePanel ?
     charts[showSinglePanel] :
-    [charts.coverage, charts.readLength, charts.coverageOverTime];
+    [charts.coverage, charts.readLength, charts.coverageOverTime, charts.refSimilarity];
     return (
     <div className="panelFlexRow">
         {chartsToShow}

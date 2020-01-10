@@ -263,6 +263,8 @@ const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
  *   dataPerSample[<SampleName>].readLengths  {Object}
  *   dataPerSample[<SampleName>].readLengths.xyValues  {Array} 
  *   dataPerSample[<SampleName>].refMatchCoveragesStream  {Array} TODO
+ *   dataPerSample[<SampleName>].refMatchSimilarities {Object}
+ *   dataPerSample[<SampleName>].refMatchSimilarities[<refName>] {Array} Array of similarities
  *   combinedData              {Object}  summary of all data
  *   combinedData.mappedCount  {numeric}
  *   combinedData.temporal     {Array} TODO
@@ -289,7 +291,8 @@ Datastore.prototype.getDataForClient = function() {
             temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
             readLengthsMapped: summariseReadLengths(sampleData.readLengthMappedCounts),
             readLengths: summariseReadLengths(sampleData.readLengthCounts),
-            refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
+            refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages),
+            refMatchSimilarities: sampleData.refMatchSimilarities
         }
     }
 

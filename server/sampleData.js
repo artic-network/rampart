@@ -27,6 +27,7 @@ const SampleData = function() {
     this.readLengthMappedCounts = {};
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
+    this.refMatchSimilarities = {};
 };
 
 // const getCoverageBins = (readPos) => {
@@ -121,6 +122,20 @@ SampleData.prototype.updateRefMatchCoverages = function(reads) {
             this.refMatchCoverages[read.topRefHit] = Array.from(new Array(global.config.display.numCoverageBins), () => 0);
         }
         addCoverage(read, this.refMatchCoverages[read.topRefHit], global.config.display.numCoverageBins);
+    })
+};
+
+/**
+ * update per-reference-match coverage stats
+ * modifies `this.refMatchSimiliarities` in place
+ */
+SampleData.prototype.updateRefMatchSimilarities = function(reads) {
+    reads.forEach((read) => {
+        /* initialise unseen reference */
+        if (!this.refMatchSimilarities[read.topRefHit]) {
+            this.refMatchSimilarities[read.topRefHit] = [];
+        }
+        this.refMatchSimilarities[read.topRefHit].push(read.topRefHitSimilarity);
     })
 };
 
@@ -247,6 +262,8 @@ const updateSampleDataWithNewReads = (sampleData, reads) => {
     sampleData.updateRefMatchCoverages(reads);
 
     sampleData.updateTemporalData(reads);
+
+    sampleData.updateRefMatchSimilarities(reads);
 
     return {referencesSeen};
 }
