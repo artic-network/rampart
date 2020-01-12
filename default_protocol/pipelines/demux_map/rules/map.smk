@@ -9,7 +9,7 @@ rule minimap2:
         minimap2 -x map-ont \
         --secondary=no \
         --paf-no-hit \
-        --cs \
+        # --cs \
         {input.ref:q} \
         {input.fastq:q} > {output:q}
         """

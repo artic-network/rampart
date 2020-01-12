@@ -136,7 +136,7 @@ const createReadsFromAnnotation = (fastqStem, annotations) => {
 
             // only store ref matches for mapped reads
             dataPoint.topRefHit = referenceCall;
-            dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.aln_block_len, 10);
+            dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.mapping_len, 10);
         }
         dataPoint.readLength = readLength;
         dataPoint.time = (new Date(d.start_time)).getTime();

@@ -93,6 +93,7 @@ def check_overlap(coords1,coords2):
         return False, 0 
 
 def parse_line(line, header_dict):
+    print(line)
 
     values = {}
     tokens = line.rstrip('\n').split('\t')
@@ -101,7 +102,9 @@ def parse_line(line, header_dict):
         values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
     else:
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
-    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
+    values["query_start"] = tokens[2]
+    values["query_end"] = tokens[3]
+    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:]
 
     return values
 
@@ -141,9 +144,10 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
 
     counts["total"] += 1
 
+    mapping_length = mapping['query_end'] - mapping['query_start']
     report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                  f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
-                 f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping['aln_block_len']}")
+                 f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
     if 'ref_opts' in mapping:
         report.write(f",{','.join(mapping['ref_opts'])}\n")
     else:
@@ -202,5 +206,5 @@ if __name__ == '__main__':
 
         header_dict = get_header_dict(args.reads)
 
-        csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len{ref_option_header}\n")
+        csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,mapping_len{ref_option_header}\n")
         parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info)
