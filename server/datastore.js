@@ -199,9 +199,9 @@ Datastore.prototype.getSampleName = function(barcode) {
 };
 
 Datastore.prototype.getBarcodesForSampleName = function(sampleName) {
-    global.config.run.samples.forEach((s) => {
-        if (s.name === sampleName) return s;
-    })
+    for (const sample of global.config.run.samples) {
+        if (sample.name === sampleName) return sample.barcodes;
+    };
     fatal(`Attempted to get barcodes for non existing sample ${sampleName}`)
 }
 
