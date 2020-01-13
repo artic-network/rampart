@@ -14,8 +14,9 @@
 
 import React from 'react';
 import PropTypes from "prop-types";
-import logo from "../images/logo.png";
-import {getLogYAxis, getRelativeReferenceMapping} from "../utils/config";
+import logo from "../../images/logo.png";
+import {getLogYAxis, getRelativeReferenceMapping} from "../../utils/config";
+import MessageLog from "./MessageLog";
 
 class Header extends React.Component {
   constructor(props) {
@@ -46,32 +47,15 @@ class Header extends React.Component {
     })
   }
   renderInfo() {
-    // const runTime = //this.props.runTime
-    // let runTimeMsg = `Run time: ${makeTimeFormatter()(runTime)}`;
-    // const tSinceLastUpdate = (new Date()) - this.props.timeLastReadsReceived;
-    // if (tSinceLastUpdate > 10) {
-    //   runTimeMsg += ` (last updated ${makeTimeFormatter()(tSinceLastUpdate)} ago)`;
-    // }
-    // if (!runTime) {
-    //   return (
-    //     <div>
-    //       <h2 style={{margin: "2px"}}>{this.props.name}</h2>
-    //       <h3 style={{margin: "2px"}}>{`Awaiting reads...`}</h3>
-    //     </div>
-    //   )
-    // }
-
     const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped | ${this.props.combinedData.processedCount} processed ` : "no data yet ";
     const rateMsg = this.props.combinedData && this.props.combinedData.processedRate >= 0 ?
         `${Math.round(this.props.combinedData.processedRate)} reads/sec` : "calculating rate...";
     const title = this.props.config.run ? `${this.props.config.run.title}` : "untitled";
     return (
       <div>
-        <h3 style={{margin: "2px", fontWeight: "normal"}}>{`Experiment: ${title} | ${readsMsg} | ${rateMsg}`}</h3>
-        <h3 style={{margin: "2px", fontSize:"0.9em", fontWeight: "bold"}}>{`Last server message: ${this.props.infoMessage}`}</h3>
-
-        {/* <h3 style={{margin: "2px"}}>{runTimeMsg}</h3> */}
-        {/* <h3 style={{margin: "2px"}}>{`${this.props.numReads} reads, ${this.props.nFastqs} fastqs, ${this.props.numSamples} samples`}</h3> */}
+        <h3>{`Experiment: ${title}`}</h3>
+        <h3>{`${readsMsg} | ${rateMsg}`}</h3>
+        <MessageLog messages={this.props.infoMessages}/>
       </div>
     )
   }
@@ -108,7 +92,7 @@ Header.propTypes = {
   sidebarOpenCB: PropTypes.func.isRequired,
   config: PropTypes.object,
   combinedData: PropTypes.object,
-  infoMessage: PropTypes.string.isRequired
+  infoMessages: PropTypes.array.isRequired
 };
 
 Header.defaultProps = {

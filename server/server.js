@@ -102,6 +102,7 @@ const run = async ({devClient, ports}) => {
     log(`socket open on port ${socketPort} for all data communication`);
     log(`---------------------------------------------------------------------------\n\n`);
 
+    global.io.emit("infoMessage", `Server starting up`);
 };
 
 module.exports = {

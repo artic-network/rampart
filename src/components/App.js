@@ -20,15 +20,19 @@ import WindowMonitor from './WindowMonitor';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.intervalRefInitialData = undefined;
     this.state = {
+      /* `mainPage` acts as a switch to choose what page will be shown */
       mainPage: "loading",
+      /* `warningMessage`, if set, will show in a modal until cleared */
       warningMessage: "",
+      /* `config` mirrors that on the server. Modified by a socket call from the server */
       config: {},
-      changePage: (page) => this.setState({mainPage: page}),
+      /* `socketPort` can be set via the server when we first load the client */
       socketPort: undefined,
-      infoMessage: "",
-      timeSinceLastDataUpdate: 0 /* INT seconds */
+      /* `infoMessages` are an array of `[timestamp, message]` of all messages received from the server */
+      infoMessages: [[getTimeNow(), "client initialising"]],
+      /* `timeSinceLastDataUpdate` An integer number of seconds */
+      timeSinceLastDataUpdate: 0
     };
     /**
      * `setConfig(action)` will trigger the server to update its config (which is the "source of truth")
@@ -36,9 +40,8 @@ class App extends Component {
      * of such updates via socket signals (see `registerServerListeners` below).
      */
     this.state.setConfig = (action) => this.state.socket.emit('config', action);
-    this.state.clearWarningMessage = () => {
-      this.setState({warningMessage: ""})
-    }
+    this.state.changePage = (page) => this.setState({mainPage: page});
+    this.state.clearWarningMessage = () => this.setState({warningMessage: ""});
   }
 
   componentDidMount() {
@@ -82,7 +85,9 @@ class App extends Component {
     //   this.setState({mainPage: "chooseBasecalledDirectory"});
     // });
     socket.on("infoMessage", (infoMessage) => {
-      this.setState({infoMessage});
+      const infoMessages = [...this.state.infoMessages];
+      infoMessages.push([getTimeNow(), infoMessage]);
+      this.setState({infoMessages});
     });
     socket.on("data", (response) => {
       console.log("App got new data", response);
@@ -103,15 +108,17 @@ class App extends Component {
   }
 
   render() {
-    const props = {...this.state};
-    if (!props.socket) return null; /* hold off until this is open (opens in <1s) */
+    if (!this.state.socket) return null; /* hold off until this is open (opens in <1s) */
     return (
       <WindowMonitor>
-        <Renderer {...props}/>
+        <Renderer {...this.state}/>
       </WindowMonitor>
     );
   }
 }
 
+function getTimeNow() {
+  return String(new Date()).split(/\s/)[4];
+}
 
 export default App;

@@ -33,7 +33,7 @@ const Renderer = (props) => {
                 sidebarOpenCB={setSidebarOpenState}
                 combinedData={props.combinedData}
                 socket={props.socket}
-                infoMessage={props.infoMessage}
+                infoMessages={props.infoMessages}
             />
 
             {props.mainPage === "loading" ?

@@ -12,7 +12,7 @@
  *
  */
 
-const { verbose, warn } = require("./utils");
+const { verbose } = require("./utils");
 const { modifyConfig } = require("./config");
 const { triggerPostProcessing } = require("./postProcessing.js");
 
@@ -29,7 +29,7 @@ const sendData = () => {
   /* find time of last data point */
   if (data.combinedData.temporal.length) {
       const t = data.combinedData.temporal[data.combinedData.temporal.length-1].time;
-      global.io.emit("infoMessage", `new data (t=${t}s)`);
+      global.io.emit("infoMessage", `new data (t=${t}s, ${data.combinedData.mappedCount} mapped, ${data.combinedData.processedCount} processed)`);
   }
   global.io.emit('data', data);
 };
@@ -57,37 +57,13 @@ const initialConnection = (socket) => {
   sendData();
 };
 
+/** When a client connects then set up listeners so that the server can react
+ *  to commands from the client
+ */
 const setUpIOListeners = (socket) => {
     verbose("socket", "setUpIOListeners (socket for client - server communication)");
-
     socket.on('config', (clientOptions) => modifyConfig(clientOptions));
-
     socket.on('triggerPostProcessing', triggerPostProcessing);
-
-  // TODO -- RAMPART no longer processes these requests, although some should be reincorporated
-//   socket.on('config', (newConfig) => {
-//     try {
-//         modifyConfig(newConfig);
-//         global.datastore.reprocessAllDatapoints();
-//     } catch (err) {
-//       console.log(err.message);
-//       warn("setting of new config FAILED");
-//       return;
-//     }
-//     sendData(); /* as the barcode -> names may have changed */
-//     sendConfig();
-//   });
-
-//   socket.on("saveDemuxedReads", (data) => {
-//     try {
-//       saveFastq({sampleName: data.sampleName, outputDirectory: data.outputDirectory, filters: data.filters});
-//     } catch (err) {
-//       console.trace(err);
-//       warn(`Error during [saveDemuxedReads]`);
-//       global.io.emit("showWarningMessage", `Error during [saveDemuxedReads]`);
-//     }
-//   });
-
 };
 
 module.exports = {
