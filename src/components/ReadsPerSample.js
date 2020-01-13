@@ -114,6 +114,7 @@ const drawColumns = (svg, chartGeom, scales, counts, barWidth, colours, samples,
     }
     return d;
   };
+  svg.selectAll(".sampleName").remove();
   svg.selectAll(".sampleName")
       .data(samples)
       .enter()
