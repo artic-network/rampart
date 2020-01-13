@@ -17,6 +17,8 @@ import Renderer from './Renderer';
 import io from 'socket.io-client';
 import WindowMonitor from './WindowMonitor';
 
+export const TimerContext = React.createContext();
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -62,12 +64,10 @@ class App extends Component {
           this.setState({socketPort: res.socketPort})
         })
     }
-    // TODO - reinstate using `Context` so that we don't get all the components constantly
-    // rerendering
-    // window.setInterval(
-    //   () => {this.setState({timeSinceLastDataUpdate: this.state.timeSinceLastDataUpdate+1})},
-    //   1000 /* won't be exactly 1s but close enough & reset every time data arrives */
-    // );
+    window.setInterval(
+      () => {this.setState({timeSinceLastDataUpdate: this.state.timeSinceLastDataUpdate+1})},
+      1000 /* won't be exactly 1s but close enough & reset every time data arrives */
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -111,7 +111,9 @@ class App extends Component {
     if (!this.state.socket) return null; /* hold off until this is open (opens in <1s) */
     return (
       <WindowMonitor>
-        <Renderer {...this.state}/>
+        <TimerContext.Provider value={this.state.timeSinceLastDataUpdate}>
+          <Renderer {...this.state}/>
+        </TimerContext.Provider>
       </WindowMonitor>
     );
   }

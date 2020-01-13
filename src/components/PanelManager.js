@@ -18,7 +18,7 @@ import SamplePanel from "./SamplePanel"
 import OverallSummaryPanel from "./OverallSummaryPanel";
 import { isEqual } from "lodash";
 
-const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, socket, timeSinceLastDataUpdate}) => {
+const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, socket}) => {
     
     /* -----------    STATE MANAGEMENT    ------------------- */
     const [samplePanelsExpanded, setSamplePanelsExpanded] = useState({});
@@ -71,7 +71,6 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
                         reference={config.reference}
                         socket={socket}
                         config={config}
-                        timeSinceLastDataUpdate={timeSinceLastDataUpdate}
                     />
                 </div>
             ))}

@@ -17,6 +17,9 @@ import PropTypes from "prop-types";
 import logo from "../../images/logo.png";
 import {getLogYAxis, getRelativeReferenceMapping} from "../../utils/config";
 import MessageLog from "./MessageLog";
+import { TimerContext } from "../App";
+import RunSummary from "./RunSummary";
+
 
 class Header extends React.Component {
   constructor(props) {
@@ -46,19 +49,6 @@ class Header extends React.Component {
       )
     })
   }
-  renderInfo() {
-    const readsMsg = this.props.combinedData ? `${this.props.combinedData.mappedCount} reads mapped | ${this.props.combinedData.processedCount} processed ` : "no data yet ";
-    const rateMsg = this.props.combinedData && this.props.combinedData.processedRate >= 0 ?
-        `${Math.round(this.props.combinedData.processedRate)} reads/sec` : "calculating rate...";
-    const title = this.props.config.run ? `${this.props.config.run.title}` : "untitled";
-    return (
-      <div>
-        <h3>{`Experiment: ${title}`}</h3>
-        <h3>{`${readsMsg} | ${rateMsg}`}</h3>
-        <MessageLog messages={this.props.infoMessages}/>
-      </div>
-    )
-  }
   render() {
     return (
       <div className="header">
@@ -74,7 +64,15 @@ class Header extends React.Component {
             <span style={{fontSize: "1.8em", fontWeight: "normal"}}>RAMPART</span>
             <span style={{fontWeight: "100"}}> Read Assignment, Mapping, and Phylogenetic Analysis in Real Time</span>
           </h2>
-          {this.renderInfo()}
+
+          <h3>{`Experiment: ${this.props.config.run ? `${this.props.config.run.title}` : "untitled"}`}</h3>
+          <TimerContext.Consumer>
+            {(timeSinceLastDataUpdate) => (
+              <RunSummary timeSinceLastDataUpdate={timeSinceLastDataUpdate} combinedData={this.props.combinedData}/>
+            )}
+          </TimerContext.Consumer>
+          <MessageLog messages={this.props.infoMessages}/>
+
         </div>
 
         <div className="buttons">

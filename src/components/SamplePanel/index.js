@@ -20,6 +20,7 @@ import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
+import { TimerContext } from "../App";
 
 const ExpandChart = ({handleClick}) => {
   return (
@@ -39,7 +40,7 @@ const ContractChart = ({handleClick}) => {
 /**
  * A panel representing an individual sample
  */
-const SamplePanel = ({sampleName, sampleData, config, reference, socket, timeSinceLastDataUpdate, panelExpanded, setPanelExpanded}) => {
+const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelExpanded, setPanelExpanded}) => {
 
   /* -----------    STATE MANAGEMENT    ------------------- */
   const [showSinglePanel, setShowSinglePanel] = useState(false);
@@ -163,16 +164,21 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, timeSin
     <div
       className={`panelContainer ${panelExpanded ? "expanded" : "collapsed"}`}
       style={{borderColor: sampleColour}}
-    >
-      <InfoRow
-        sampleName={sampleName}
-        sampleData={sampleData}
-        sampleColour={sampleColour}
-        menuItems={menuItems}
-        handleClick={() => setPanelExpanded(sampleName, !panelExpanded)}
-        isExpanded={panelExpanded}
-        timeSinceLastDataUpdate={timeSinceLastDataUpdate}
-      />
+    > 
+      <TimerContext.Consumer>
+        {(timeSinceLastDataUpdate) => (
+          <InfoRow
+            sampleName={sampleName}
+            sampleData={sampleData}
+            sampleColour={sampleColour}
+            menuItems={menuItems}
+            handleClick={() => setPanelExpanded(sampleName, !panelExpanded)}
+            isExpanded={panelExpanded}
+            timeSinceLastDataUpdate={timeSinceLastDataUpdate}
+          />
+        )}
+      </TimerContext.Consumer>
+
       {postProcessingState ? (
         <PostProcessingRunner
             pipeline={postProcessingState}

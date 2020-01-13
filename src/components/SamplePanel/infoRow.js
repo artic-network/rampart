@@ -39,13 +39,14 @@ const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
  */
 const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, isExpanded, timeSinceLastDataUpdate}) => {
     const summaryTitle = `${sampleName}`;
-    const timeFormatter = makeTimeFormatter();
 
-    const summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.processedCount} processed | ` +
-        `${sampleData.temporal.length > 0 ? Math.round(sampleData.temporal[sampleData.temporal.length - 1].processedRate) : "N/A"} reads/sec | ` +
-        `read last seen ${timeFormatter(sampleData.readsLastSeen+timeSinceLastDataUpdate)} ago`;
-
-
+    let summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.processedCount} processed | ` +
+        `${sampleData.temporal.length > 0 ? Math.round(sampleData.temporal[sampleData.temporal.length - 1].processedRate) : "N/A"} reads/sec `;
+    const readLastSeen = sampleData.readsLastSeen+timeSinceLastDataUpdate;
+    if (readLastSeen > 5) {
+      const timeFormatter = makeTimeFormatter();
+      summaryText += `| read last seen ${timeFormatter(readLastSeen)} ago`
+    }
     return (
         <div className="infoRow" style={{color: sampleColour}}>
             <div>

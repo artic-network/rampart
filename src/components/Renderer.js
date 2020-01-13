@@ -12,7 +12,7 @@
  *
  */
 
-import React, {useState} from 'react';
+import React from 'react';
 import PropTypes from "prop-types";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -22,55 +22,74 @@ import Modal from "./modal";
 import Sidebar, {sidebarButtonNames} from "./Sidebar/index";
 import PanelManager from "./PanelManager";
 
-const Renderer = (props) => {
-    const [sidebarOpen, setSidebarOpenState] = useState(false);
-    return (
-        <div className="mainContainer">
-            <Header
-                config={props.config}
-                setConfig={props.setConfig}
-                sidebarButtonNames={sidebarButtonNames}
-                sidebarOpenCB={setSidebarOpenState}
-                combinedData={props.combinedData}
-                socket={props.socket}
-                infoMessages={props.infoMessages}
-            />
 
-            {props.mainPage === "loading" ?
-                (<h1>LOADING</h1>) :
-                (<PanelManager
-                        dataPerSample={props.dataPerSample}
-                        combinedData={props.combinedData}
-                        config={props.config}
-                        openConfigSidebar={() => setSidebarOpenState("config")}
-                        socket={props.socket}
-                        timeSinceLastDataUpdate={props.timeSinceLastDataUpdate}
-                />)
-            }
+class Renderer extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            sidebarOpen: false
+        }
+        this.setSidebarOpenState = (newValue) => {
+            this.setState({sidebarOpen: newValue});
+        }
+    }
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.state !== nextState) return true;
+        /* we don't want to update when the only state that's changed
+        is the counter `timeSinceLastDataUpdate` */
+        return !!Object.keys(nextProps)
+          .filter((k) => k!=="timeSinceLastDataUpdate")
+          .filter((k) => nextProps[k] !== this.props[k])
+          .length;
+    }
+    render() {
+        return (
+            <div className="mainContainer">
+                <Header
+                    config={this.props.config}
+                    setConfig={this.props.setConfig}
+                    sidebarButtonNames={sidebarButtonNames}
+                    sidebarOpenCB={this.setSidebarOpenState}
+                    combinedData={this.props.combinedData}
+                    socket={this.props.socket}
+                    infoMessages={this.props.infoMessages}
+                />
 
-            <div id="contextMenuPortal"/>
+                {this.props.mainPage === "loading" ?
+                    (<h1>LOADING</h1>) :
+                    (<PanelManager
+                            dataPerSample={this.props.dataPerSample}
+                            combinedData={this.props.combinedData}
+                            config={this.props.config}
+                            openConfigSidebar={() => this.setSidebarOpenState("config")}
+                            socket={this.props.socket}
+                    />)
+                }
 
-            <Footer/>
-            <Sidebar 
-                config={props.config}
-                setConfig={props.setConfig}
-                combinedData={props.combinedData}
-                dataPerSample={props.dataPerSample}
-                sidebarOpen={sidebarOpen}
-                setSidebarOpenState={setSidebarOpenState}
-            />
+                <div id="contextMenuPortal"/>
 
-            {props.warningMessage ? (
-                <Modal className="warning" dismissModal={props.clearWarningMessage}>
-                    <h2>ERROR</h2>
-                    <p>{props.warningMessage}</p>
-                </Modal>
-            ) : null}
+                <Footer/>
+                <Sidebar 
+                    config={this.props.config}
+                    setConfig={this.props.setConfig}
+                    combinedData={this.props.combinedData}
+                    dataPerSample={this.props.dataPerSample}
+                    sidebarOpen={this.state.sidebarOpen}
+                    setSidebarOpenState={this.setSidebarOpenState}
+                />
+
+                {this.props.warningMessage ? (
+                    <Modal className="warning" dismissModal={this.props.clearWarningMessage}>
+                        <h2>ERROR</h2>
+                        <p>{this.props.warningMessage}</p>
+                    </Modal>
+                ) : null}
 
 
-            <div id="modalPortal"/>
-        </div>
-    )
+                <div id="modalPortal"/>
+            </div>
+        )
+    }
 }
 
 /* UNUSED CODE: The following was a switch to enable the
@@ -78,9 +97,9 @@ const Renderer = (props) => {
     etc via the UI:
 import ChooseBasecalledDirectory from "./ChooseBasecalledDirectory";
 
-if (props.mainPage === "chooseBasecalledDirectory") {
+if (this.props.mainPage === "chooseBasecalledDirectory") {
     return (
-        <ChooseBasecalledDirectory socket={props.socket} changePage={props.changePage}/>
+        <ChooseBasecalledDirectory socket={this.props.socket} changePage={this.props.changePage}/>
     );
 */
 
