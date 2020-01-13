@@ -93,8 +93,6 @@ def check_overlap(coords1,coords2):
         return False, 0 
 
 def parse_line(line, header_dict):
-    print(line)
-
     values = {}
     tokens = line.rstrip('\n').split('\t')
     values["read_name"], values["read_len"] = tokens[:2]
@@ -104,7 +102,7 @@ def parse_line(line, header_dict):
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
     values["query_start"] = tokens[2]
     values["query_end"] = tokens[3]
-    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:]
+    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
 
     return values
 
@@ -144,7 +142,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
 
     counts["total"] += 1
 
-    mapping_length = mapping['query_end'] - mapping['query_start']
+    mapping_length = int(mapping['query_end']) - int(mapping['query_start'])
     report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                  f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
                  f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
