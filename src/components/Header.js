@@ -104,7 +104,6 @@ class Header extends React.Component {
 }
 
 Header.propTypes = {
-  setViewOptions: PropTypes.func.isRequired,
   sidebarButtonNames: PropTypes.array.isRequired,
   sidebarOpenCB: PropTypes.func.isRequired,
   config: PropTypes.object,

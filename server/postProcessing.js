@@ -16,19 +16,6 @@ const path = require('path');
 const { PipelineRunner } = require('./PipelineRunner');
 
 
-/* not sure where this getter should live */
-const getBarcodesFromSampleName = (sampleName) => {
-    const barcodes = [];
-    for (const [bc, obj] of Object.entries(global.config.run.barcodeNames)) {
-        if ((obj.name && obj.name === sampleName) || (!obj.name && bc === sampleName)) {
-            barcodes.push(bc);
-        }
-    }
-    return barcodes;
-};
-
-
-
 const triggerPostProcessing = async (options) => {
 
     if (options.pipeline.name !== "Export reads") {
@@ -59,7 +46,7 @@ const triggerPostProcessing = async (options) => {
     if (options.pipeline.options.annotated_path) job.annotated_path = global.config.run.annotatedPath;
     if (options.pipeline.options.basecalled_path) job.basecalled_path = global.config.run.basecalledPath;
     if (options.pipeline.options.output_path) job.output_path = global.config.run.workingDir;
-    if (options.pipeline.options.barcodes) job.barcodes = getBarcodesFromSampleName(options.sampleName);
+    if (options.pipeline.options.barcodes) job.barcodes = global.datastore.getBarcodesForSampleName(options.sampleName)
 
     try { // await will throw if the Promise (returned by runner.runJob()) rejects
         await runner.runJob(job);

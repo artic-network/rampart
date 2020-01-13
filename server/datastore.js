@@ -15,9 +15,9 @@
 const { createReadsFromAnnotation } = require("./annotationParser");
 const { SampleData, updateSampleDataWithNewReads } = require("./sampleData");
 const { timerStart, timerEnd } = require('./timers');
-const {updateConfigWithNewBarcodes, updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config");
-const { UNMAPPED_LABEL } = require('./config');
-const { verbose } = require("./utils");
+const {updateWhichReferencesAreDisplayed, updateReferencesSeen, UNMAPPED_LABEL, getBarcodesInConfig } = require("./config");
+const { verbose, fatal } = require("./utils");
+const { newSampleColour } = require("./colours");
 
 /**
  * The main store of all annotated data.
@@ -31,17 +31,14 @@ const Datastore = function() {
     this.dataPerSample = {};
     this.filteredDataPerSample = {}; 
 
-    this.barcodesSeen = new Set()
     this.timestampAdjustment = undefined;
     this.currentTimestamp = undefined;
 
-    /* Given barcodes (e.g. via config files) intialise the data structures
+    /* Given samples (e.g. via config files) intialise the data structures
       This means they will be displayed in the client, even if no reads have arrived for them */
-    for (const barcode of Object.keys(global.config.run.barcodeNames)) {
-        this.barcodesSeen.add(barcode);
-        const sampleName = this.getSampleName(barcode);
-        this.dataPerSample[sampleName] = new SampleData();
-    }
+    global.config.run.samples.forEach((sample) => {
+        this.dataPerSample[sample.name] = new SampleData();
+    })
 
     // TMP -- this should be instantiated when filters change / are set.
     // doing here as there's no UI for this yet
@@ -88,24 +85,32 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
     this.reads.push(...reads);
 
     /* update the run timestamps etc */
-    this.updateTimestamp(reads)
+    this.updateTimestamp(reads);
 
+    /* have we observed any barcodes here which _aren't_ in the config? */
+    [...barcodes].filter((b) => !getBarcodesInConfig(global.config).has(b)).forEach((barcode) => {
+        verbose("datastore", `New barcode observed: ${barcode}`);
+        /* create a sample in the config (should be a function) */
+        global.config.run.samples.push({
+            name: barcode,
+            description: "",
+            barcodes: [barcode],
+            colour: newSampleColour(barcode)
+        })
+        this.dataPerSample[barcode] = new SampleData(); // sample name == barcode.
+    })
 
     /* update `dataPerSample`, which contains the "overall" summary of the run so far,
     i.e. it represents a summary of `this.reads` given the current barcode-sample mapping.
     We do this "per barcode" */
     const referencesSeen = new Set();
     [...barcodes].forEach((barcode) => {
-        /* update barcodes seen and if this means we're seeing new "samples" then initialise them */
-        this.barcodesSeen.add(barcode);
+
         const barcodeReads = reads.filter((d) => d.barcode === barcode);
         const sampleName = this.getSampleName(barcode);
 
         /* update `dataPerSample`, which contains the "overall" summary of the run so far,
         i.e. it represents a summary of `this.reads` given the current barcode-sample mapping. */
-        if (!this.dataPerSample[sampleName]) {
-            this.dataPerSample[sampleName] = new SampleData();
-        }
         const {referencesSeen: referencesSeenThisBarcode} = updateSampleDataWithNewReads(
             this.dataPerSample[sampleName],
             barcodeReads
@@ -129,7 +134,6 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 
 
     /* trigger server-client data updates */
-    updateConfigWithNewBarcodes();
     updateReferencesSeen(referencesSeen);
     global.NOTIFY_CLIENT_DATA_UPDATED()
 };
@@ -148,7 +152,7 @@ Datastore.prototype.changeReadFilters = function() {
         /* we have enabled filters or mofified them */
         for (const sampleName of Object.keys(this.dataPerSample)) {
             this.filteredDataPerSample[sampleName] = new SampleData();
-            const barcodes = this.getBarcodesForSampleName(sampleName);
+            const barcodes = new Set(this.getBarcodesForSampleName(sampleName));
             const barcodeReads = this.reads.filter((read) => barcodes.has(read.barcode));
             updateSampleDataWithNewReads(
                 this.filteredDataPerSample[sampleName],
@@ -167,7 +171,7 @@ Datastore.prototype.changeReadFilters = function() {
 Datastore.prototype.recalcSampleData = function() {
     verbose("datastore", `Recomputing all data from reads`);
     this.dataPerSample = {};
-    [...this.barcodesSeen].forEach((barcode) => {
+    [...getBarcodesInConfig(global.config)].forEach((barcode) => {
         const sampleName = this.getSampleName(barcode);
         if (!this.dataPerSample[sampleName]) {
             this.dataPerSample[sampleName] = new SampleData();
@@ -182,27 +186,25 @@ Datastore.prototype.recalcSampleData = function() {
 }
 
 /**
- * Get Barcode -> sample name via the (global) config
+ * Fetch the sample name for a barcode via the (global) config.
+ * @fatal if the config doesn't know about this barcode
  */
 Datastore.prototype.getSampleName = function(barcode) {
-    if (global.config.run.barcodeNames[barcode] && global.config.run.barcodeNames[barcode].name) {
-        return global.config.run.barcodeNames[barcode].name;
-    }
-    return barcode;
+    for (const sample of global.config.run.samples) {
+        if (sample.barcodes.includes(barcode)) {
+            return sample.name
+        }
+    };
+    fatal(`Tried to get sample name for undefined barcode "${barcode}"`);
 };
 
 Datastore.prototype.getBarcodesForSampleName = function(sampleName) {
-    return new Set(
-        [...this.barcodesSeen].filter(
-            (barcode) => this.getSampleName(barcode) === sampleName
-        )
-    );
+    for (const sample of global.config.run.samples) {
+        if (sample.name === sampleName) return sample.barcodes;
+    };
+    fatal(`Attempted to get barcodes for non existing sample ${sampleName}`)
 }
 
-
-Datastore.prototype.getBarcodesSeen = function() {
-    return [...this.barcodesSeen];
-};
 
 /**
  * Choose which references should be displayed

@@ -18,25 +18,25 @@ import React from 'react';
  * sample names are modifiable text boxes.
  * TODO:  add ordering box / dragger here
  */ 
-const BarcodeNames = ({barcodeNames, setBarcodeNames}) => {
+const BarcodeNames = ({barcodeToSamples, setBarcodeToSamples}) => {
     return (
         <>
             <h2>Barcodes</h2>
-            {Object.keys(barcodeNames)
-                .sort((a, b) => barcodeNames[a].order > barcodeNames[b].order ? 1 : -1)
-                .map((barcodeName) => {
+            {[...barcodeToSamples.entries()]
+                .map((args) => {
+                    const [barcode, name] = args;
                     return (
-                        <label key={barcodeName}>
+                        <label key={barcode}>
                             <div className={"bcLabel"}>
-                                {`${barcodeName}`}
+                                {`${barcode}`}
                             </div>
                             <input
                                 type="text"
-                                value={barcodeNames[barcodeName].name}
+                                value={name}
                                 onChange={(event) => {
-                                    const newState = {...barcodeNames};
-                                    newState[barcodeName].name = event.target.value;
-                                    setBarcodeNames(newState)
+                                    const newMap = new Map(barcodeToSamples);
+                                    newMap.set(barcode, event.target.value);
+                                    setBarcodeToSamples(newMap)
                                 }}
                             />
                         </label>

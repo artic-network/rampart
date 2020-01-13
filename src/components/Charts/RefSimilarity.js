@@ -57,7 +57,10 @@ const RefSimilarity = ({width, title, className, colour, data, renderProp}) => {
     /* When chartGeom changes then we draw everything. Plenty of optimisations here */
     useEffect(() => {
         if (!chartGeom) return;
+
         const svg = select(svgRef.current);
+
+        svg.selectAll("*").remove();
 
         const slicedData = data
             .sort((a, b) => a.similarities.length > b.similarities.length ? -1 : 1)

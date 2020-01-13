@@ -72,7 +72,7 @@ class CoveragePlot extends React.Component {
                 .map((name) => ({
                     name,
                     xyValues: this.props.coverage[name].coverage.map((cov, idx) => [parseInt(idx*basesPerBin, 10), cov]),
-                    colour: this.props.sampleColours[name]
+                    colour: this.props.sampleColours[name] || "#FFFFFF"
                 }));
             const hoverDisplayFunc = ({name, xValue, yValue}) => (`Sample: ${name}<br/>Pos: ${xValue}<br/>Depth: ${Math.round(yValue)}x`);
             drawSteps({
@@ -95,9 +95,6 @@ class CoveragePlot extends React.Component {
     }
     componentDidUpdate() {
       this.redraw();
-        // if (this.props.viewOptions.genomeResolution) {
-        //     this.redraw();
-        // }
     }
     render() {
         return (

@@ -16,7 +16,6 @@ import React, { Component } from 'react';
 import Renderer from './Renderer';
 import io from 'socket.io-client';
 import WindowMonitor from './WindowMonitor';
-import { createSampleColours } from "../utils/colours";
 
 class App extends Component {
   constructor(props) {
@@ -25,18 +24,11 @@ class App extends Component {
     this.state = {
       mainPage: "loading",
       warningMessage: "",
-      viewOptions: {
-        sampleColours: {},
-      },
       config: {},
       changePage: (page) => this.setState({mainPage: page}),
       socketPort: undefined,
       infoMessage: "",
       timeSinceLastDataUpdate: 0 /* INT seconds */
-    };
-    /* define state setters -- note that it's ok to modify this.state in the constructor */
-    this.state.setViewOptions = (newOptions) => {
-      this.setState({viewOptions: Object.assign({}, this.state.viewOptions, newOptions)})
     };
     /**
      * `setConfig(action)` will trigger the server to update its config (which is the "source of truth")
@@ -94,27 +86,8 @@ class App extends Component {
     });
     socket.on("data", (response) => {
       console.log("App got new data", response);
-      const { dataPerSample, combinedData, viewOptions} = response;
-      /* if new sample names have been seen, then we need to create colours for them without destroying already-set colours */
-      const newViewOptions = Object.assign({}, this.state.viewOptions, viewOptions);
-      const samplesInData = Object.keys(dataPerSample);
-      const currentSamples = Object.keys(this.state.viewOptions.sampleColours);
-      const newSamples = samplesInData.filter((name) => !currentSamples.includes(name));
-      const newColours = createSampleColours(currentSamples.length + newSamples.length)
-        .slice(currentSamples.length);
-      newViewOptions.sampleColours = {};
-      currentSamples.filter((name) => samplesInData.includes(name)).forEach((name) => {
-        newViewOptions.sampleColours[name] = this.state.viewOptions.sampleColours[name];
-      });
-      newSamples.forEach((name, idx) => {
-        newViewOptions.sampleColours[name] = newColours[idx];
-      });
-      if (newSamples.includes("unassigned")) {
-        newViewOptions.sampleColours.unassigned = "#979797";
-      }
-
+      const { dataPerSample, combinedData} = response;
       this.setState({
-        viewOptions: newViewOptions,
         dataPerSample,
         combinedData,
         mainPage: "viz",
