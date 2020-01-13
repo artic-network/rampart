@@ -18,6 +18,7 @@
  * @type {module:fs}
  */
 const fs = require('fs');
+const dsv = require('d3-dsv');
 // const path = require('path')
 const { normalizePath, getAbsolutePath, verbose, log, warn, fatal } = require("./utils");
 const { newReferenceColour, newSampleColour } = require("./colours");
@@ -28,6 +29,7 @@ const GENOME_CONFIG_FILENAME= "genome.json";
 const PRIMERS_CONFIG_FILENAME = "primers.json";
 const PIPELINES_CONFIG_FILENAME = "pipelines.json";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
+const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
 
 const UNMAPPED_LABEL = "unmapped";
 const UNASSIGNED_LABEL = "unassigned";
@@ -167,8 +169,6 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
         }
     }
 
-
-
 }
 
 const getBarcodesInConfig = (config) => {
@@ -181,7 +181,7 @@ const getBarcodesInConfig = (config) => {
     return barcodesDefined;
 }
 
-const getInitialConfig = (args) => {
+function getInitialConfig(args) {
     const serverDir = __dirname;
     const rampartSourceDir = serverDir.substring(0, serverDir.length - 7); // no trailing slash
 
@@ -229,6 +229,11 @@ const getInitialConfig = (args) => {
     between barcodes and samples in order to prevent out-of-sync bugs */
     if (config.run.samples) {
         // TODO: error checking
+    }
+    // override with barcode names provided via CSV
+    const barcodeFile = findConfigFile(pathCascade, BARCODES_TO_SAMPLE_FILENAME);
+    if (barcodeFile) {
+      setBarcodesFromFile(config, barcodeFile);
     }
     // override with any barcode names on the arguments
     if (args.barcodeNames) {
@@ -341,7 +346,6 @@ const getInitialConfig = (args) => {
     }
 
     // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
-
     if (config.run.samples.length) {
         config.pipelines.annotation.configOptions["limit_barcodes_to"] = [...getBarcodesInConfig(config)].join(',');
         verbose("config", `Limiting barcodes to: ${config.pipelines.annotation.configOptions["limit_barcodes_to"]}`)
@@ -558,6 +562,34 @@ function modifySamplesAndBarcodes(config, newBarcodesToSamples) {
 
     /* step 3: remove samples without any barcodes */
     config.run.samples = config.run.samples.filter((s) => !!s.barcodes.length);
+}
+
+/**
+ * Set the samples if a barcode CSV file is provided.
+ * This will overwrite any samples currently in the config.
+ */
+function setBarcodesFromFile(config, barcodeFile) {
+    try {
+        verbose("config", `Reading sample to barcode mapping from ${barcodeFile}`);
+        const samples = dsv.csvParse(fs.readFileSync(barcodeFile).toString());
+
+        const sampleMap = samples.reduce( (sampleMap, d) => {
+            sampleMap[d.sample] = (d.sample in sampleMap ? [...sampleMap[d.sample], d.barcode] : [d.barcode]);
+            return sampleMap;
+        }, {});
+        if (config.run.samples.length) {
+          verbose("config", `Overriding existing barcode - sample name mapping`);
+        }
+        config.run.samples = Object.keys(sampleMap).map((d) => {
+            return {
+                'name': d,
+                'description': "",
+                'barcodes': sampleMap[d]
+            };
+        });
+    } catch (err) {
+        warn("Unable to read barcode to sample map file: " + barcodeFile)
+    }
 }
 
 module.exports = {
