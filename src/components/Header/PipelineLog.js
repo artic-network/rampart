@@ -16,14 +16,26 @@ import React, {useState, useReducer, useEffect} from 'react';
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 
 const messageHeight = 25; // px. Dynamically set here not via CSS.
+const maxMessagesPerPipeline = 10;
 
-const PipelineStatus = ({time, name, message, status}) => (
-  <p style={{height: messageHeight}} className={status}>
-    <span>{name}</span>
-    <span>{time}</span>
-    {message}
-  </p>
-);
+const Details = ({uid, name, messages}) => {
+  const messagesToShow = [...messages].reverse().slice(0, maxMessagesPerPipeline);
+  console.log(messagesToShow)
+  return (
+    <div key={uid}>
+      <h3>
+        {name}
+      </h3>
+      {messagesToShow.map((m) => (
+        <p key={`${m.time}${m.content}`} style={{height: messageHeight}} className={getStatusFromType(m.type)}>
+          <span>{m.time}</span>
+          <span>{m.type}</span>
+          {m.content}
+        </p>
+      ))}
+    </div>
+  );
+}
 
 const PipelineLog = ({socket}) => {
   const [state, dispatch] = useReducer(reducer, new Map());
@@ -35,8 +47,14 @@ const PipelineLog = ({socket}) => {
     };
   }, [socket]);
 
+  const statuses = [...state.values()].map((p) => p.get("status"));
+
+  const height = expanded ?
+    20 * messageHeight /* TO DO */ :
+    messageHeight;
+
   return (
-    <div className={`log`} style={{height: state.size*messageHeight, maxHeight: messageHeight*10}}>
+    <div className={`log`} style={{height, maxHeight: messageHeight*10}}>
 
       <div>
         <span>
@@ -47,12 +65,19 @@ const PipelineLog = ({socket}) => {
         </span>
         <h3>Pipeline logs</h3>
       </div>
-      <div>
-        {[...state].map(([uid, data]) => {
-          const lastMsg = data.get("messages")[data.get("messages").length-1];
-          return <PipelineStatus key={uid} name={data.get("name")} time={lastMsg[0]} message={lastMsg[1]} status={data.get("status")} />
-        })}
-      </div>
+      {expanded ? (
+        <div>
+          {[...state].map(([uid, data]) => 
+            <Details uid={uid} name={data.get("name")} messages={data.get("messages")} />
+          )}
+        </div>
+       ) : (
+        <p>
+          <span>{`Running: ${statuses.filter((s) => s==="running").length}`}</span>
+          <span>{`Online: ${statuses.filter((s) => s==="online").length}`}</span>
+          <span>{`Error: ${statuses.filter((s) => s==="error").length}`}</span>
+        </p>
+      )}
 
     </div>
   )
@@ -61,22 +86,23 @@ const PipelineLog = ({socket}) => {
 function reducer(state, msg) {
   const pipelineState = state.has(msg.uid) ?
     state.get(msg.uid) :
-    new Map([
-      ["status", "unknown"],
-      ["messages", []],
-      ["name", msg.name]
-    ]);
-  pipelineState.set("status",
-    (msg.type === "init" || msg.type === "success") ? "online" :
-    msg.type === "start" ? "running" :
-    msg.type === "error" ? "error" :
-    msg.type === "pipelineClosed" ? "offline" :
-    "unknown"
-  );
-  pipelineState.get("messages").push([msg.time, msg.content]);
+    new Map([ ["messages", []], ["name", msg.name], ["status", "unknown"] ]);
+  pipelineState.get("messages").push(msg);
+  if (getStatusFromType(msg.type) !== "unknown") {
+    pipelineState.set("status", getStatusFromType(msg.type));
+  }
   const newState = new Map(state);
   newState.set(msg.uid, pipelineState);
   return newState;
+}
+
+/** Map message type to status */
+const getStatusFromType = (type) => {
+  if (type === "init" || type === "success") return "online";
+  if (type === "start") return "running";
+  if (type === "error") return "error";
+  if (type === "closed") return "offline";
+  return "unknown";
 }
 
 export default PipelineLog;

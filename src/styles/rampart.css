@@ -276,10 +276,6 @@ div.header .log p > span {
   display: inline-block;
   width: 100px;
 }
-div.header .log .time {
-  display: inline-block;
-  width: 100px;
-}
 .log  div:nth-child(2) {
   padding-top: 2px;
 }

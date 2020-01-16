@@ -216,7 +216,7 @@ class PipelineRunner {
      */
     _destroy() {
         _registry.delete(this._uid);
-        this._sendMessage("pipelineClosed", "Pipeline now closed.");
+        this._sendMessage("closed", "Pipeline now closed.");
     }
 
     /** send a message to the client */
