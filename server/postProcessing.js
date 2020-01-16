@@ -53,7 +53,7 @@ const triggerPostProcessing = async (options) => {
         const sampleNames = (options.sampleName ? [ options.sampleName ] : [...config.run.samples.map( d => d.name )])
         job.samples = sampleNames.map( d => {
             const barcodes = global.datastore.getBarcodesForSampleName(options.sampleName);
-            return `{'${d}': ['${barcodes.join(',')}']}`;
+            return `'{${d}: [${barcodes.join(',')}]}'`;
         });
     }
 
