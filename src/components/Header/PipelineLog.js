@@ -18,24 +18,27 @@ import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 const messageHeight = 25; // px. Dynamically set here not via CSS.
 const maxMessagesPerPipeline = 10;
 
-const Details = ({uid, name, messages}) => {
-  const messagesToShow = [...messages].reverse().slice(0, maxMessagesPerPipeline);
-  console.log(messagesToShow)
-  return (
-    <div key={uid}>
-      <h3>
-        {name}
-      </h3>
-      {messagesToShow.map((m) => (
-        <p key={`${m.time}${m.content}`} style={{height: messageHeight}} className={getStatusFromType(m.type)}>
-          <span>{m.time}</span>
-          <span>{m.type}</span>
-          {m.content}
-        </p>
-      ))}
-    </div>
-  );
-}
+// const DetailedView = ({state}) => {
+
+//   return (
+//     <div style={{height: overallHeight}} className="innerFlex">
+//       {data.map((d) => (
+//         <div key={d.uid} style={{maxHeight: d.height}}>
+//           <h3>
+//             {`Pipeline: ${d.name}`}
+//           </h3>
+//           {d.messages.map((m) => (
+//             <p key={`${m.time}${m.content}`} style={{height: messageHeight}} className={getStatusFromType(m.type)}>
+//               <span>{m.time}</span>
+//               <span>{m.type}</span>
+//               {m.content}
+//             </p>
+//           ))}
+//         </div>
+//       ))}
+//     </div>
+//   )
+// }
 
 const PipelineLog = ({socket}) => {
   const [state, dispatch] = useReducer(reducer, new Map());
@@ -47,40 +50,60 @@ const PipelineLog = ({socket}) => {
     };
   }, [socket]);
 
-  const statuses = [...state.values()].map((p) => p.get("status"));
 
-  const height = expanded ?
-    20 * messageHeight /* TO DO */ :
-    messageHeight;
+  if (!expanded) {
+    const statuses = [...state.values()].map((p) => p.get("status"));
+    return (
+      <div className={`log`} style={{height: messageHeight}}>
+        <span>
+          <IoIosArrowForward className="icon150" onClick={() => setExpanded(true)}/>
+        </span>
+        <h3>Pipelines:</h3>
+        <div>
+          <p>
+            <span>{`Running: ${statuses.filter((s) => s==="running").length}`}</span>
+            <span>{`Online: ${statuses.filter((s) => s==="online").length}`}</span>
+            <span>{`Error: ${statuses.filter((s) => s==="error").length}`}</span>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  /* EXPANDED */
+  const data = [...state].map(([uid, d]) => (
+    {uid, name: d.get("name"), messages: [...d.get("messages")].reverse()}
+  ));
+  data.forEach((d) => d.height = d.messages.length > maxMessagesPerPipeline ? maxMessagesPerPipeline*messageHeight : d.messages.length*messageHeight)
+  const overallHeight = data.reduce((pv, cv) => pv+cv.height, 0);
 
   return (
-    <div className={`log`} style={{height, maxHeight: messageHeight*10}}>
+    <div className={`log`} style={{height: overallHeight, maxHeight: overallHeight}}>
+      <span>
+        <IoIosArrowDown className="icon150" onClick={() => setExpanded(false)}/>
+      </span>
 
-      <div>
-        <span>
-          {expanded ?
-            <IoIosArrowDown className="icon150" onClick={() => setExpanded(false)}/> :
-            <IoIosArrowForward className="icon150" onClick={() => setExpanded(true)}/>
-          }
-        </span>
-        <h3>Pipeline logs</h3>
+      <div style={{height: overallHeight}}>
+        {data.map((d) => (
+          <div key={d.uid} style={{maxHeight: d.height}} className="pipelineContainer">
+            <h3>
+              {`Pipeline: ${d.name}`}
+            </h3>
+            <div>
+              {d.messages.map((m) => (
+                <p key={`${m.time}${m.content}`} style={{height: messageHeight}} className={getStatusFromType(m.type)}>
+                  <span>{m.time}</span>
+                  <span>{m.type}</span>
+                  {m.content}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
-      {expanded ? (
-        <div>
-          {[...state].map(([uid, data]) => 
-            <Details uid={uid} name={data.get("name")} messages={data.get("messages")} />
-          )}
-        </div>
-       ) : (
-        <p>
-          <span>{`Running: ${statuses.filter((s) => s==="running").length}`}</span>
-          <span>{`Online: ${statuses.filter((s) => s==="online").length}`}</span>
-          <span>{`Error: ${statuses.filter((s) => s==="error").length}`}</span>
-        </p>
-      )}
 
     </div>
-  )
+  );
 }
 
 function reducer(state, msg) {

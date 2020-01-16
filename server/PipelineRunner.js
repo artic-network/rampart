@@ -169,7 +169,7 @@ class PipelineRunner {
 
             process.on('exit', (code) => {
                 if (code === 0) {
-                    this._sendMessage("success", "job succeeded");
+                    this._sendMessage("success", job.name || "");
                     resolve();
                 } else {
                     this._sendMessage("error", `Job failed (exit code ${code}`);

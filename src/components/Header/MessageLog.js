@@ -32,16 +32,13 @@ const MessageLog = ({messages}) => {
 
   return (
     <div className={`log`} style={{height: messagesToShow.length*messageHeight, maxHeight: messageHeight*10}}>
-
-      <div>
-        <span>
-          {expanded ?
-            <IoIosArrowDown className="icon150" onClick={() => setExpanded(false)}/> :
-            <IoIosArrowForward className="icon150" onClick={() => setExpanded(true)}/>
-          }
-        </span>
-        <h3>Server messages</h3>
-      </div>
+      <span>
+        {expanded ?
+          <IoIosArrowDown className="icon150" onClick={() => setExpanded(false)}/> :
+          <IoIosArrowForward className="icon150" onClick={() => setExpanded(true)}/>
+        }
+      </span>
+      <h3>Server messages</h3>
       <div>
         {messagesToShow.map((m) => (
           <Message time={m[0]} message={m[1]} key={`${m[0]}${m[1]}`}/>

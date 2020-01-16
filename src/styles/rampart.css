@@ -259,14 +259,22 @@ div.header .log {
   overflow-x: hidden;
   overflow-y: scroll;
   width: 100%;
+  padding-top: 5px;
   -moz-transition: height 1s ease-in-out;
   -webkit-transition: height 1s ease-in-out;
   -o-transition: height 1s ease-in-out;
   transition: height 1s ease-in-out;
 }
+div.header .log .pipelineContainer {
+  display: flex;
+  flex-direction: row;
+}
 div.header .log h3 {
-  margin: 0px 20px 0px 10px;
+  margin: -3px 20px 0px 10px;
   display: inline;
+}
+div.header div.log > span {
+  cursor: pointer;
 }
 /* Individual messages are paragraphs */
 div.header .log p {
@@ -275,9 +283,6 @@ div.header .log p {
 div.header .log p > span {
   display: inline-block;
   width: 100px;
-}
-.log  div:nth-child(2) {
-  padding-top: 2px;
 }
 /* use classes to set colours of different messages */
 .log p.error {
