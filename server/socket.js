@@ -15,7 +15,7 @@
 const { verbose } = require("./utils");
 const { modifyConfig } = require("./config");
 const { triggerPostProcessing } = require("./postProcessing.js");
-
+const { sendCurrentPipelineStatuses } = require("./PipelineRunner")
 /**
  * Collect data (from global.datastore) and send to client
  */
@@ -47,6 +47,22 @@ const sendConfig = () => {
 
 global.CONFIG_UPDATED = () => sendConfig();
 
+/**
+ * Send a message to the client from a pipeline runner.
+ * Abstracted into a function here rather than having
+ * the pipeline runner access global.io directly
+ */
+const sendMessageFromPipeline = (msg) => {
+    global.io.emit("pipeline", msg);
+}
+
+/**
+ * The only reason this is a global (like `global.CONFIG_UPDATED`)
+ * is due to node struggling with circular dependencies. This can
+ * (and should) be fixed by reorganising aspects of the code
+ */
+global.sendMessageFromPipeline = sendMessageFromPipeline;
+
 
 /**
  * Client has just connected -- send current state of config + data
@@ -55,6 +71,7 @@ const initialConnection = (socket) => {
   verbose("socket", "initial connection");
   sendConfig();
   sendData();
+  sendCurrentPipelineStatuses();
 };
 
 /** When a client connects then set up listeners so that the server can react

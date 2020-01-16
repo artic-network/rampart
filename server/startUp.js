@@ -101,6 +101,7 @@ const processExistingData = async () => {
             return; /* annotated CSV present (added above) */
         }
         global.annotationRunner.addToQueue({
+            name: `Annotating ${basename}`,
             input_path: global.config.run.basecalledPath,
             output_path: global.config.run.annotatedPath,
             filename_stem: basename

@@ -31,7 +31,7 @@ const MessageLog = ({messages}) => {
     [messages[messages.length-1]];
 
   return (
-    <div className={`messageLog`} style={{height: messagesToShow.length*messageHeight, maxHeight: messageHeight*10}}>
+    <div className={`log`} style={{height: messagesToShow.length*messageHeight, maxHeight: messageHeight*10}}>
 
       <div>
         <span>

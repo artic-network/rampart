@@ -103,8 +103,9 @@ class App extends Component {
       console.log("App got new config:", newConfig);
       this.setState({config: newConfig});
     });
-
-    socket.on("showWarningMessage", (warningMessage) => this.setState({warningMessage}));
+    socket.on("showWarningMessage", (warningMessage) => {
+        this.setState({warningMessage});
+    });
   }
 
   render() {

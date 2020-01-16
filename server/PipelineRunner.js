@@ -12,14 +12,22 @@
  *
  */
 
+
+const { spawn } = require('child_process');
+var crypto = require("crypto");
+const Deque = require("collections/deque");
+const { verbose, warn, fatal } = require("./utils");
+
+const _registry = new Map();
+
+const sendCurrentPipelineStatuses = () => {
+    [..._registry.values()].forEach((p) => p._resendLastMessage());
+}
+
 /**
  * A class that provides the ability to run a Snakemake pipeline asynchronously. Files or jobs to be
  * processed are added to a queue and processed in turn or a job can be run immediately.
  */
-const { spawn } = require('child_process');
-const Deque = require("collections/deque");
-const { verbose, warn, fatal, trace } = require("./utils");
-
 class PipelineRunner {
 
     /**
@@ -49,6 +57,14 @@ class PipelineRunner {
                 this._runJobsInQueue();
             });
         }
+
+        /* Record the last message sent, so if a browser reconnects / refreshes we can send the state.
+        In the future this could be a log of all messages */
+        this._lastMessageSent = ["init", "Pipeline constructed. No job yet run.", getTimeNow()];
+        this._uid = crypto.randomBytes(5).toString('hex');
+
+        /* register this with the registry so other processes can query _all_ pipeline runners */
+        _registry.set(this._uid, this);
     }
 
     /**
@@ -73,6 +89,7 @@ class PipelineRunner {
      * @throws if the runner is not set up with a queue
      */
     addToQueue(job) {
+        global.sendMessageFromPipeline();
         if (!this._jobQueue) {
             throw new Error(`Pipeline, ${this._name}, is not set up with a queue`)
         }
@@ -116,6 +133,8 @@ class PipelineRunner {
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
+            this._sendMessage("start", job.name || "");
+
             const process = spawn('snakemake', spawnArgs);
 
             const out = [];
@@ -125,7 +144,7 @@ class PipelineRunner {
                     const message = data.toString();
                     if (message.startsWith("####")) {
                         // pass message to front end
-                        global.io.emit("infoMessage", `${this._name} // ${message.substring(4).trim()}`);
+                        this._sendMessage("info", message.substring(4).trim());
                     }
                     out.push(message);
                     verbose(`pipeline (${this._name})`, message);
@@ -139,17 +158,21 @@ class PipelineRunner {
                     stderr.push(data.toString());
                     // Snakemakes put info on stderr so only show it if it returns an error code
                     // warn(data.toString());
+                    // TODO -- pass to frontend where appropriate
                 }
             );
 
             process.on('error', (err) => {
+                this._sendMessage("error", "job failed");
                 reject(`pipeline (${this._name}) failed to run - is Snakemake installed and on the Path?`);
             });
 
             process.on('exit', (code) => {
                 if (code === 0) {
+                    this._sendMessage("success", "job succeeded");
                     resolve();
                 } else {
+                    this._sendMessage("error", `Job failed (exit code ${code}`);
                     warn(`pipeline (${this._name}) finished with exit code ${code}. Error messages:`);
                     stderr.forEach( (line) => warn(`\t${line}`) );
                     reject(`pipeline (${this._name}) finished with exit code ${code}`);
@@ -188,6 +211,34 @@ class PipelineRunner {
         }
     };
 
+    /** Method to be called when you are finished with a PipelineRunner to remove it from the registry.
+     * Partial implementation. TODO.
+     */
+    _destroy() {
+        _registry.delete(this._uid);
+        this._sendMessage("pipelineClosed", "Pipeline now closed.");
+    }
+
+    /** send a message to the client */
+    _sendMessage(msgType, msgText, msgTime) {
+        global.sendMessageFromPipeline({
+            uid: this._uid,
+            name: this._name,
+            type: msgType,
+            content: msgText,
+            time: msgTime || getTimeNow()
+        });
+        this._lastMessageSent = [msgType, msgText, msgTime || getTimeNow()];
+    }
+
+    _resendLastMessage() {
+        this._sendMessage(...this._lastMessageSent);
+    }
+
 }
 
-module.exports = { PipelineRunner };
+function getTimeNow() {
+  return String(new Date()).split(/\s/)[4];
+}
+
+module.exports = { PipelineRunner, sendCurrentPipelineStatuses };

@@ -19,7 +19,7 @@ import {getLogYAxis, getRelativeReferenceMapping} from "../../utils/config";
 import MessageLog from "./MessageLog";
 import { TimerContext } from "../App";
 import RunSummary from "./RunSummary";
-
+import PipelineLog from "./PipelineLog";
 
 class Header extends React.Component {
   constructor(props) {
@@ -72,7 +72,7 @@ class Header extends React.Component {
             )}
           </TimerContext.Consumer>
           <MessageLog messages={this.props.infoMessages}/>
-
+          <PipelineLog socket={this.props.socket} />
         </div>
 
         <div className="buttons">

@@ -253,7 +253,7 @@ div.header h3 {
   margin: 2px;
   font-weight: normal;
 }
-div.header .messageLog {
+div.header .log {
   display: flex;
   flex-direction: row;
   overflow-x: hidden;
@@ -264,27 +264,29 @@ div.header .messageLog {
   -o-transition: height 1s ease-in-out;
   transition: height 1s ease-in-out;
 }
-div.header .messageLog h3 {
+div.header .log h3 {
   margin: 0px 20px 0px 10px;
   display: inline;
 }
 /* Individual messages are paragraphs */
-div.header .messageLog p {
+div.header .log p {
   margin: 0;
 }
-div.header .messageLog p > span {
+div.header .log p > span {
   display: inline-block;
   width: 100px;
 }
-div.header .messageLog .time {
+div.header .log .time {
   display: inline-block;
   width: 100px;
 }
-.messageLog  div:nth-child(2) {
+.log  div:nth-child(2) {
   padding-top: 2px;
 }
-
-
+/* use classes to set colours of different messages */
+.log p.error {
+  color: var(--artic-red);
+}
 
 /* ---------------- FOOTER ---------------------------- */
 .footer {
