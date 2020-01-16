@@ -194,16 +194,16 @@ Datastore.prototype.getSampleName = function(barcode) {
         if (sample.barcodes.includes(barcode)) {
             return sample.name
         }
-    };
+    }
     fatal(`Tried to get sample name for undefined barcode "${barcode}"`);
 };
 
 Datastore.prototype.getBarcodesForSampleName = function(sampleName) {
     for (const sample of global.config.run.samples) {
         if (sample.name === sampleName) return sample.barcodes;
-    };
+    }
     fatal(`Attempted to get barcodes for non existing sample ${sampleName}`)
-}
+};
 
 
 /**

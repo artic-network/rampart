@@ -42,11 +42,20 @@ const triggerPostProcessing = async (options) => {
 
     /* set up job parameters defined via `options.pipeline.options` */
     const job = {...options.userSettings};
-    if (options.pipeline.options.sample_name) job.sample_name = options.sampleName;
     if (options.pipeline.options.annotated_path) job.annotated_path = global.config.run.annotatedPath;
     if (options.pipeline.options.basecalled_path) job.basecalled_path = global.config.run.basecalledPath;
     if (options.pipeline.options.output_path) job.output_path = global.config.run.workingDir;
-    if (options.pipeline.options.barcodes) job.barcodes = global.datastore.getBarcodesForSampleName(options.sampleName)
+
+    // if (options.pipeline.options.sample_name) job.sample_name = options.sampleName;
+    // if (options.pipeline.options.barcodes) job.barcodes = global.datastore.getBarcodesForSampleName(options.sampleName)
+
+    if (options.pipeline.options.barcodes) {
+        const sampleNames = (options.sampleName ? [ options.sampleName ] : [...config.run.samples.map( d => d.name )])
+        job.samples = sampleNames.map( d => {
+            const barcodes = global.datastore.getBarcodesForSampleName(options.sampleName);
+            return `{'${d}': ['${barcodes.join(',')}']}`;
+        });
+    }
 
     try { // await will throw if the Promise (returned by runner.runJob()) rejects
         await runner.runJob(job);
