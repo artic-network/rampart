@@ -101,7 +101,7 @@ class PipelineRunner {
             if (Array.isArray(value)) {
                 return `${key}=${value.join(',')}`;
             }
-            return `${key}=${value.toString().indexOf(' ') !== -1 ? `\"${value}\"` : value}`;
+            return `${key}=${value.toString().indexOf(' ') !== -1 || value.toString().indexOf('{') !== -1 ? `\"${value}\"` : value}`;
         });
 
     }

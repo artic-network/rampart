@@ -50,11 +50,12 @@ const triggerPostProcessing = async (options) => {
     // if (options.pipeline.options.barcodes) job.barcodes = global.datastore.getBarcodesForSampleName(options.sampleName)
 
     if (options.pipeline.options.barcodes) {
-        const sampleNames = (options.sampleName ? [ options.sampleName ] : [...config.run.samples.map( d => d.name )])
-        job.samples = sampleNames.map( d => {
+        const sampleNames = (/*options.sampleName ? [ options.sampleName ] :*/ [...config.run.samples.map( d => d.name )]);
+        const sampleMap = sampleNames.map( d => {
             const barcodes = global.datastore.getBarcodesForSampleName(options.sampleName);
-            return `'{${d}: [${barcodes.join(',')}]}'`;
+            return `${d}: [${barcodes.join(',')}]`;
         });
+        job.samples = `{${sampleMap.join(',')}}`;
     }
 
     try { // await will throw if the Promise (returned by runner.runJob()) rejects
