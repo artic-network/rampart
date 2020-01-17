@@ -13,7 +13,7 @@
  */
 
 import React, {useState} from 'react';
-import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle } from "react-icons/io";
 
 const messageHeight = 25; // px. Dynamically set here not via CSS.
 
@@ -32,10 +32,10 @@ const MessageLog = ({messages}) => {
 
   return (
     <div className={`log`} style={{height: messagesToShow.length*messageHeight, maxHeight: messageHeight*10}}>
-      <span>
+      <span className="chevron">
         {expanded ?
-          <IoIosArrowDown className="icon150" onClick={() => setExpanded(false)}/> :
-          <IoIosArrowForward className="icon150" onClick={() => setExpanded(true)}/>
+          <IoIosArrowDropupCircle className="icon150" onClick={() => setExpanded(false)}/> :
+          <IoIosArrowDropdownCircle className="icon150" onClick={() => setExpanded(true)}/>
         }
       </span>
       <h3>Server messages</h3>

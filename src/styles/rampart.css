@@ -265,16 +265,13 @@ div.header .log {
   -o-transition: height 1s ease-in-out;
   transition: height 1s ease-in-out;
 }
-div.header .log .pipelineContainer {
-  display: flex;
-  flex-direction: row;
-}
 div.header .log h3 {
   margin: -3px 20px 0px 10px;
   display: inline;
 }
-div.header div.log > span {
+div.header span.chevron {
   cursor: pointer;
+  padding-left: 10px;
 }
 /* Individual messages are paragraphs */
 div.header .log p {
@@ -284,9 +281,37 @@ div.header .log p > span {
   display: inline-block;
   width: 100px;
 }
-/* use classes to set colours of different messages */
-.log p.error {
-  color: var(--artic-red);
+
+/* -------------- PIPELINE LOGS / CONTROL -------------- */
+/* could be somewhat joined with `.log` above */
+div.header .pipeline {
+  border: thin solid var(--light-text);
+  width: 99%;
+  border-radius: 5px;
+  padding: 5px 0px 3px 0px;
+  margin-bottom: 5px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  max-height: 200px;
+}
+div.header .pipeline h3 {
+  margin: -3px 20px 0px 7px;
+  width: 20%;
+  overflow-x: hidden;
+}
+div.header .pipeline .topRow {
+  display: flex;
+  flex-direction: row;
+}
+div.header .pipeline .msg {
+  padding-left: 40px;
+}
+div.header .pipeline .padright {
+  padding-right: 20px;
+}
+div.header .pipeline .rightIcon {
+  margin-left: auto;
+  padding-right: 10px;
 }
 
 /* ---------------- FOOTER ---------------------------- */
