@@ -12,6 +12,8 @@ def parse_args():
     parser.add_argument("--reference_file", action="store", type=str, dest="references")
     parser.add_argument("--reference_options", action="store", type=str, dest="reference_options")
 
+    parser.add_argument("--min_identity", default=0.87, action="store", type=float, dest="min_identity")
+
     return parser.parse_args()
 
 def parse_reference_options(reference_options):
@@ -92,8 +94,30 @@ def check_overlap(coords1,coords2):
     else:
         return False, 0 
 
-def parse_line(line, header_dict):
+def get_identity(mapping):
+    
+    if mapping["ref_hit"] != '*':
+        ref_hit_length = int(mapping['query_end']) - int(mapping['query_start'])
+        identity = round(int(mapping['matches'])/ref_hit_length, 3)
 
+    else:
+        identity = 0
+
+    return identity
+
+def check_identity_threshold(mapping, min_identity):
+    
+    if float(min_identity)<1:
+        min_id = float(min_identity)
+    else:
+        min_id = float(min_identity)/ 100
+        
+    if mapping["identity"] >= min_id:
+        return True
+    else:
+        return False
+
+def parse_line(line, header_dict):
     values = {}
     tokens = line.rstrip('\n').split('\t')
     values["read_name"], values["read_len"] = tokens[:2]
@@ -101,12 +125,17 @@ def parse_line(line, header_dict):
         values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
     else:
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
+    values["query_start"] = tokens[2]
+    values["query_end"] = tokens[3]
     values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
+
+    identity = get_identity(values)
+    values["identity"] = identity
 
     return values
 
 
-def write_mapping(report, mapping, reference_options, reference_info, counts):
+def write_mapping(report, mapping, reference_options, reference_info, counts, min_identity):
     if mapping["ref_hit"] == '*' or mapping["ref_hit"] == '?':
         # '*' means no mapping, '?' ambiguous mapping (i.e., multiple primary mappings)
         mapping['coord_start'], mapping['coord_end'] = 0, 0
@@ -141,15 +170,26 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
 
     counts["total"] += 1
 
-    report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
-                 f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
-                 f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping['aln_block_len']}")
-    if 'ref_opts' in mapping:
-        report.write(f",{','.join(mapping['ref_opts'])}\n")
-    else:
-        report.write("\n")
+    if check_identity_threshold(mapping, min_identity):
 
-def parse_paf(paf, report, header_dict, reference_options, reference_info):
+        mapping_length = int(mapping['query_end']) - int(mapping['query_start'])
+        report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
+                    f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
+                    f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
+        if 'ref_opts' in mapping:
+            report.write(f",{','.join(mapping['ref_opts'])}\n")
+        else:
+            report.write("\n")
+    else:
+        report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
+                    f"{mapping['barcode']},*,0,0,0,0,0")
+        if 'ref_opts' in mapping:
+            ref_opt_list = ['*' for i in mapping['ref_opts']]
+            report.write(f",{','.join(ref_opt_list)}\n")
+        else:
+            report.write("\n")
+
+def parse_paf(paf, report, header_dict, reference_options, reference_info,min_identity):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
@@ -171,13 +211,13 @@ def parse_paf(paf, report, header_dict, reference_options, reference_info):
                     # set last_mapping in case there is another mapping with the same read name.
                     last_mapping['ref_hit'] = '?'
                 else:
-                    write_mapping(report, last_mapping, reference_options, reference_info, counts)
+                    write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
         # write the last last_mapping
-        write_mapping(report, last_mapping, reference_options, reference_info, counts)
+        write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
 
     try:
         prop_unmapped = counts["unmapped"] / counts["total"]
@@ -202,5 +242,5 @@ if __name__ == '__main__':
 
         header_dict = get_header_dict(args.reads)
 
-        csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,aln_block_len{ref_option_header}\n")
-        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info)
+        csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,mapping_len{ref_option_header}\n")
+        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info,args.min_identity)
