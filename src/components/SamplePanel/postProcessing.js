@@ -12,25 +12,10 @@
  *
  */
 
-import React, {useState} from 'react';
+import React from 'react';
 import PropTypes from "prop-types";
 import Modal from "../modal";
 import { IoMdPlay } from "react-icons/io";
-
-const ChooseMinReadLength = ({userSettings, setUserSettings}) => (
-    <>
-        <h4>Minimum read length:</h4>
-        <input type="text" value={userSettings.min_read_length} onChange={(e) => setUserSettings({...userSettings, min_read_length: e.target.value})}/>
-    </>
-);
-
-const ChooseMaxReadLength = ({userSettings, setUserSettings}) => (
-    <>
-        <h4>Maximum read length:</h4>
-        <input type="text" value={userSettings.max_read_length} onChange={(e) => setUserSettings({...userSettings, max_read_length: e.target.value})}/>
-    </>
-);
-
 
 export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
     return Object.keys(config.pipelines)
@@ -42,37 +27,18 @@ export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
         }));
 };
 
-const createInitialState = (pipeline) => {
-    console.log("creating initial state");
-    const initialState = {};
-    if (pipeline.options.min_read_length) initialState.min_read_length = 0; // TODO -- get min read length from dataset
-    if (pipeline.options.max_read_length) initialState.max_read_length = 1000000; // TODO -- get max read length from dataset
-    return initialState;
-}
-
 export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName}) => {
-    const [userSettings, setUserSettings] = useState(() => createInitialState(pipeline));
 
     const send = () => {
-        console.log("triggerPostProcessing")
-        socket.emit('triggerPostProcessing', {pipeline, sampleName, userSettings});
+        console.log("triggerPostProcessing", pipeline.name, sampleName)
+        socket.emit('triggerPostProcessing', {pipeline, sampleName});
         dismissModal();
     };
 
     return (
         <Modal dismissModal={dismissModal}>
             <h2>{pipeline.name}</h2>
-            {Object.keys(userSettings).length ? (
-                <>
-                    <h3>This pipeline requests the following options:</h3>
-                    {(userSettings.min_read_length !== undefined) ? (
-                        <ChooseMinReadLength userSettings={userSettings} setUserSettings={setUserSettings}/>
-                    ) : null}
-                    {(userSettings.max_read_length !== undefined) ? (
-                        <ChooseMaxReadLength userSettings={userSettings} setUserSettings={setUserSettings}/>
-                    ) : null}
-                </>
-            ) : null }
+
             <button className="modernButton" onClick={send}>
                 <div><IoMdPlay/><span>TRIGGER</span></div>
             </button>
@@ -83,6 +49,6 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
 PostProcessingRunner.propTypes = {
     dismissModal: PropTypes.func.isRequired,
     sampleName: PropTypes.string.isRequired,
-    pipeline: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]).isRequired,
+    pipeline: PropTypes.object.isRequired,
     socket: PropTypes.object.isRequired
 };
