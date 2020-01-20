@@ -13,39 +13,106 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const { getAbsolutePath, warn, fatal, ensurePathExists, verbose } = require("../utils");
 const { assert, findConfigFile, getBarcodesInConfig } = require("./helpers");
-
-function setUpPipelines(config, args, pathCascade) {
-
-    /* general assertions */
-    assert(config.pipelines, "No pipeline configuration has been provided");
-    ensurePathExists(config.pipelines.path);
-
-    /* The annotation pipeline is somewhat special & we set this up here */
-    setUpAnnotationPipeline(config, args, pathCascade)
-
-    // If other pipelines are specified, check them
-    config.pipelines.processing = Object.values(config.pipelines)
-        .filter( (pipeline) => pipeline.processing );
-    config.pipelines.processing.forEach( (pipeline, index) => {
-        checkPipeline(config, pipeline, index, true);
-    });
-
-}
-
-
+const { addToParsingQueue } = require("../annotationParser");
+const { PipelineRunner } = require('../PipelineRunner');
 
 /**
- * The annotation pipeline is somewhat special & we set this up here
+ * Perform error checking etc on the pipelines defined in the config
+ * and create pipeline runners for each one as applicable.
+ * @returns {object} pipeline runners for each (valid) pipeline
  */
-function setUpAnnotationPipeline(config, args, pathCascade) {
-    assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
-    checkPipeline(config, config.pipelines.annotation, 0);
+function setUpPipelines(config, args, pathCascade) {
+    const pipelineRunners = {}
 
-    if (config.pipelines.annotation.requires) {
-        // find any file that the pipeline requires
-        config.pipelines.annotation.requires.forEach( (requirement) => {
+    /* general assertions / corrections */
+    assert(config.pipelines, "No pipeline configuration has been provided");
+    ensurePathExists(config.pipelines.path);
+    assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
+    checkPipeline(config, config.pipelines.annotation);
+
+    Object.entries(config.pipelines)
+        .filter(([key, pipeline]) => key !== "path") // this key is introduced by us upon parsing
+        .forEach(([key, pipeline]) => {
+            pipeline.key = key; /* adding this allows us to easily reference the runners via the key */
+
+            if (key === "annotation") {
+                /* the `annotation` pipeline is somewhat special */
+                checkPipeline(config, pipeline);
+                if (!pipeline.configOptions) pipeline.configOptions = {};
+                parseAnnotationRequires(pipeline, config, pathCascade, args)
+                mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
+                // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
+                if (config.run.samples.length) {
+                    // potential bug -- if you've asked for `limit_barcodes_to` via command line arg or connfig set up then
+                    // the following line will overwrite this preference
+                    pipeline.configOptions["limit_barcodes_to"] = [...getBarcodesInConfig(config)].join(',');
+                    verbose("config", `Limiting barcodes to: ${pipeline.configOptions["limit_barcodes_to"]}`)
+                }
+                // set up the runner
+                pipelineRunners[key] = new PipelineRunner({
+                    key,
+                    config: config.pipelines.annotation,
+                    onSuccess: (job) => {addToParsingQueue(path.join(config.run.annotatedPath, job.filename_stem + '.csv'));},
+                    queue: true
+                });
+            } else {
+                /* a "normal" / non-annotation pipeline */
+                if (!pipeline.processing || !pipeline.run_per_sample) {
+                    /* we currently only use pipelines which are `processing` AND `run_per_sample`*/
+                    /* NOTE: the client will filter these out as well, so we don't delete them here */
+                    warn(`Pipeline ${pipeline.name} isn't "processing" and "run_per_sample" and will therefore be ignored`);
+                    return;
+                }
+                verbose("config", `Constructing pipeline runner for "${pipeline.name}"`)
+                checkPipeline(config, pipeline, true);
+                pipelineRunners[key] = new PipelineRunner({key, config: pipeline});
+            }
+        });
+
+    return pipelineRunners;
+}
+
+/**
+ * You can specify config overrides to the annotation via (i) the protocol JSON (ii) the run JSON and
+ * (iii) the command line args. Here we modify the `configOptions` accordingly.
+ * @param {object} configOptions starting configOptions
+ * @param {object} config entire config object
+ * @param {object} args cmd line args object
+ * @returns {object} "updated" configOptions
+ */
+function mergeAdditionalAnnotationOptions(configOptions, config, args) {
+    // Add any annotationOptions from the protocol config file
+    if (config.protocol.annotationOptions) {
+        configOptions = { ...configOptions, ...config.protocol.annotationOptions };
+    }
+    // Add any annotationOptions options from the run config file
+    if (config.run.annotationOptions) {
+        configOptions = { ...configOptions, ...config.run.annotationOptions };
+    }
+    // Add any annotationOptions options from the command line
+    if (args.annotationOptions) {
+        // add pass-through options to the annotation script
+        args.annotationOptions.forEach( value => {
+            const values = value.split("=");
+            configOptions[values[0]] = (values.length > 1 ? values[1] : "");
+        });
+    }
+}
+
+/**
+ * convert the `requires` property into paths and injects them into the `configOptions`, potentially with a cmd-line override.
+ * This is only done for the `annotation` pipeline, but I presume it should be generalised for all pipelines?
+ * (james, jan 2020)
+ * @param {object} pipeline pipeline section of the config file
+ * @param {object} config entire config object
+ */
+function parseAnnotationRequires(pipeline, config, pathCascade, args) {
+    if (pipeline.requires) {
+        pipeline.requires.forEach((requirement) => {
+
             let filepath = findConfigFile(pathCascade, requirement.file);
 
             if (requirement.config_key === 'references_file' && args.referencesPath) {
@@ -64,38 +131,13 @@ function setUpAnnotationPipeline(config, args, pathCascade) {
             // set this in config.run so the UI can find it.
             config.run.referencesPanel = filepath;
 
+            // finally, transfer them to the `configOptions`
+            pipeline.configOptions[requirement.config_key] = requirement.path;
         });
-    }
-
-    /* You can specify config overrides to the annotation via the protocol JSON, the run JSON and via command line args. */
-    // Add any annotationOptions from the protocol config file
-    if (config.protocol.annotationOptions) {
-        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.protocol.annotationOptions };
-    }
-    // Add any annotationOptions options from the run config file
-    if (config.run.annotationOptions) {
-        config.pipelines.annotation.configOptions = { ...config.pipelines.annotation.configOptions, ...config.run.annotationOptions };
-    }
-    // Add any annotationOptions options from the command line
-    if (args.annotationOptions) {
-        // add pass-through options to the annotation script
-        args.annotationOptions.forEach( value => {
-            const values = value.split("=");
-            config.pipelines.annotation.configOptions[values[0]] = (values.length > 1 ? values[1] : "");
-        });
-    }
-
-    // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
-    // by setting an
-    if (config.run.samples.length) {
-        config.pipelines.annotation.configOptions["limit_barcodes_to"] = [...getBarcodesInConfig(config)].join(',');
-        verbose("config", `Limiting barcodes to: ${config.pipelines.annotation.configOptions["limit_barcodes_to"]}`)
     }
 }
 
-
-
-function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
+function checkPipeline(config, pipeline, giveWarning = false) {
 
     let message = undefined;
 
@@ -130,7 +172,7 @@ function checkPipeline(config, pipeline, index = 0, giveWarning = false) {
 
     if (message) {
         if (giveWarning) {
-            warn(`pipeline '${pipeline.name ? pipeline.name : index + 1}' ${message} - pipeline will be ignored`);
+            warn(`pipeline '${pipeline.name}' ${message} - pipeline will be ignored`);
             pipeline.ignore = true;
         } else {
             throw new Error(`pipeline '${pipeline.name}' ${message}`);

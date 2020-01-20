@@ -13,7 +13,6 @@
  */
 
 const path = require('path');
-const { PipelineRunner } = require('./PipelineRunner');
 
 
 const triggerPostProcessing = async (options) => {
@@ -33,12 +32,7 @@ const triggerPostProcessing = async (options) => {
 
     global.io.emit("infoMessage", `POST PROCESSING TRIGGERED // ${options.pipeline.name} // ${options.sampleName}`);
 
-    const runner = new PipelineRunner({
-        name: options.pipeline.name,
-        snakefile: path.join(options.pipeline.path, "Snakefile"),
-        configfile: options.pipeline.config_file ? path.join(options.pipeline.path, options.pipeline.config_file) : false,
-        configOptions: []
-    });
+    const runner = global.pipelineRunners[options.pipeline.key];
 
     /* set up job parameters defined via `options.pipeline.options` */
     const job = {...options.userSettings};

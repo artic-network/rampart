@@ -190,8 +190,8 @@ function getInitialConfig(args) {
         verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
     }
 
-    /* Now we parse & check the pipelines defined in the config */
-    setUpPipelines(config, args, pathCascade);
+    /* Now we parse & check the pipelines defined in the config & set up runners as needed */
+    const pipelineRunners = setUpPipelines(config, args, pathCascade);
 
 
     /* display options */
@@ -225,7 +225,7 @@ function getInitialConfig(args) {
         config.display.referencesLabel = args.referencesLabel;
     }
 
-    return config;
+    return {config, pipelineRunners};
 };
 
 

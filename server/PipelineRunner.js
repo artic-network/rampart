@@ -14,14 +14,11 @@
 
 
 const { spawn } = require('child_process');
-var crypto = require("crypto");
 const Deque = require("collections/deque");
 const { verbose, warn, fatal } = require("./utils");
 
-const _registry = new Map();
-
 const sendCurrentPipelineStatuses = () => {
-    [..._registry.values()].forEach((p) => p._resendLastMessage());
+    Object.values(global.pipelineRunners).forEach((r) => r._resendLastMessage());
 }
 
 /**
@@ -40,12 +37,14 @@ class PipelineRunner {
      * @property {false|Function} opts.onSuccess      callback when snakemake is successful. Callback arguments: `job`. Only used if `queue` is true.
      * @property {Boolean}        opts.queue
      */
-    constructor({name, snakefile, configfile, configOptions, onSuccess=false, queue=false}) {
-        this._name = name;
-        this._snakefile = snakefile;
-        this._configfile = configfile;
+    constructor({key, config, onSuccess=false, queue=false}) {
+        this._name = config.name;
+        this._snakefile = config.path + "Snakefile";
+        this._configfile = config.config_file ?
+            config.path + config.config_file :
+            false;
 
-        this._configOptions = configOptions;
+        this._configOptions = config.configOptions;
 
         this._processedCount = 0;
 
@@ -61,10 +60,8 @@ class PipelineRunner {
         /* Record the last message sent, so if a browser reconnects / refreshes we can send the state.
         In the future this could be a log of all messages */
         this._lastMessageSent = ["init", "Pipeline constructed. No job yet run.", getTimeNow()];
-        this._uid = crypto.randomBytes(5).toString('hex');
+        this._uid = key;
 
-        /* register this with the registry so other processes can query _all_ pipeline runners */
-        _registry.set(this._uid, this);
     }
 
     /**
@@ -214,8 +211,8 @@ class PipelineRunner {
     /** Method to be called when you are finished with a PipelineRunner to remove it from the registry.
      * Partial implementation. TODO.
      */
-    _destroy() {
-        _registry.delete(this._uid);
+    close() {
+        delete global.pipelineRunners[this.key];
         this._sendMessage("closed", "Pipeline now closed.");
     }
 
