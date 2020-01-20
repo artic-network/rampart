@@ -128,7 +128,7 @@ class PipelineRunner {
                 spawnArgs.push(...['--config', ...pipelineConfig]);
             }
             spawnArgs.push('--nolock');
-            // spawnArgs.push('--rerun-incomplete');
+            spawnArgs.push('--rerun-incomplete');
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
