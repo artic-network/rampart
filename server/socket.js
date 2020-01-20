@@ -14,8 +14,7 @@
 
 const { verbose } = require("./utils");
 const { modifyConfig } = require("./config/modify.js");
-const { triggerPostProcessing } = require("./postProcessing.js");
-const { sendCurrentPipelineStatuses } = require("./PipelineRunner")
+const { sendCurrentPipelineStatuses, createJob } = require("./PipelineRunner")
 /**
  * Collect data (from global.datastore) and send to client
  */
@@ -80,9 +79,12 @@ const initialConnection = (socket) => {
 const setUpIOListeners = (socket) => {
     verbose("socket", "setUpIOListeners (socket for client - server communication)");
     socket.on('config', (clientOptions) => modifyConfig(clientOptions));
-    socket.on('triggerPostProcessing', triggerPostProcessing);
+    socket.on('triggerPostProcessing', ({key, sampleName}) => {
+        const pipelineRunner = global.pipelineRunners[key];
+        pipelineRunner.addToQueue(createJob({key, sampleName}));
+    });
     socket.on('terminatePostProcessing', ({key}) => {
-      global.pipelineRunners[key].terminateCurrentlyRunningJob();
+        global.pipelineRunners[key].terminateCurrentlyRunningJob();
     });
 };
 

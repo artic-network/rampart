@@ -256,4 +256,26 @@ function getTimeNow() {
   return String(new Date()).split(/\s/)[4];
 }
 
-module.exports = { PipelineRunner, sendCurrentPipelineStatuses };
+/**
+ * Create a job with relevant options
+ * @param {string} key
+ * @param {string} sampleName
+ */
+function createJob({key, sampleName}) {
+    let job = {};
+    /* basic information */
+    job.sample_name = sampleName;
+    job.barcodes = global.datastore.getBarcodesForSampleName(sampleName);
+    /* if filtering in place, then specify this */
+    if (Object.keys(global.config.display.filters).length) {
+        job = {...job, ...global.config.display.filters};
+    }
+    /* supply paths which the job may use */
+    job.annotated_path = global.config.run.annotatedPath;
+    job.basecalled_path = global.config.run.basecalledPath;
+    job.output_path = global.config.run.workingDir;
+
+    return job;
+}
+module.exports = { PipelineRunner, sendCurrentPipelineStatuses, createJob };
+

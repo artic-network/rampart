@@ -31,7 +31,7 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
 
     const send = () => {
         console.log("triggerPostProcessing", pipeline.name, sampleName)
-        socket.emit('triggerPostProcessing', {pipelineKey: pipeline.key, sampleName});
+        socket.emit('triggerPostProcessing', {key: pipeline.key, sampleName});
         dismissModal();
     };
 
