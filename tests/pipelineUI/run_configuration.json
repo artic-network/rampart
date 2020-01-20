@@ -1,0 +1,26 @@
+{
+  "title": "Test pipeline UI",
+  "basecalledPath": "../../example_data/20181008_1405_EBOV/fastq/pass",
+  "samples": [
+    {
+      "name": "Mayinga",
+      "description": "",
+      "barcodes": [ "NB01" ]
+    },
+    {
+      "name": "Kikwit",
+      "description": "",
+      "barcodes": [ "NB03" ]
+    },
+    {
+      "name": "Makona",
+      "description": "",
+      "barcodes": [ "NB04" ]
+    },
+    {
+      "name": "Negative Control",
+      "description": "",
+      "barcodes": [ "NB02" ]
+    }
+  ]
+}
