@@ -81,6 +81,9 @@ const setUpIOListeners = (socket) => {
     verbose("socket", "setUpIOListeners (socket for client - server communication)");
     socket.on('config', (clientOptions) => modifyConfig(clientOptions));
     socket.on('triggerPostProcessing', triggerPostProcessing);
+    socket.on('terminatePostProcessing', ({key}) => {
+      global.pipelineRunners[key].terminateCurrentlyRunningJob();
+    });
 };
 
 module.exports = {

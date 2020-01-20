@@ -15,7 +15,8 @@
 
 const { spawn } = require('child_process');
 const Deque = require("collections/deque");
-const { verbose, warn, fatal } = require("./utils");
+var kill = require('tree-kill');
+const { verbose, warn } = require("./utils");
 
 const sendCurrentPipelineStatuses = () => {
     Object.values(global.pipelineRunners).forEach((r) => r._resendLastMessage());
@@ -57,8 +58,8 @@ class PipelineRunner {
         /* Record the last message sent, so if a browser reconnects / refreshes we can send the state.
         In the future this could be a log of all messages */
         this._lastMessageSent = ["init", "Pipeline constructed. No job yet run.", getTimeNow()];
-        this._uid = config.key;
-
+        this._key = config.key;
+        this._process = undefined; // a reference to the running process
     }
 
     /**
@@ -127,16 +128,16 @@ class PipelineRunner {
                 spawnArgs.push(...['--config', ...pipelineConfig]);
             }
             spawnArgs.push('--nolock');
-            spawnArgs.push('--rerun-incomplete');
+            // spawnArgs.push('--rerun-incomplete');
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
             this._sendMessage("start", job.name || "");
 
-            const process = spawn('snakemake', spawnArgs);
+            this._process = spawn('snakemake', spawnArgs);
 
             const out = [];
-            process.stdout.on(
+            this._process.stdout.on(
                 'data',
                 (data) => {
                     const message = data.toString();
@@ -150,7 +151,7 @@ class PipelineRunner {
             );
 
             const stderr = [];
-            process.stderr.on(
+            this._process.stderr.on(
                 'data',
                 (data) => {
                     stderr.push(data.toString());
@@ -160,12 +161,14 @@ class PipelineRunner {
                 }
             );
 
-            process.on('error', (err) => {
+            this._process.on('error', (err) => {
                 this._sendMessage("error", "job failed");
+                this._process = undefined;
                 reject(`pipeline (${this._name}) failed to run - is Snakemake installed and on the Path?`);
             });
 
-            process.on('exit', (code) => {
+            this._process.on('exit', (code) => {
+                this._process = undefined;
                 if (code === 0) {
                     this._sendMessage("success", job.name || "");
                     resolve();
@@ -198,7 +201,7 @@ class PipelineRunner {
                     if (this._onSuccess) this._onSuccess(job);
                 } catch (err) {
                     // trace(err);
-                    fatal(err)
+                    warn(err)
                 }
                 this._isRunning = false;
 
@@ -220,7 +223,7 @@ class PipelineRunner {
     /** send a message to the client */
     _sendMessage(msgType, msgText, msgTime) {
         global.sendMessageFromPipeline({
-            uid: this._uid,
+            key: this._key,
             name: this._name,
             type: msgType,
             content: msgText,
@@ -231,6 +234,20 @@ class PipelineRunner {
 
     _resendLastMessage() {
         this._sendMessage(...this._lastMessageSent);
+    }
+
+    terminateCurrentlyRunningJob() {
+        if (!this._isRunning) {
+            warn(`Attempted to terminate currently running job for ${this._name} but no job was running!`)
+            this._sendMessage("error", "Attempted to terminate currently running job but no job was running!", getTimeNow());
+        }
+        // Note that the "main" snakemake process can spawn child processes and that
+        // this._process.kill(<SIGNAL>) will not reach these children! (This is _different_
+        // to using ctrl+c).
+        // `SIGKILL` seems to be the only signal which snakemake respects.
+        verbose(`pipeline (${this._name})`, `Killing job (PID: ${this._process.pid})`);
+        this._sendMessage("info", "Killing job", getTimeNow());
+        kill(this._process.pid, 'SIGKILL');
     }
 
 }

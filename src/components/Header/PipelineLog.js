@@ -12,23 +12,27 @@
  *
  */
 
-import React, {useState, useReducer, useEffect} from 'react';
+import React, {useState, useReducer, useEffect, useCallback} from 'react';
 import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle, IoIosAlert, IoIosCloseCircle } from "react-icons/io";
 
 // const messageHeight = 25; // px. Dynamically set here not via CSS.
 // const maxMessagesPerPipeline = 10;
 
-const Pipeline = ({uid, data}) => {
-
+const Pipeline = ({pipelineKey: key, data, socket}) => {
   const [expanded, setExpanded] = useState(false);
+  const terminate = useCallback(() => {
+    console.log("Instructing server to terminate pipeline ", key);
+    socket.emit('terminatePostProcessing', {key});
+  }, [key, socket]);
 
   const messages = [...data.get("messages")].reverse()
   if (!messages.length) return null;
   const status = data.get("status");
 
 
+
   return (
-    <div className="pipeline" key={uid}>
+    <div className={`pipeline ${status}`} key={key}>
 
       <div className="topRow">
 
@@ -46,11 +50,11 @@ const Pipeline = ({uid, data}) => {
         
         {status === "running" ? (
           <span className="rightIcon clickable">
-            <IoIosCloseCircle className="icon150" color="#e06962" onClick={() => console.log("TODO TERMINATE")}/>
+            <IoIosCloseCircle className="icon150" color="#e06962" onClick={terminate}/>
           </span>
         ) : status === "error" ? (
           <span className="rightIcon">
-            <IoIosAlert className="icon150" color="#803c38" />
+            <IoIosAlert className="icon150" color="#F6EECA" />
           </span>
         ) : null }
 
@@ -78,11 +82,10 @@ const PipelineLog = ({socket}) => {
       console.log("TODO: destroy socket listener when <PipelineLog> unmounts");
     };
   }, [socket]);
-
   return (
     <div>
-      {[...state].map(([uid, data]) => (
-        <Pipeline key={uid} uid={uid} data={data}/>
+      {[...state].map(([key, data]) => (
+        <Pipeline key={key} pipelineKey={key} data={data} socket={socket}/>
       ))}
     </div>
   );
@@ -91,15 +94,15 @@ const PipelineLog = ({socket}) => {
 function reducer(state, msg) {
   if (!msg) return state;
 
-  const pipelineState = state.has(msg.uid) ?
-    state.get(msg.uid) :
+  const pipelineState = state.has(msg.key) ?
+    state.get(msg.key) :
     new Map([ ["messages", []], ["name", msg.name], ["status", "unknown"] ]);
   pipelineState.get("messages").push(msg);
   if (getStatusFromType(msg.type) !== "unknown") {
     pipelineState.set("status", getStatusFromType(msg.type));
   }
   const newState = new Map(state);
-  newState.set(msg.uid, pipelineState);
+  newState.set(msg.key, pipelineState);
   return newState;
 }
 

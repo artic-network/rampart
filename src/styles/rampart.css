@@ -294,6 +294,12 @@ div.header .pipeline {
   overflow-y: scroll;
   max-height: 200px;
 }
+div.header .pipeline.error {
+    background-color: var(--artic-red);
+}
+div.header .pipeline.running {
+    background-color: #22968b;
+}
 div.header .pipeline h3 {
   margin: -3px 20px 0px 7px;
   width: 20%;
