@@ -92,7 +92,7 @@ const processExistingData = async () => {
         });
     }
 
-    /* For those FASTQs without a corresponding annotated CSV, add them to `global.annotationRunner`
+    /* For those FASTQs without a corresponding annotated CSV, add them to `global.pipelineRunners.annotation`
     and to `globals.filesSeen` */
     /* TODO - we could sort these based on time stamps if we wished */
     pathsOfBasecalledFastqs.forEach((f) => {
@@ -100,7 +100,7 @@ const processExistingData = async () => {
         if (global.filesSeen.has(basename)) {
             return; /* annotated CSV present (added above) */
         }
-        global.annotationRunner.addToQueue({
+        global.pipelineRunners.annotation.addToQueue({
             name: `Annotating ${basename}`,
             input_path: global.config.run.basecalledPath,
             output_path: global.config.run.annotatedPath,

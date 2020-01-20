@@ -26,7 +26,7 @@ const newFastqFileHandler = (newfile, details) => {
     }
     verbose("fastq watcher", `new basecalled file => adding "${basename}" to annotation queue.`);
 
-    global.annotationRunner.addToQueue({
+    global.pipelineRunners.annotation.addToQueue({
       input_path: global.config.run.basecalledPath,
       output_path: global.config.run.annotatedPath,
       filename_stem: basename
