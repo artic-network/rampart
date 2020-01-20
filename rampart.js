@@ -2,7 +2,7 @@
 
 const server = require("./server/server");
 const { parser } = require("./server/args");
-const getInitialConfig = require("./server/config").getInitialConfig;
+const { getInitialConfig } = require("./server/config/getInitialConfig");
 const { processExistingData } = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;

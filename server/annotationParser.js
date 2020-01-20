@@ -20,7 +20,7 @@ const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
 const { warn, verbose } = require('./utils');
-const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./config');
+const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./magics');
 
 const parsingQueue = new Deque();
 let isRunning = false; // prevent this being called by parsingQueue.observeRangeChange() when parsingQueue.shift is called

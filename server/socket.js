@@ -13,7 +13,7 @@
  */
 
 const { verbose } = require("./utils");
-const { modifyConfig } = require("./config");
+const { modifyConfig } = require("./config/modify.js");
 const { triggerPostProcessing } = require("./postProcessing.js");
 const { sendCurrentPipelineStatuses } = require("./PipelineRunner")
 /**

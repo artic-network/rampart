@@ -15,7 +15,9 @@
 const { createReadsFromAnnotation } = require("./annotationParser");
 const { SampleData, updateSampleDataWithNewReads } = require("./sampleData");
 const { timerStart, timerEnd } = require('./timers');
-const {updateWhichReferencesAreDisplayed, updateReferencesSeen, UNMAPPED_LABEL, getBarcodesInConfig } = require("./config");
+const { updateWhichReferencesAreDisplayed, updateReferencesSeen } = require("./config/modify");
+const { getBarcodesInConfig } = require("./config/helpers");
+const { UNMAPPED_LABEL } = require("./magics");
 const { verbose, fatal } = require("./utils");
 const { newSampleColour } = require("./colours");
 
