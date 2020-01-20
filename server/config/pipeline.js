@@ -31,17 +31,21 @@ function setUpPipelines(config, args, pathCascade) {
     assert(config.pipelines, "No pipeline configuration has been provided");
     ensurePathExists(config.pipelines.path);
     assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
-    checkPipeline(config, config.pipelines.annotation);
 
     Object.entries(config.pipelines)
         .filter(([key, pipeline]) => key !== "path") // this key is introduced by us upon parsing
         .forEach(([key, pipeline]) => {
             pipeline.key = key; /* adding this allows us to easily reference the runners via the key */
 
+            /* If there are no config options defined, then set them to the empty object */
+            if (!pipeline.configOptions) {
+                pipeline.configOptions = {};
+            }
+
             if (key === "annotation") {
                 /* the `annotation` pipeline is somewhat special */
                 checkPipeline(config, pipeline);
-                if (!pipeline.configOptions) pipeline.configOptions = {};
+                
                 parseAnnotationRequires(pipeline, config, pathCascade, args)
                 mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
                 // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
@@ -53,8 +57,7 @@ function setUpPipelines(config, args, pathCascade) {
                 }
                 // set up the runner
                 pipelineRunners[key] = new PipelineRunner({
-                    key,
-                    config: config.pipelines.annotation,
+                    config: pipeline,
                     onSuccess: (job) => {addToParsingQueue(path.join(config.run.annotatedPath, job.filename_stem + '.csv'));},
                     queue: true
                 });
@@ -68,7 +71,7 @@ function setUpPipelines(config, args, pathCascade) {
                 }
                 verbose("config", `Constructing pipeline runner for "${pipeline.name}"`)
                 checkPipeline(config, pipeline, true);
-                pipelineRunners[key] = new PipelineRunner({key, config: pipeline});
+                pipelineRunners[key] = new PipelineRunner({config: pipeline, queue: true});
             }
         });
 
@@ -157,15 +160,9 @@ function checkPipeline(config, pipeline, giveWarning = false) {
         message = `Snakefile doesn't exist`;
     }
 
-    if (!message) {
-        if (!pipeline.config_file) {
-            pipeline.config_file = "config.yaml";
-        }
-
-        pipeline.config = getAbsolutePath(pipeline.config_file, {relativeTo: pipeline.path});
-        pipeline.configOptions = {};
-
-        if (!fs.existsSync(pipeline.config)) {
+    if (!message && pipeline.config_file) {
+        /* the config file is relative to the snakemake file */
+        if (!fs.existsSync(getAbsolutePath(pipeline.config_file, {relativeTo: pipeline.path}))) {
             message = `config file doesn't exist`;
         }
     }

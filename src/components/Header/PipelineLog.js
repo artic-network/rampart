@@ -89,6 +89,8 @@ const PipelineLog = ({socket}) => {
 }
 
 function reducer(state, msg) {
+  if (!msg) return state;
+
   const pipelineState = state.has(msg.uid) ?
     state.get(msg.uid) :
     new Map([ ["messages", []], ["name", msg.name], ["status", "unknown"] ]);

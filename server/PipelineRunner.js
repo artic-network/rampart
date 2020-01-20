@@ -30,14 +30,11 @@ class PipelineRunner {
     /**
      * Constructor
      * @property {Object}         opts
-     * @property {String}         opts.name
-     * @property {String}         opts.snakefile      (absolute) path to the snakemake file
-     * @property {false|String}   opts.configfile     (absolute) path to the snakemake config file
-     * @property {Array}          opts.configOptions  list of config options to be passed to snakemake via `--config`
+     * @property {object}         opts.config         The pipeline config definition.
      * @property {false|Function} opts.onSuccess      callback when snakemake is successful. Callback arguments: `job`. Only used if `queue` is true.
      * @property {Boolean}        opts.queue
      */
-    constructor({key, config, onSuccess=false, queue=false}) {
+    constructor({config, onSuccess=false, queue=false}) {
         this._name = config.name;
         this._snakefile = config.path + "Snakefile";
         this._configfile = config.config_file ?
@@ -60,7 +57,7 @@ class PipelineRunner {
         /* Record the last message sent, so if a browser reconnects / refreshes we can send the state.
         In the future this could be a log of all messages */
         this._lastMessageSent = ["init", "Pipeline constructed. No job yet run.", getTimeNow()];
-        this._uid = key;
+        this._uid = config.key;
 
     }
 
@@ -95,10 +92,12 @@ class PipelineRunner {
 
     _convertConfigObjectToArray(configObject) {
         return Object.entries(configObject).map(([key, value]) => {
+            /* `key -> [v1, v2, v3]` goes to `key=v1,v2,v3` */
             if (Array.isArray(value)) {
                 return `${key}=${value.join(',')}`;
             }
-            return `${key}=${value.toString().indexOf(' ') !== -1 || value.toString().indexOf('{') !== -1 ? `\"${value}\"` : value}`;
+            /* `key -> value` goes to `key=value` (`value` quoted if necessary) */
+            return `${key}=${value.toString().indexOf(' ') !== -1 || value.toString().indexOf('{') !== -1 ? `"${value}"` : value}`;
         });
 
     }
@@ -110,7 +109,7 @@ class PipelineRunner {
      */
     async _runPipeline(job) {
         return new Promise((resolve, reject) => {
-            const pipelineConfig = [];
+            const pipelineConfig = []; // the strings to be passed to snakemake via `--config`
 
             // start with (optional) configuration options defined for the entire pipeline
             if (this._configOptions) {
@@ -124,7 +123,9 @@ class PipelineRunner {
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])
             }
-            spawnArgs.push(...['--config', ...pipelineConfig]);
+            if (pipelineConfig.length) {
+                spawnArgs.push(...['--config', ...pipelineConfig]);
+            }
             spawnArgs.push('--nolock');
             spawnArgs.push('--rerun-incomplete');
 
