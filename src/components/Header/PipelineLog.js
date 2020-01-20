@@ -82,7 +82,7 @@ const PipelineLog = ({socket}) => {
   return (
     <div>
       {[...state].map(([uid, data]) => (
-        <Pipeline uid={uid} data={data}/>
+        <Pipeline key={uid} uid={uid} data={data}/>
       ))}
     </div>
   );
