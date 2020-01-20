@@ -21,7 +21,7 @@ const triggerPostProcessing = async ({pipelineKey, sampleName}) => {
 
     /* construct a Job to be run */
 
-    pipelineRunner.addToQueue({});
+    pipelineRunner.addToQueue({"something": "heyyyyy"});
 
 
     // /* set up job parameters defined via `options.pipeline.options` */
