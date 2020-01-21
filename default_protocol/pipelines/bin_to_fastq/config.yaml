@@ -11,9 +11,9 @@ max_read_length: 1000000
 
 ##### Barcodes to process #####
 
-# sample_name: 
+samples: 
+  sample1: [BCXX,BCYY]
+  sample2: [BCZZ]
+
 barcodes: BCXX,BCYY
 
-##### Binning options #####
-
-# bin_by: 

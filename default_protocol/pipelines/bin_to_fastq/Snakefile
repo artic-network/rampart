@@ -1,26 +1,122 @@
 ##### Configuration #####
 
 # trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
-config["output_path"] = config["output_path"].rstrip("/")
-config["annotated_path"] = config["annotated_path"].rstrip("/")
+
 config["basecalled_path"] = config["basecalled_path"].rstrip("/")
 
-# bin.smk requires `sample_name` and `barcodes` to be set
-sample_name = config["sample_name"] if config.get("sample_name") else "_".join(config["barcodes"].split(','))
+if config.get("annotated_path"):
+    config["annotated_path"] = config["annotated_path"].rstrip("/")
+else:
+    config["annotated_path"] = "annotations"
 
-barcodes = ""
-for i in config["barcodes"].split(','):
-    barcodes += " {}".format(i)
+if config.get("output_path"):
+    config["output_path"] = config["output_path"].rstrip("/")
+else:
+    config["output_path"] = "binned"
+
+# bin.smk requires `sample_name` and `barcodes` to be set
+
+samples = {}
+barcode_string = ''
+barcodes = []
+if config.get("samples"):
+    try:
+        handle = config["samples"]
+
+        samples = yaml.safe_load(handle)
+
+        for s in samples:
+            for barcode in samples[s]:
+                barcodes.append(barcode)
+                barcode_string += barcode + " "
+        barcode_string = barcode_string.rstrip(" ")
+    except:
+        handle = config["samples"]
+        sample_csv = yaml.safe_load(handle)
+        
+        barcodes = sample_csv.split(',')
+        barcode_string = ' '.join(barcodes)
+        for barcode in barcodes:
+            samples[barcode] = [barcode]
 
 
 ##### Target rules #####
 rule all:
     input:
-        config["output_path"] + "/binned_{}.fastq".format(sample_name)
+        expand(config["output_path"] + "/binned_{sample}.csv",sample=samples),
+        expand(config["output_path"] + "/binned_{sample}.fastq",sample=samples)
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
 
+rule binlorry:
+    input:
+    params:
+        path_to_reads = config["basecalled_path"],
+        report_dir = config["annotated_path"],
+        outdir = config["output_path"],
+        min_read_length = config["min_read_length"],
+        max_read_length = config["max_read_length"],
+        barcode_str = barcode_string,
+        output_prefix= config["output_path"] + "/temp/binned"
+    output:
+        temp(expand(config["output_path"] + "/temp/binned_{barcode}.fastq",barcode = barcodes)),
+        temp(expand(config["output_path"] + "/temp/binned_{barcode}.csv",barcode = barcodes))
+    shell:
+        "binlorry -i {params.path_to_reads:q} "
+        "-t {params.report_dir:q} "
+        "-o {params.output_prefix:q} "
+        "-n {params.min_read_length} "
+        "-x {params.max_read_length} "
+        "-v 0 "
+        "--bin-by barcode "
+        "--filter-by barcode {params.barcode_str} "
+        "--force-output "
+        "--out-report"
 
-##### Modules #####
-include: "rules/bin.smk"
+
+rule rename_to_samples:
+    input:
+        rules.binlorry.output
+    params:
+        output_prefix = config["output_path"] + "/temp/binned",
+        samples = samples,
+        sample = "{sample}"
+    output:
+        reads=config["output_path"] + "/binned_{sample}.fastq",
+        csv=config["output_path"] + "/binned_{sample}.csv"
+    run:
+        for sample in params.samples:
+            if sample == params.sample:
+                read_str = ''
+                csv_list = []
+                for barcode in list(params.samples[sample]):
+                    print("Mapping {} to {}".format(sample, barcode))
+
+                    read_file = params.output_prefix + "_" + barcode + ".fastq"
+                    csv_file = params.output_prefix + "_" + barcode + ".csv"
+
+                    read_str+=read_file + ' '
+                
+                    csv_list.append(csv_file)
+
+                shell("cat " + read_str + ">" + output.reads)
+
+                if len(csv_list) > 1:
+                    write_headers = True
+                    with open(output.csv, 'w') as fw:
+                        for csv_file in csv_list:
+                            with open(csv_file) as fr:
+                                for l in fr:
+                                    l = l.rstrip('\n')
+                                    if write_headers:
+                                        write_headers = False
+                                        if l.startswith("read_name"):
+                                            fw.write(l + '\n')
+                                    else:
+                                        fw.write(l + '\n')
+                else:
+                    shell("cp " + csv_list[0] + " " + output.csv)
+
+
+
 
 
