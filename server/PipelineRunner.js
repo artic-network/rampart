@@ -93,6 +93,8 @@ class PipelineRunner {
 
     _convertConfigObjectToArrayOfStrings(configObject) {
         const charsToQuote = [" ", "{", "}", "|", ">", "<", "*", "&", ";"];
+        const quoteIfNeeded = (data) =>
+            charsToQuote.map((c) => data.includes(c)).filter((a) => !!a).length ? `"${data}"` : data
         return Object.entries(configObject)
             .map(([key, value]) => {
                 /* if value is the empty string, snakemake just sees the key */
@@ -101,11 +103,11 @@ class PipelineRunner {
                 }
                 /* string & number values go to key=string */
                 if (typeof(value) === "string" || typeof(value) === "number") {
-                    return `${key}=${value}`;
+                    return `${key}=${quoteIfNeeded(value)}`;
                 }
                 /* `key -> [v1, v2, v3]` goes to `key=v1,v2,v3` */
                 if (Array.isArray(value)) {
-                    return `${key}=${value.join(',')}`;
+                    return `${key}=${quoteIfNeeded(value.join(','))}`;
                 }
                 /* key -> {ik: iv, ...} only works if all the inner values are strings */
                 if (value.constructor === Object) {
@@ -120,15 +122,12 @@ class PipelineRunner {
                         })
                         .filter((d) => d!=="")
                         .join(",");
-                    return `${key}=${strDict}`;
+                    return `${key}=${quoteIfNeeded(strDict)}`;
                 }
                 warn(`Error parsing options for pipeline ${this._key}. Key: ${key}, value: ${value}`);
                 return "";
             })
             .filter((d) => d!=="")
-            .map((data) => /* quote if necessary */
-                charsToQuote.map((c) => data.includes(c)).filter((a) => !!a).length ? `"${data}"` : data
-            )
     }
 
     /**
