@@ -1,5 +1,9 @@
 ##### Configuration #####
 
+# The `config` object contains all the arguments provided in `config.yaml` _iff_ the RAMPART
+# protocol definition is told to include it.
+# The information there is overlaid with any parameters supplied by RAMPART to snakemake via --config
+
 # trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
 config["output_path"] = config["output_path"].rstrip("/")
 config["annotated_path"] = config["annotated_path"].rstrip("/")
@@ -7,10 +11,26 @@ config["basecalled_path"] = config["basecalled_path"].rstrip("/")
 
 # bin.smk requires `sample_name` and `barcodes` to be set
 sample_name = config["sample_name"] if config.get("sample_name") else "_".join(config["barcodes"].split(','))
-
 barcodes = ""
 for i in config["barcodes"].split(','):
     barcodes += " {}".format(i)
+
+
+print("####Running BinLorry for sample ", sample_name, flush=True)
+
+# convert the RAMPART supplied config settings into the syntax binlorry uses
+if "minReadLength" in config:
+    config["min_read_length"] = config["minReadLength"]
+    del config["minReadLength"]
+if "maxReadLength" in config:
+    config["max_read_length"] = config["maxReadLength"]
+    del config["maxReadLength"]
+
+# RAMPART may give some options which binlorry doesn't yet understand. Let the client know!
+if "references" in config:
+    print("####P.S. Binlorry currently doesn't filter to references.", flush=True)
+if "minRefSimilarity" in config or "maxRefSimilarity" in config:
+    print("####P.S. Binlorry currently doesn't filter on read mapping similarity", flush=True)
 
 
 ##### Target rules #####
@@ -18,7 +38,6 @@ rule all:
     input:
         config["output_path"] + "/binned_{}.fastq".format(sample_name)
         #output of this pipeline is both the fastq file and a csv report of the reads in that file, with respective annotations.
-
 
 ##### Modules #####
 include: "rules/bin.smk"

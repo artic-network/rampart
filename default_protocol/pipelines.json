@@ -13,17 +13,7 @@
 	"export_reads": {
 		"name": "Export reads",
 		"path": "pipelines/bin_to_fastq",
-		"processing": true,
-		"config_file": false,
-		"run_per_sample": true,
-		"options": {
-			"min_read_length": true,
-			"max_read_length": true,
-			"sample_name": true,
-			"barcodes": true,
-			"basecalled_path": true,
-			"annotated_path": true,
-			"output_path": true
-		}
+        "config_file": "config.yaml",
+        "run_per_sample": true
 	}
 }

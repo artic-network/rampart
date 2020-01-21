@@ -21,6 +21,3 @@ rule binlorry:
         "-v 0 "
         "--filter-by barcode {params.barcodes} "
         "--out-report"
-
-
-
