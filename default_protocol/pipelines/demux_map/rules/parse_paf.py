@@ -1,6 +1,8 @@
 import argparse
 from Bio import SeqIO
 from collections import defaultdict
+from collections import Counter
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
 
@@ -12,7 +14,7 @@ def parse_args():
     parser.add_argument("--reference_file", action="store", type=str, dest="references")
     parser.add_argument("--reference_options", action="store", type=str, dest="reference_options")
 
-    parser.add_argument("--min_identity", default=0.87, action="store", type=float, dest="min_identity")
+    parser.add_argument("--minimum_identity", default=0.8, action="store", type=float, dest="min_identity")
 
     return parser.parse_args()
 
@@ -36,6 +38,9 @@ def parse_reference_options(reference_options):
         
 
     return ref_options, ','+','.join(ref_options.keys())
+
+
+
 
 def parse_reference_file(references):
     #returns a dict of dicts containing reference header information
@@ -94,16 +99,49 @@ def check_overlap(coords1,coords2):
     else:
         return False, 0 
 
-def get_identity(mapping):
-    
-    if mapping["ref_hit"] != '*':
-        ref_hit_length = int(mapping['query_end']) - int(mapping['query_start'])
-        identity = round(int(mapping['matches'])/ref_hit_length, 3)
-
+def take_appropriate_cigar_action(counter, last_symbol, number):
+    if last_symbol == ":":
+        counter[last_symbol]+=int(number)
+    elif last_symbol == "*":
+        counter[last_symbol]+=1
     else:
-        identity = 0
+        counter[last_symbol]+=len(number)
 
-    return identity
+
+def parse_cigar_for_matches_and_mismatches(cigar):
+    cigar_counter = Counter()
+
+    cigar = cigar[5:] # removes the cs:Z: from the beginning of the cigar
+    
+    symbol = ''
+    last_symbol = None
+    number = ''
+    
+    for i in cigar:
+        if i in [":","*","+","-"]:
+            symbol = i
+
+            if last_symbol:
+                take_appropriate_cigar_action(cigar_counter, last_symbol, number)
+                last_symbol = symbol
+                number = ''
+            else:
+                last_symbol = symbol
+        else:
+            number += i
+
+
+    take_appropriate_cigar_action(cigar_counter, last_symbol, number)
+
+    matches = cigar_counter[":"]
+    mismatches = cigar_counter["*"]
+    
+    return matches, mismatches
+
+def calculate_genetic_identity(cigar):
+    
+    matches, mismatches = parse_cigar_for_matches_and_mismatches(cigar)
+    return mismatches, matches / (matches + mismatches)
 
 def check_identity_threshold(mapping, min_identity):
     
@@ -128,9 +166,13 @@ def parse_line(line, header_dict):
     values["query_start"] = tokens[2]
     values["query_end"] = tokens[3]
     values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
-
-    identity = get_identity(values)
-    values["identity"] = identity
+    if values["ref_hit"] != "*":
+        mismatches, identity = calculate_genetic_identity(tokens[-1])
+        values["mismatches"] = mismatches
+        values["identity"] = identity
+    else:
+        values["mismatches"] = 0
+        values["identity"]= 0
 
     return values
 
@@ -168,11 +210,13 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
                     else:
                         mapping["ref_opts"].append("NA")
 
-    counts["total"] += 1
+    
 
     if check_identity_threshold(mapping, min_identity):
 
-        mapping_length = int(mapping['query_end']) - int(mapping['query_start'])
+        counts["total"] += 1
+
+        mapping_length = int(mapping['matches']) + int(mapping['mismatches'])
         report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                     f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
                     f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
@@ -181,6 +225,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
         else:
             report.write("\n")
     else:
+        counts["unmapped"] +=1
         report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                     f"{mapping['barcode']},*,0,0,0,0,0")
         if 'ref_opts' in mapping:

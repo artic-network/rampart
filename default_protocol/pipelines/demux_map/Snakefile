@@ -63,6 +63,12 @@ if str(config["discard_middle"]).lower()=="true":
 else:
     discard_middle= ""
 
+minimum_identity = ""
+if config.get("minimum_identity"):
+    minimum_identity= f" --minimum_identity {config['minimum_identity']}"
+else:
+    minimum_identity= ""
+
 ##### Target rules #####
 
 rule all:

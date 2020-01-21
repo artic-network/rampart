@@ -3,12 +3,13 @@ rule minimap2:
         fastq= config["input_path"] + "/{filename_stem}.fastq",
         ref= config["references_file"]
     output:
-        temp(config["output_path"] + "/temp/{filename_stem}.paf")
+        config["output_path"] + "/temp/{filename_stem}.paf"
     shell:
         """
         minimap2 -x map-ont \
         --secondary=no \
         --paf-no-hit \
+        --cs \
         {input.ref:q} \
         {input.fastq:q} > {output:q}
         """
@@ -24,6 +25,7 @@ rule parse_mapping:
         reference_file = config["references_file"],
     params:
         path_to_script = workflow.current_basedir,
+        min_identity= minimum_identity, 
         reference_options = f'--reference_options "{reference_fields}"'
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
@@ -34,6 +36,7 @@ rule parse_mapping:
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
         --reference_file {input.reference_file:q} \
+        {params.min_identity} \
         {params.reference_options}
         """
 #produces a csv report
