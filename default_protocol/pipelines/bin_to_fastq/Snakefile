@@ -14,7 +14,10 @@ if config.get("output_path"):
 else:
     config["output_path"] = "binned"
 
-# bin.smk requires `sample_name` and `barcodes` to be set
+# bin.smk requires `samples` to be set in the format
+# samples="{sample1:[BC01],sample2:[BC02,BC03]}"
+# if one sample is given: samples="{sample1:[BC01]}", will run binlorry for this one sample
+# but can do this for all samples too if given in this format.
 
 samples = {}
 barcode_string = ''
@@ -38,6 +41,8 @@ if config.get("samples"):
         barcode_string = ' '.join(barcodes)
         for barcode in barcodes:
             samples[barcode] = [barcode]
+else:
+    raise ValueError("Please provide a barcodes.csv or run_configuration.json")
 
 
 ##### Target rules #####
