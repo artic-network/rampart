@@ -67,13 +67,22 @@ const newReferenceColourGenerator = () => {
 }
 
 const newSampleColourGenerator = () => {
-  let index = 1;
+  let whichPanelIdx = -1;
+  let inPanelIndex = 4;
   return (sampleName) => {
     if (sampleName === "unassigned") {
       return "#979797";
     }
-    index++;
-    return availableColours[index][4];
+    whichPanelIdx++;
+    if (whichPanelIdx === availableColours.length) {
+        whichPanelIdx=0;
+        inPanelIndex++;
+        if (inPanelIndex === availableColours[0].length) {
+            /* this should happen after 72 samples! */
+            inPanelIndex = 0;
+        }
+    }
+    return availableColours[whichPanelIdx][inPanelIndex];
   }
 }
 
