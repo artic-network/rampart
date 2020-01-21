@@ -20,6 +20,7 @@
  */
 
 const fs = require('fs');
+const dsv = require('d3-dsv');
 const { normalizePath, getAbsolutePath, verbose, warn } = require("../utils");
 
 

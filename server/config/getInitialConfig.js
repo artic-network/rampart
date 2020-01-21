@@ -19,7 +19,7 @@
  */
 
 const { UNMAPPED_LABEL } = require("../magics");
-const { ensurePathExists, normalizePath, getAbsolutePath, verbose, fatal } = require("../utils");
+const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, fatal } = require("../utils");
 const { newSampleColour } = require("../colours");
 const { setUpPipelines } = require("./pipeline");
 const { modifySamplesAndBarcodes } = require("./modify");
@@ -32,7 +32,6 @@ const PRIMERS_CONFIG_FILENAME = "primers.json";
 const PIPELINES_CONFIG_FILENAME = "pipelines.json";
 const RUN_CONFIG_FILENAME = "run_configuration.json";
 const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
-
 
 /**
  * Create initial config file from command line arguments - Note that
@@ -67,6 +66,53 @@ const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
  *
  */
 function getInitialConfig(args) {
+    const pathCascade = setUpPathCascade(args);
+
+    const config = {};
+    config.protocol = readConfigFile(pathCascade, PROTOCOL_FILENAME);
+    config.genome = readConfigFile(pathCascade, GENOME_CONFIG_FILENAME);
+    config.genome.referencePanel = [{
+        name: UNMAPPED_LABEL,
+        description: "Reads that didn't map to any reference",
+        display: true
+    }];
+    config.primers = readConfigFile(pathCascade, PRIMERS_CONFIG_FILENAME);
+    config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
+    config.run = {
+        title: `Started @ ${(new Date()).toISOString()}`,
+        annotatedPath: "annotations",
+        clearAnnotated: false,
+        simulateRealTime: 0,
+        samples: [],
+        ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME)
+    };
+
+    /* override any sample - barcode links via a provided barcodes CSV file */
+    const barcodeFile = findConfigFile(pathCascade, BARCODES_TO_SAMPLE_FILENAME);
+    if (barcodeFile) {
+        setBarcodesFromFile(config, barcodeFile);
+    }
+
+    setUpDisplaySettings(config);
+    modifyConfigViaCommandLineArguments(config, args);
+    sortOutPaths(config);
+    const pipelineRunners = setUpPipelines(config, args, pathCascade);
+    giveSamplesColours(config);
+    validate(config);
+
+    if (config.run.clearAnnotated){
+        log("Flag: 'Clearing annotation directory' enabled");
+    }
+    if (config.run.simulateRealTime > 0){
+        log(`Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
+    }
+
+    return {config, pipelineRunners};
+};
+
+
+/** */
+function setUpPathCascade(args) {
     const serverDir = __dirname;
     const rampartSourceDir = serverDir.substring(0, serverDir.length - 7); // no trailing slash
 
@@ -87,40 +133,21 @@ function getInitialConfig(args) {
 
     pathCascade.push("./"); // add current working directory
 
-    const config = {
-        run: {
-            title: `Started @ ${(new Date()).toISOString()}`,
-            annotatedPath: "annotations",
-            clearAnnotated: false,
-            simulateRealTime: 0,
-            samples: []
-        }
-    };
+    verbose("config", `path cascade: ${pathCascade}`);
+    return pathCascade;
+}
 
-    config.protocol = readConfigFile(pathCascade, PROTOCOL_FILENAME);
-    config.genome = readConfigFile(pathCascade, GENOME_CONFIG_FILENAME);
-    config.primers = readConfigFile(pathCascade, PRIMERS_CONFIG_FILENAME);
-    config.pipelines = readConfigFile(pathCascade, PIPELINES_CONFIG_FILENAME);
-    config.run = { ...config.run, ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME) };
+/* add in colours (this lends itself nicely to one day allowing them to be specified 
+    in the config - the reason we don't yet do this is that colours which aren't in
+    the colour picker will cause problems. */
+function giveSamplesColours(config) {
+    config.run.samples.forEach((s, i) => {
+        s.colour = newSampleColour(s.name);
+    })
+}
 
-    /* overwrite any title with a command-line specified one */
-    if (args.title) {
-        config.run.title = args.title;
-    }
-
-
-    /* set up sample information. It's ok to leave this blank, as we observe "new" barcodes
-    in the data then this will be updated. This is the _only_ place we set up the links
-    between barcodes and samples in order to prevent out-of-sync bugs */
-    if (config.run.samples) {
-        // TODO: error checking
-    }
-    // override with barcode names provided via CSV
-    const barcodeFile = findConfigFile(pathCascade, BARCODES_TO_SAMPLE_FILENAME);
-    if (barcodeFile) {
-      setBarcodesFromFile(config, barcodeFile);
-    }
-    // override with any barcode names on the arguments
+function modifyConfigViaCommandLineArguments(config, args) {
+    // add in / update barcode names provided on the arguments
     if (args.barcodeNames) {
         const newBarcodesToSamples = [];
         args.barcodeNames.forEach((raw) => {
@@ -131,69 +158,47 @@ function getInitialConfig(args) {
         modifySamplesAndBarcodes(config, newBarcodesToSamples);
     }
 
-    /* add in colours (this lends itself nicely to one day allowing them to be specified 
-        in the config - the reason we don't yet do this is that colours which aren't in
-        the colour picker will cause problems. */
-    config.run.samples.forEach((s, i) => {
-        s.colour = newSampleColour(s.name);
-    })
-
-    // todo - check config objects for correctness
-    assert(config.genome, "No genome description has been provided");
-    assert(config.genome.label, "Genome description missing label");
-    assert(config.genome.length, "Genome description missing length");
-    assert(config.genome.genes, "Genome description missing genes");
-
-    config.genome.referencePanel = [{
-        name: UNMAPPED_LABEL,
-        description: "Reads that didn't map to any reference",
-        display: true
-    }];
-
-    if (args.basecalledPath) {
-        /* overwrite any JSON defined path with a command line arg */
-        config.run.basecalledPath = args.basecalledPath;
+    /* overwrite any title with a command-line specified one */
+    if (args.title) {
+        config.run.title = args.title;
     }
 
-    try {
-        if (!config.run.basecalledPath) {
-            fatal(`No directory of basecalled reads specified in startup configuration`)
-        }
-        config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
-        verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
-    } catch (err) {
-        console.error(err.message);
-        // fatal(`Error finding / accessing the directory of basecalled reads ${config.run.basecalledPath}`)
-        fatal(`No directory of basecalled reads specified in startup configuration`)
+    /* overwrite any JSON defined path with a command line arg */
+    if (args.basecalledPath) {
+        config.run.basecalledPath = args.basecalledPath;
     }
 
     if (args.annotatedDir) {
         config.run.annotatedPath = args.annotatedDir;
     }
-    config.run.annotatedPath = normalizePath(getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()}));
-    config.run.workingDir = process.cwd();
-
-    ensurePathExists(config.run.annotatedPath, {make: true});
-    verbose("config", `Annotated path: ${config.run.annotatedPath}`);
 
     if (args.clearAnnotated) {
         config.run.clearAnnotated = args.clearAnnotated;
     }
-    if (config.run.clearAnnotated){
-        verbose("config", "Flag: 'Clearing annotation directory' enabled");
-    }
-
     if (args.simulateRealTime) {
         config.run.simulateRealTime = args.simulateRealTime;
     }
-    if (config.run.simulateRealTime > 0){
-        verbose("config", `Simulating real-time appearance of reads every ${config.run.simulateRealTime} seconds`);
+
+    if (args.referencesLabel) {
+        config.display.referencesLabel = args.referencesLabel;
     }
+}
 
-    /* Now we parse & check the pipelines defined in the config & set up runners as needed */
-    const pipelineRunners = setUpPipelines(config, args, pathCascade);
+function sortOutPaths(config) {
+    if (!config.run.basecalledPath) {
+        fatal(`No directory of basecalled reads specified in startup configuration`)
+    }
+    config.run.basecalledPath = normalizePath(getAbsolutePath(config.run.basecalledPath, {relativeTo: process.cwd()}));
+    config.run.annotatedPath = normalizePath(getAbsolutePath(config.run.annotatedPath, {relativeTo: process.cwd()}));
+    ensurePathExists(config.run.basecalledPath, {make: false});
+    ensurePathExists(config.run.annotatedPath, {make: true});
+    config.run.workingDir = process.cwd();
+    verbose("config", `Basecalled path: ${config.run.basecalledPath}`);
+    verbose("config", `Annotated  path: ${config.run.annotatedPath}`);
+    verbose("config", `Current working directory: ${config.run.workingDir}`);
+}
 
-
+function setUpDisplaySettings(config) {
     /* display options */
     config.display = {
         numCoverageBins: 1000, /* how many bins we group the coverage stats into */
@@ -220,14 +225,20 @@ function getInitialConfig(args) {
     if (config.run.displayOptions) {
         config.display = { ...config.display, ...config.run.displayOptions };
     }
+}
 
-    if (args.referencesLabel) {
-        config.display.referencesLabel = args.referencesLabel;
+function validate(config) {
+
+    if (config.run.samples) {
+        // TODO: error checking
     }
 
-    return {config, pipelineRunners};
-};
-
+    // todo - check config objects for correctness
+    assert(config.genome, "No genome description has been provided");
+    assert(config.genome.label, "Genome description missing label");
+    assert(config.genome.length, "Genome description missing length");
+    assert(config.genome.genes, "Genome description missing genes");
+}
 
 module.exports = {
   getInitialConfig
