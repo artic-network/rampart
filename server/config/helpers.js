@@ -21,7 +21,7 @@
 
 const fs = require('fs');
 const dsv = require('d3-dsv');
-const { normalizePath, getAbsolutePath, verbose, warn } = require("../utils");
+const { normalizePath, getAbsolutePath, verbose, warn, fatal } = require("../utils");
 
 
 function readConfigFile(paths, fileName) {
@@ -69,7 +69,7 @@ function findConfigFile(paths, fileName) {
 
 function assert(item, message) {
   if (!item) {
-      throw new Error(message);
+      fatal(message);
   }
 }
 

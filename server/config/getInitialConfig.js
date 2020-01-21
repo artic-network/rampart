@@ -114,8 +114,7 @@ function getInitialConfig(args) {
 /** */
 function setUpPathCascade(args) {
     const serverDir = __dirname;
-    const rampartSourceDir = serverDir.substring(0, serverDir.length - 7); // no trailing slash
-
+    const rampartSourceDir = serverDir.substring(0, serverDir.length - 14); // no trailing slash
     const defaultProtocolPath = getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: rampartSourceDir});
     //verbose("config", `Default protocol path: ${defaultProtocolPath}`);
 
@@ -133,7 +132,9 @@ function setUpPathCascade(args) {
 
     pathCascade.push("./"); // add current working directory
 
-    verbose("config", `path cascade: ${pathCascade}`);
+    pathCascade.forEach((p, i) => {
+        verbose("config", `path cascade ${i}: ${p}`);
+    })
     return pathCascade;
 }
 

@@ -30,7 +30,7 @@ function setUpPipelines(config, args, pathCascade) {
     /* general assertions / corrections */
     assert(config.pipelines, "No pipeline configuration has been provided");
     ensurePathExists(config.pipelines.path);
-    assert(config.pipelines.annotation, "Read proccessing pipeline ('annotation') not defined");
+    assert(config.pipelines.annotation, "Processing pipeline must define an `annotation` pipeline");
 
     Object.entries(config.pipelines)
         .filter(([key, pipeline]) => key !== "path") // this key is introduced by us upon parsing
@@ -50,10 +50,11 @@ function setUpPipelines(config, args, pathCascade) {
                 mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
                 // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
                 if (config.run.samples.length) {
-                    // potential bug -- if you've asked for `limit_barcodes_to` via command line arg or connfig set up then
-                    // the following line will overwrite this preference
-                    pipeline.configOptions["limit_barcodes_to"] = [...getBarcodesInConfig(config)].join(',');
-                    verbose("config", `Limiting barcodes to: ${pipeline.configOptions["limit_barcodes_to"]}`)
+                    if (pipeline.configOptions.limit_barcodes_to) {
+                        warn("Overriding your `limit_barcodes_to` options to those set via the barcode-sample mapping.")
+                    }
+                    pipeline.configOptions.limit_barcodes_to = [...getBarcodesInConfig(config)].join(',');
+                    verbose("config", `Limiting barcodes to: ${pipeline.configOptions.limit_barcodes_to}`)
                 }
                 // set up the runner
                 pipelineRunners[key] = new PipelineRunner({
