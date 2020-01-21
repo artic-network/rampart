@@ -12,7 +12,7 @@
  *
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 // import PropTypes from "prop-types";
 import SamplePanel from "./SamplePanel"
 import OverallSummaryPanel from "./OverallSummaryPanel";
@@ -22,6 +22,19 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
     
     /* -----------    STATE MANAGEMENT    ------------------- */
     const [samplePanelsExpanded, setSamplePanelsExpanded] = useState({});
+
+    useEffect(() => {
+        document.addEventListener("keydown", (event) => {
+            if (event.keyCode === 67 || event.keyCode === 79) { // 'c' or 'o' => close all or open all
+                setSamplePanelsExpanded((prevState) => {
+                    const newState = {...prevState};
+                    Object.keys(newState).forEach((k) => newState[k] = event.keyCode === 79);
+                    return newState;
+                });
+            };
+        });
+    }, []);
+
     const refs = useRef(new Map());
     const setPanelExpanded = (panelName, newState) => {
         const state = {...samplePanelsExpanded};
@@ -32,7 +45,6 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
         if (!samplePanelsExpanded[panelName]) setPanelExpanded(panelName, true);
         window.scrollTo({left: 0, top: refs.current.get(panelName).current.offsetTop, behavior: "smooth"});
     }
-
     /* If we have new panels (e.g. new sampleNames / barcodes discovered or defined) then set `samplePanelsExpanded`
      * An alternative approach would be to use `useEffect` here.
      */ 
