@@ -91,7 +91,8 @@ class PipelineRunner {
         this._jobQueue.push(job);
     }
 
-    _convertConfigObjectToString(configObject) {
+    _convertConfigObjectToArrayOfStrings(configObject) {
+        const charsToQuote = [" ", "{", "}", "|", ">", "<", "*", "&", ";"];
         return Object.entries(configObject)
             .map(([key, value]) => {
                 /* if value is the empty string, snakemake just sees the key */
@@ -126,11 +127,8 @@ class PipelineRunner {
             })
             .filter((d) => d!=="")
             .map((data) => /* quote if necessary */
-                data.toString().indexOf(' ') !== -1 || data.toString().indexOf('{') !== -1 ?
-                `"${data}"` :
-                data
+                charsToQuote.map((c) => data.includes(c)).filter((a) => !!a).length ? `"${data}"` : data
             )
-            .join(" ");
     }
 
     /**
@@ -155,7 +153,7 @@ class PipelineRunner {
                 spawnArgs.push(...['--configfile', this._configfile])
             }
             if (Object.keys(pipelineConfig).length) {
-                spawnArgs.push(...['--config', this._convertConfigObjectToString(pipelineConfig)]);
+                spawnArgs.push(...['--config', ...this._convertConfigObjectToArrayOfStrings(pipelineConfig)]);
             }
             spawnArgs.push('--nolock');
             spawnArgs.push('--rerun-incomplete');
