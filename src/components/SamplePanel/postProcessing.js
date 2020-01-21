@@ -19,7 +19,7 @@ import { IoMdPlay } from "react-icons/io";
 
 export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
     return Object.keys(config.pipelines)
-        .filter((key) => !!config.pipelines[key].processing) /* restrict to "processing" pipelines only */
+        .filter((key) => !config.pipelines[key].ignore)
         .filter((key) => config.pipelines[key].run_per_sample) /* restrict to those which are defined to be run per sample */
         .map((key) => ({
             label: config.pipelines[key].name,

@@ -10,31 +10,16 @@
 			}
 		]
 	},
-	"consensus": {
-		"name": "Build consensus (ARTIC pipeline)",
-		"path": "../../default_protocol/pipelines/build_consensus_artic",
-		"config": "min_read_length=100 max_read_length=10000"
-	},
-	"export_reads": {
-		"name": "Export reads",
-		"path": "../../default_protocol/pipelines/bin_to_fastq",
-		"processing": true,
-		"config_file": false,
-		"run_per_sample": true,
-		"options": {
-			"min_read_length": true,
-			"max_read_length": true,
-			"sample_name": true,
-			"barcodes": true,
-			"basecalled_path": true,
-			"annotated_path": true,
-			"output_path": true
-		}
-  },
-  "test_pipeline": {
+	"test_pipeline": {
 		"name": "Test Pipeline",
-    "path": "test_pipeline",
-    "run_per_sample": true,
-    "processing": true
+		"path": "test_pipeline",
+        "config": "json-config-setting",
+        "run_per_sample": true,
+        "configOptions": {
+            "a": "",
+            "b": "B",
+            "c": ["C", "CC"],
+            "d": {"D": "", "DD": "DDD"}
+        }
 	}
 }

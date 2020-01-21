@@ -91,17 +91,48 @@ class PipelineRunner {
         this._jobQueue.push(job);
     }
 
-    _convertConfigObjectToArray(configObject) {
-        return Object.entries(configObject).map(([key, value]) => {
-            /* `key -> [v1, v2, v3]` goes to `key=v1,v2,v3` */
-            if (Array.isArray(value)) {
-                return `${key}=${value.join(',')}`;
-            }
-            /* `key -> value` goes to `key=value` (`value` quoted if necessary) */
-            return `${key}=${value.toString().indexOf(' ') !== -1 || value.toString().indexOf('{') !== -1 ? `"${value}"` : value}`;
-        });
-
+    _convertConfigObjectToString(configObject) {
+        return Object.entries(configObject)
+            .map(([key, value]) => {
+                /* if value is the empty string, snakemake just sees the key */
+                if (value === "") {
+                    return key;
+                }
+                /* string & number values go to key=string */
+                if (typeof(value) === "string" || typeof(value) === "number") {
+                    return `${key}=${value}`;
+                }
+                /* `key -> [v1, v2, v3]` goes to `key=v1,v2,v3` */
+                if (Array.isArray(value)) {
+                    return `${key}=${value.join(',')}`;
+                }
+                /* key -> {ik: iv, ...} only works if all the inner values are strings */
+                if (value.constructor === Object) {
+                    const strDict = Object.entries(value)
+                        .map(([innerKey, innerValue]) => {
+                            if (innerValue === "") return innerKey;
+                            if (typeof(innerValue) === "string" || typeof(innerValue) === "number") {
+                                return `${innerKey}:${innerValue}`;
+                            }
+                            warn(`Error parsing dict options for pipeline ${this._key}. Key: ${key}, value: ${value}. Ignoring.`);
+                            return ""
+                        })
+                        .filter((d) => d!=="")
+                        .join(",");
+                    return `${key}=${strDict}`;
+                }
+                warn(`Error parsing options for pipeline ${this._key}. Key: ${key}, value: ${value}`);
+                return "";
+            })
+            .filter((d) => d!=="")
+            .map((data) => /* quote if necessary */
+                data.toString().indexOf(' ') !== -1 || data.toString().indexOf('{') !== -1 ?
+                `"${data}"` :
+                data
+            )
+            .join(" ");
     }
+
     /**
      * private method to actually spawn a Snakemake pipeline and capture output.
      * @param {Object} job snakemake config key-value pairs
@@ -110,22 +141,21 @@ class PipelineRunner {
      */
     async _runPipeline(job) {
         return new Promise((resolve, reject) => {
-            const pipelineConfig = []; // the strings to be passed to snakemake via `--config`
 
-            // start with (optional) configuration options defined for the entire pipeline
+            let pipelineConfig = {}; // what snakemake's going to receive via `--config`
+            // add in any (optional) configuration options defined for the entire pipeline
             if (this._configOptions) {
-                pipelineConfig.push(...this._convertConfigObjectToArray(this._configOptions));
+                pipelineConfig = {...pipelineConfig, ...this._configOptions}
             }
-
             // add in job-specific config options
-            pipelineConfig.push(...this._convertConfigObjectToArray(job));
+            pipelineConfig = {...pipelineConfig, ...job};
 
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])
             }
-            if (pipelineConfig.length) {
-                spawnArgs.push(...['--config', ...pipelineConfig]);
+            if (Object.keys(pipelineConfig).length) {
+                spawnArgs.push(...['--config', this._convertConfigObjectToString(pipelineConfig)]);
             }
             spawnArgs.push('--nolock');
             spawnArgs.push('--rerun-incomplete');
@@ -274,8 +304,9 @@ function createJob({key, sampleName}) {
     job.annotated_path = global.config.run.annotatedPath;
     job.basecalled_path = global.config.run.basecalledPath;
     job.output_path = global.config.run.workingDir;
-
     return job;
 }
+
+
 module.exports = { PipelineRunner, sendCurrentPipelineStatuses, createJob };
 

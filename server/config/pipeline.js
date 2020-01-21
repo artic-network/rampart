@@ -44,8 +44,9 @@ function setUpPipelines(config, args, pathCascade) {
 
             if (key === "annotation") {
                 /* the `annotation` pipeline is somewhat special */
-                checkPipeline(config, pipeline);
-                
+                checkPipeline(config, key, pipeline);
+                if (pipeline.ignore) return;
+
                 parseAnnotationRequires(pipeline, config, pathCascade, args)
                 mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
                 // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
@@ -56,6 +57,7 @@ function setUpPipelines(config, args, pathCascade) {
                     pipeline.configOptions.limit_barcodes_to = [...getBarcodesInConfig(config)].join(',');
                     verbose("config", `Limiting barcodes to: ${pipeline.configOptions.limit_barcodes_to}`)
                 }
+                
                 // set up the runner
                 pipelineRunners[key] = new PipelineRunner({
                     config: pipeline,
@@ -64,14 +66,15 @@ function setUpPipelines(config, args, pathCascade) {
                 });
             } else {
                 /* a "normal" / non-annotation pipeline */
-                if (!pipeline.processing || !pipeline.run_per_sample) {
-                    /* we currently only use pipelines which are `processing` AND `run_per_sample`*/
-                    /* NOTE: the client will filter these out as well, so we don't delete them here */
-                    warn(`Pipeline ${pipeline.name} isn't "processing" and "run_per_sample" and will therefore be ignored`);
+                if (!pipeline.run_per_sample) {
+                    /* we currently only use pipelines which are `run_per_sample` */
+                    /* NOTE: the client will filter these out as well, so we don't need to delete them here */
+                    warn(`Pipeline ${pipeline.name} doesn't contain the "run_per_sample" property and will therefore be ignored`);
                     return;
                 }
                 verbose("config", `Constructing pipeline runner for "${pipeline.name}"`)
-                checkPipeline(config, pipeline, true);
+                checkPipeline(config, key, pipeline, true);
+                if (pipeline.ignore) return;
                 pipelineRunners[key] = new PipelineRunner({config: pipeline, queue: true});
             }
         });
@@ -141,7 +144,7 @@ function parseAnnotationRequires(pipeline, config, pathCascade, args) {
     }
 }
 
-function checkPipeline(config, pipeline, giveWarning = false) {
+function checkPipeline(config, key, pipeline, giveWarning = false) {
 
     let message = undefined;
 
@@ -168,6 +171,20 @@ function checkPipeline(config, pipeline, giveWarning = false) {
         }
     }
 
+    /* deprecation warnings */
+    if (pipeline.requires && key !== "annotation") {
+        warn(`The 'requires' property (pipeline "${key}") is not yet supported.`);
+        delete pipeline.requires;
+    }
+    if (pipeline.processing) {
+        warn(`The 'processing' property (pipeline "${key}") is no longer used.`);
+        delete pipeline.processing;
+    }
+    if (pipeline.options) {
+        warn(`The 'options' property (pipeline "${key}") is no longer used.`);
+        delete pipeline.options;
+    }            
+
     if (message) {
         if (giveWarning) {
             warn(`pipeline '${pipeline.name}' ${message} - pipeline will be ignored`);
@@ -178,7 +195,6 @@ function checkPipeline(config, pipeline, giveWarning = false) {
     }
 
 }
-
 
 module.exports = {
   setUpPipelines
