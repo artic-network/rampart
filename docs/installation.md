@@ -29,7 +29,7 @@ Install dependencies etc by creating a conda environment from the `environment.y
 ```bash
 cd rampart
 conda env create -f environment.yml
-source activate artic-rampart
+conda activate artic-rampart
 npm install # installs node (javascript) dependencies
 npm run build # builds RAMPART
 npm install -g . # makes `rampart` available as a command line program
