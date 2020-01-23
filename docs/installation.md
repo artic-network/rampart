@@ -10,7 +10,7 @@ Conda is a popular environment manager which allows you to install dependencies 
 While you _can_ run rampart without conda, it requires you to maintain local installations of nodejs and other dependencies.
 The instructions on this page assume conda has been installed.
 
-See [instructions here](https://conda.io/docs/user-guide/install/index.html) to install conda on your machine.
+See [instructions here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to install conda on your machine.
 
 ## Step 3: Install RAMPART
 
