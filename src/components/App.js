@@ -52,7 +52,7 @@ class App extends Component {
       console.log("Dev mode -- socket opening on 3001. This is hardcoded & cannot be changed");
       this.setState({socketPort: 3001})
     } else {
-      const apiAddress = `http://${window.location.origin}:${window.location.port}/getSocketPort`;
+      const apiAddress = `${window.location.origin}/getSocketPort`;
       console.log(`Querying rampart.js server @ ${apiAddress} for what port to open socket on...`);
       fetch(apiAddress)
         .then((res) => {
@@ -73,7 +73,7 @@ class App extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!prevState.socketPort && this.state.socketPort) {
       console.log(`Opening socket on ${this.state.socketPort} & registering listeners`);
-      const socket = io(`http://${window.location.origin}:${this.state.socketPort}`);
+      const socket = io(`${window.location.protocol}//${window.location.hostname}:${this.state.socketPort}`);
       this.registerServerListeners(socket);
       this.setState({socket});
     }
