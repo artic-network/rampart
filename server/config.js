@@ -411,7 +411,7 @@ function getInitialConfig(args) {
     }
 
     return config;
-};
+}
 
 /**
  * update the global config object via client provided data
