@@ -126,7 +126,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
             (<ExpandChart handleClick={() => goToChart("coverageOverTime")}/>)
         }
       />
-    ),
+    )/*,
     refSimilarity: (
         <RefSimilarity
             title={"Read mapping similarities"}
@@ -142,7 +142,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
                 (<ExpandChart handleClick={() => goToChart("refSimilarity")}/>)
         }
         />
-    )
+    )*/
 
   };
 

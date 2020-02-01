@@ -31,7 +31,7 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
                     Object.keys(newState).forEach((k) => newState[k] = event.keyCode === 79);
                     return newState;
                 });
-            };
+            }
         });
     }, []);
 
@@ -40,11 +40,11 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
         const state = {...samplePanelsExpanded};
         state[panelName] = newState;
         setSamplePanelsExpanded(state);
-    }
+    };
     const goToSamplePanel = (panelName) => {
         if (!samplePanelsExpanded[panelName]) setPanelExpanded(panelName, true);
         window.scrollTo({left: 0, top: refs.current.get(panelName).current.offsetTop, behavior: "smooth"});
-    }
+    };
     /* If we have new panels (e.g. new sampleNames / barcodes discovered or defined) then set `samplePanelsExpanded`
      * An alternative approach would be to use `useEffect` here.
      */ 
@@ -88,7 +88,7 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
             ))}
         </>
     )
-}
+};
 
 
 export default PanelManager;

@@ -465,8 +465,11 @@ th.rotate {
   min-height: 30px;
 }
 .panelContainer.expanded {
-  height: 720px;
-  min-height: 720px;
+  height: 370px;
+  min-height: 370px;
+  /*making space for second row of plots (not needed at the moment):*/
+  /*height: 720px;*/
+  /*min-height: 720px;*/
 }
 .panelContainer > .infoRow {
   display: flex;
