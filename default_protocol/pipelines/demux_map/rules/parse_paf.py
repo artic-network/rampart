@@ -1,6 +1,8 @@
 import argparse
 from Bio import SeqIO
 from collections import defaultdict
+from collections import Counter
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
 
@@ -11,6 +13,8 @@ def parse_args():
 
     parser.add_argument("--reference_file", action="store", type=str, dest="references")
     parser.add_argument("--reference_options", action="store", type=str, dest="reference_options")
+
+    parser.add_argument("--minimum_identity", default=0.8, action="store", type=float, dest="min_identity")
 
     return parser.parse_args()
 
@@ -34,6 +38,9 @@ def parse_reference_options(reference_options):
         
 
     return ref_options, ','+','.join(ref_options.keys())
+
+
+
 
 def parse_reference_file(references):
     #returns a dict of dicts containing reference header information
@@ -92,6 +99,62 @@ def check_overlap(coords1,coords2):
     else:
         return False, 0 
 
+def take_appropriate_cigar_action(counter, last_symbol, number):
+    if last_symbol == ":":
+        counter[last_symbol]+=int(number)
+    elif last_symbol == "*":
+        counter[last_symbol]+=1
+    else:
+        counter[last_symbol]+=len(number)
+
+
+def parse_cigar_for_matches_and_mismatches(cigar):
+    cigar_counter = Counter()
+
+    cigar = cigar[5:] # removes the cs:Z: from the beginning of the cigar
+    
+    symbol = ''
+    last_symbol = None
+    number = ''
+    
+    for i in cigar:
+        if i in [":","*","+","-"]:
+            symbol = i
+
+            if last_symbol:
+                take_appropriate_cigar_action(cigar_counter, last_symbol, number)
+                last_symbol = symbol
+                number = ''
+            else:
+                last_symbol = symbol
+        else:
+            number += i
+
+
+    take_appropriate_cigar_action(cigar_counter, last_symbol, number)
+
+    matches = cigar_counter[":"]
+    mismatches = cigar_counter["*"]
+    
+    return matches, mismatches
+
+def calculate_genetic_identity(cigar):
+    
+    matches, mismatches = parse_cigar_for_matches_and_mismatches(cigar)
+    return mismatches, matches / (matches + mismatches)
+
+def check_identity_threshold(mapping, min_identity):
+    
+    if float(min_identity)<1:
+        min_id = float(min_identity)
+    else:
+        min_id = float(min_identity)/ 100
+        
+    if mapping["identity"] >= min_id:
+        return True
+    else:
+        return False
+
 def parse_line(line, header_dict):
     values = {}
     tokens = line.rstrip('\n').split('\t')
@@ -103,11 +166,18 @@ def parse_line(line, header_dict):
     values["query_start"] = tokens[2]
     values["query_end"] = tokens[3]
     values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
+    if values["ref_hit"] != "*":
+        mismatches, identity = calculate_genetic_identity(tokens[-1])
+        values["mismatches"] = mismatches
+        values["identity"] = identity
+    else:
+        values["mismatches"] = 0
+        values["identity"]= 0
 
     return values
 
 
-def write_mapping(report, mapping, reference_options, reference_info, counts):
+def write_mapping(report, mapping, reference_options, reference_info, counts, min_identity):
     if mapping["ref_hit"] == '*' or mapping["ref_hit"] == '?':
         # '*' means no mapping, '?' ambiguous mapping (i.e., multiple primary mappings)
         mapping['coord_start'], mapping['coord_end'] = 0, 0
@@ -140,18 +210,31 @@ def write_mapping(report, mapping, reference_options, reference_info, counts):
                     else:
                         mapping["ref_opts"].append("NA")
 
-    counts["total"] += 1
+    
 
-    mapping_length = int(mapping['query_end']) - int(mapping['query_start'])
-    report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
-                 f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
-                 f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
-    if 'ref_opts' in mapping:
-        report.write(f",{','.join(mapping['ref_opts'])}\n")
+    if check_identity_threshold(mapping, min_identity):
+
+        counts["total"] += 1
+
+        mapping_length = int(mapping['matches']) + int(mapping['mismatches'])
+        report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
+                    f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
+                    f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
+        if 'ref_opts' in mapping:
+            report.write(f",{','.join(mapping['ref_opts'])}\n")
+        else:
+            report.write("\n")
     else:
-        report.write("\n")
+        counts["unmapped"] +=1
+        report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
+                    f"{mapping['barcode']},*,0,0,0,0,0")
+        if 'ref_opts' in mapping:
+            ref_opt_list = ['*' for i in mapping['ref_opts']]
+            report.write(f",{','.join(ref_opt_list)}\n")
+        else:
+            report.write("\n")
 
-def parse_paf(paf, report, header_dict, reference_options, reference_info):
+def parse_paf(paf, report, header_dict, reference_options, reference_info,min_identity):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
@@ -173,13 +256,13 @@ def parse_paf(paf, report, header_dict, reference_options, reference_info):
                     # set last_mapping in case there is another mapping with the same read name.
                     last_mapping['ref_hit'] = '?'
                 else:
-                    write_mapping(report, last_mapping, reference_options, reference_info, counts)
+                    write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
         # write the last last_mapping
-        write_mapping(report, last_mapping, reference_options, reference_info, counts)
+        write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
 
     try:
         prop_unmapped = counts["unmapped"] / counts["total"]
@@ -205,4 +288,4 @@ if __name__ == '__main__':
         header_dict = get_header_dict(args.reads)
 
         csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,mapping_len{ref_option_header}\n")
-        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info)
+        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info,args.min_identity)

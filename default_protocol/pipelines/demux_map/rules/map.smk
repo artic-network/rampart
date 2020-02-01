@@ -25,6 +25,7 @@ rule parse_mapping:
         reference_file = config["references_file"],
     params:
         path_to_script = workflow.current_basedir,
+        min_identity= minimum_identity, 
         reference_options = f'--reference_options "{reference_fields}"'
     output:
         report = config["output_path"] + "/{filename_stem}.csv"
@@ -35,6 +36,7 @@ rule parse_mapping:
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
         --reference_file {input.reference_file:q} \
+        {params.min_identity} \
         {params.reference_options}
         """
 #produces a csv report
