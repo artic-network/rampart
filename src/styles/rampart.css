@@ -1,11 +1,15 @@
 
 :root {
-  --dark-background: #02292e;
-  --dark-foreground: #fffcf2;
+  /*--theme-background: #02292e;*/
+  /*--theme-foreground: #fffcf2;*/
+  --theme-foreground: #02292e;
+  --theme-background: #fffcf2;
   --artic-red: #e06962;
   --dark-artic-red: #803c38;
   --artic-green: #005c68;
-  --light-text: #F6EECA;
+  --header-text: #F6EECA;
+  /*--theme-text: #F6EECA;*/
+  --theme-text: #333330;
 }
 
 /* ------------ FONTS --------------------- */
@@ -31,9 +35,9 @@
 /* ----------- GLOBALS (BODY) --------------*/
 body {
   overflow-x: hidden;
-  font-family: "Lato";
-  background: var(--dark-background);
-  color: var(--dark-foreground);
+  font-family: "Lato", serif;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
 }
 
 /* ----------- BASIC ELEMENTS  &  CLASSES--------------*/
@@ -100,7 +104,7 @@ div.toggle > label > span {
 }
 div.toggle > label > span.background {
   width: 34px;
-  background-color: var(--light-text);
+  background-color: var(--theme-text);
   cursor: pointer;
 }
 div.toggle > label > span.slider {
@@ -124,8 +128,8 @@ div.sidebar {
   max-width: 85%;
   overflow-x: scroll;
   height: 95%;
-  color: #fffcf2;
-  background-color: var(--dark-background);
+  color: var(--theme-foreground);
+  background-color: var(--theme-background);
   padding: 10px;
   border: 3px solid var(--artic-red);
   border-radius: 10px;
@@ -155,7 +159,7 @@ div.sidebar.open {
 .sidebar div.fileDropZone {
   width: 200px;
   height: 24px;
-  border: 1px dashed var(--dark-foreground);
+  border: 1px dashed var(--theme-foreground);
   display: inline-block;
   margin-right: 20px;
   text-align: center;
@@ -171,8 +175,8 @@ div.sidebar.open {
 .sidebar .config input {
   border-radius: 3px;
   border: 2px solid var(--artic-red);
-  background-color: var(--dark-foreground);
-  color: var(--artic-red);
+  background-color: var(--theme-background);
+  color: var(--theme-foreground);
   font-size: 16px;
   margin-left: 10px;
   height: 22px;
@@ -226,7 +230,7 @@ div.header {
   width: 100%;
   margin: auto;
   background-color: var(--artic-green);
-  color: var(--light-text);
+  color: var(--header-text);
   border-radius: 5px;
   display: flex;
   flex-direction: row;
@@ -285,7 +289,7 @@ div.header .log p > span {
 /* -------------- PIPELINE LOGS / CONTROL -------------- */
 /* could be somewhat joined with `.log` above */
 div.header .pipeline {
-  border: thin solid var(--light-text);
+  border: thin solid var(--theme-text);
   width: 99%;
   border-radius: 5px;
   padding: 5px 0px 3px 0px;
@@ -335,8 +339,8 @@ div.header .pipeline .rightIcon {
 button.modernButton {
   display: block;
   background: var(--artic-red);
-  color: var(--dark-foreground);
-  border: 1px solid var(--dark-foreground);
+  color: var(--header-text);
+  border: 1px solid var(--header-text);
   border-radius: 3px;
   text-decoration: none;
   text-transform: uppercase;
@@ -349,8 +353,8 @@ button.modernButton {
   margin: 5px;
 }
 button.modernButton:hover {
-  border: 1px solid var(--dark-foreground);
-  background: var(--dark-foreground);
+  border: 1px solid var(--header-text);
+  background: var(--header-text);
   color: var(--artic-red);
 }
 button.modernButton > div {
@@ -403,8 +407,8 @@ div.sidebar {
   border-spacing: 0;
 }
 .report td {
-  border-top: 1px solid var(--dark-foreground);
-  border-bottom: 1px solid var(--dark-foreground);
+  border-top: 1px solid var(--theme-foreground);
+  border-bottom: 1px solid var(--theme-foreground);
 }
 .report th {
   border: none;
@@ -430,7 +434,7 @@ th.rotate > div {
 th.rotate > div > span {
   /* the underlining of rotated labels */
   padding: 0px 0px 10px 0px;
-  border-bottom: 0.5px dashed var(--dark-foreground);
+  border-bottom: 0.5px dashed var(--theme-foreground);
   font-weight: 600;
 }
 th.rotate {
@@ -521,7 +525,7 @@ th.rotate {
   font-weight: 100;
   font-size: 1.0em;
   white-space: nowrap;
-  color: var(--light-text);
+  color: var(--theme-text);
   padding-right: 25px; /* to stop icon overlap */
 }
 .hoverInfo {
@@ -532,7 +536,7 @@ th.rotate {
   margin: auto;
   /* background-color: hsla(0,0%,0%,.8); */
   background-color: var(--artic-red);
-  color: var(--light-text);
+  color: var(--theme-text);
   pointer-events: none;
   visibility: hidden;
   font-size: 14px;
@@ -540,7 +544,7 @@ th.rotate {
   overflow-wrap: break-word;
 }
 .chartExpandContractIcon {
-  color: var(--light-text);
+  color: var(--theme-text);
   position: absolute;
   top: 5px;
   right: 5px;
@@ -551,11 +555,11 @@ th.rotate {
 /* --------------------- D3 --------------------- */
 .axis text,
 text.axis {
-  fill: var(--light-text); /* not color as it's SVG */
+  fill: var(--theme-text); /* not color as it's SVG */
   font-size: 12px;
 }
 .legend > text {
-  fill: var(--light-text); /* not color as it's SVG */
+  fill: var(--theme-text); /* not color as it's SVG */
 }
 rect.amplicon {
   stroke: white;
@@ -566,19 +570,19 @@ rect.amplicon + text, rect.gene + text {
 }
 
 rect.gene {
-  stroke: var(--light-text);
+  stroke: var(--theme-text);
   stroke-width: 0.5px;
   fill: var(--artic-green);
 }
 rect.gene + text {
-    fill: var(--dark-foreground);
+    fill: var(--theme-foreground);
     font-size: 11px;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: var(--light-text);
+  stroke: var(--theme-text);
   stroke-width: 1px;
   shape-rendering: auto;
 }
@@ -594,7 +598,7 @@ span.hoverColourSquare + span {
 }
 
 .maxCoverageLine {
-    stroke: var(--light-text);
+    stroke: var(--theme-text);
     stroke-width: 0.75px;
 }
 
@@ -621,7 +625,7 @@ span.hoverColourSquare + span {
 .startUp input {
   border-radius: 3px;
   border: 2px solid var(--artic-red);
-  background-color: var(--dark-foreground);
+  background-color: var(--theme-foreground);
   color: var(--artic-red);
   font-size: 16px;
   margin-left: 10px;
@@ -639,7 +643,7 @@ span.hoverColourSquare + span {
 
 /* -------------- RIGHT CLICK MENU ---------------------*/
 .react-contextmenu--visible > .react-contextmenu-item {
-  background-color: var(--dark-foreground);
+  background-color: var(--theme-foreground);
   border: 1px solid var(--artic-red);
   color: var(--artic-red);
   font-weight: 600;
@@ -648,7 +652,7 @@ span.hoverColourSquare + span {
 }
 .react-contextmenu-item:hover {
   background-color: var(--artic-red);
-  color: var(--dark-foreground);
+  color: var(--theme-foreground);
 }
 .react-contextmenu--visible > .react-contextmenu-item:first-of-type {
   border-top-right-radius: 5px;
@@ -686,9 +690,9 @@ span.hoverColourSquare + span {
   max-width: 60vw;
   min-height: 20vh;
   max-height: 60vh;
-  background: var(--light-text);
+  background: var(--theme-text);
   border-radius: 10px;
-  color: var(--dark-background);
+  color: var(--theme-background);
   position: relative;
   padding: 10px;
   overflow-x: scroll;
@@ -703,7 +707,7 @@ span.hoverColourSquare + span {
 }
 .modal-foreground.warning {
   background: var(--artic-red);
-  color: var(--light-text);
+  color: var(--theme-text);
 }
 
 /* ---------- SLIDERS ---------- */
