@@ -1,5 +1,3 @@
-import yaml
-
 ##### Configuration #####
 
 # trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
