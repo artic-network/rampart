@@ -20,6 +20,7 @@ import MessageLog from "./MessageLog";
 import { TimerContext } from "../App";
 import RunSummary from "./RunSummary";
 import PipelineLog from "./PipelineLog";
+import ThemeToggle from "./ThemeToggle";
 
 class Header extends React.Component {
   constructor(props) {
@@ -76,7 +77,12 @@ class Header extends React.Component {
         </div>
 
         <div className="buttons">
-          {this.renderButtons()}
+          {this.props.sidebarButtonNames.map(({label, value}) => (
+            <button className="modernButton" onClick={() => this.props.sidebarOpenCB(value)} key={value}>
+              {label}
+            </button>
+          ))}
+          <ThemeToggle isLight={this.props.theme==="light"} onChange={this.props.toggleTheme}/>
         </div>
 
       </div>
