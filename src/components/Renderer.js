@@ -14,9 +14,11 @@
 
 import React from 'react';
 import PropTypes from "prop-types";
+import { ThemeProvider } from 'styled-components';
+import { GlobalStyle, lightTheme, mainTheme, darkTheme } from "../styles";
 import Header from "./Header";
 import Footer from "./Footer";
-import '../styles/rampart.css';
+import "../styles/fonts.css";
 import 'rc-slider/assets/index.css';
 import Modal from "./modal";
 import Sidebar, {sidebarButtonNames} from "./Sidebar/index";
@@ -27,10 +29,16 @@ class Renderer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            sidebarOpen: false
+            sidebarOpen: false,
+            // currently storing light vs dark theme as a state variable, but could explore other
+            // solutions such as localStorage -- https://css-tricks.com/a-dark-mode-toggle-with-react-and-themeprovider/
+            theme: "light"
         }
         this.setSidebarOpenState = (newValue) => {
             this.setState({sidebarOpen: newValue});
+        }
+        this.toggleTheme = () => {
+            this.setState({theme: this.state.theme === "light" ? "dark" : "light"});
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
@@ -43,51 +51,59 @@ class Renderer extends React.Component {
           .length;
     }
     render() {
+        const theme = this.state.theme === "light" ?
+            {...mainTheme, ...lightTheme} :
+            {...mainTheme, ...darkTheme};
         return (
-            <div className="mainContainer">
-                <Header
-                    config={this.props.config}
-                    setConfig={this.props.setConfig}
-                    sidebarButtonNames={sidebarButtonNames}
-                    sidebarOpenCB={this.setSidebarOpenState}
-                    combinedData={this.props.combinedData}
-                    socket={this.props.socket}
-                    infoMessages={this.props.infoMessages}
-                />
+            <ThemeProvider theme={theme}>
+                <GlobalStyle/>
+                <div className="mainContainer">
+                    <Header
+                        config={this.props.config}
+                        setConfig={this.props.setConfig}
+                        sidebarButtonNames={sidebarButtonNames}
+                        sidebarOpenCB={this.setSidebarOpenState}
+                        combinedData={this.props.combinedData}
+                        socket={this.props.socket}
+                        infoMessages={this.props.infoMessages}
+                        theme={this.state.theme}
+                        toggleTheme={this.toggleTheme}
+                    />
 
-                {this.props.mainPage === "loading" ?
-                    (<h1>LOADING</h1>) :
-                    (<PanelManager
-                            dataPerSample={this.props.dataPerSample}
-                            combinedData={this.props.combinedData}
-                            config={this.props.config}
-                            openConfigSidebar={() => this.setSidebarOpenState("config")}
-                            socket={this.props.socket}
-                    />)
-                }
+                    {this.props.mainPage === "loading" ?
+                        (<h1>LOADING</h1>) :
+                        (<PanelManager
+                                dataPerSample={this.props.dataPerSample}
+                                combinedData={this.props.combinedData}
+                                config={this.props.config}
+                                openConfigSidebar={() => this.setSidebarOpenState("config")}
+                                socket={this.props.socket}
+                        />)
+                    }
 
-                <div id="contextMenuPortal"/>
+                    <div id="contextMenuPortal"/>
 
-                <Footer/>
-                <Sidebar 
-                    config={this.props.config}
-                    setConfig={this.props.setConfig}
-                    combinedData={this.props.combinedData}
-                    dataPerSample={this.props.dataPerSample}
-                    sidebarOpen={this.state.sidebarOpen}
-                    setSidebarOpenState={this.setSidebarOpenState}
-                />
+                    <Footer/>
+                    <Sidebar 
+                        config={this.props.config}
+                        setConfig={this.props.setConfig}
+                        combinedData={this.props.combinedData}
+                        dataPerSample={this.props.dataPerSample}
+                        sidebarOpen={this.state.sidebarOpen}
+                        setSidebarOpenState={this.setSidebarOpenState}
+                    />
 
-                {this.props.warningMessage ? (
-                    <Modal className="warning" dismissModal={this.props.clearWarningMessage}>
-                        <h2>ERROR</h2>
-                        <p>{this.props.warningMessage}</p>
-                    </Modal>
-                ) : null}
+                    {this.props.warningMessage ? (
+                        <Modal className="warning" dismissModal={this.props.clearWarningMessage}>
+                            <h2>ERROR</h2>
+                            <p>{this.props.warningMessage}</p>
+                        </Modal>
+                    ) : null}
 
 
-                <div id="modalPortal"/>
-            </div>
+                    <div id="modalPortal"/>
+                </div>
+            </ThemeProvider>
         )
     }
 }
