@@ -16,6 +16,8 @@ import React, { useReducer } from 'react';
 // import Toggle from "../toggle";
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
+import ModernButton from "../reusable/ModernButton";
+import { FiltersContainer } from "./styles";
 
 const Filters = ({config, setConfig, closeSidebar, dataPerSample, combinedData}) => {
 
@@ -25,7 +27,7 @@ const Filters = ({config, setConfig, closeSidebar, dataPerSample, combinedData})
     // console.log("<Filters> internal state:", state)
 
     return (
-        <div className="filters">
+        <FiltersContainer>
             <h2>Filter reads</h2>
 
             <p>Restrict analysis to these read lengths:</p>
@@ -73,12 +75,12 @@ const Filters = ({config, setConfig, closeSidebar, dataPerSample, combinedData})
                 />
             </div>
 
-            <button className="modernButton" onClick={() => dispatch({type: "reset", closeSidebar, setConfig})}>
+            <ModernButton onClick={() => dispatch({type: "reset", closeSidebar, setConfig})}>
                 reset filters
-            </button>
+            </ModernButton>
 
             <p>{`Current filtering results in ${combinedData.mappedCount} reads mapped (${combinedData.processedCount} processed)`}</p>
-        </div>
+        </FiltersContainer>
     );
 
 };

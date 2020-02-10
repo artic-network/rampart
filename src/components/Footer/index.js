@@ -13,11 +13,21 @@
  */
 
 import React from 'react';
+import styled from 'styled-components';
 
+const Container = styled.div`
+    width: 80%;
+    margin: auto;
+    font-size: 18px;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-weight: 300;
+`;
 
 const Footer = () => {
   return (
-    <div className="footer">
+    <Container>
       {"RAMPART is built by "}
       <a href={"https://twitter.com/hamesjadfield"} target="_blank" rel="noopener noreferrer">James Hadfield</a>
       {", "}
@@ -28,7 +38,7 @@ const Footer = () => {
       <a href={"http://artic.network"} target="_blank" rel="noopener noreferrer">ARTIC Network</a>
       {" project"}
       <br />{ "Funded through The Wellcome Trust Collaborators Award 206298_A_17_Z."}
-    </div>
+    </Container>
   )
 }
 

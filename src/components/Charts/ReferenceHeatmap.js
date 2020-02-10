@@ -14,9 +14,10 @@
 
 import React from 'react';
 import {mouse, select} from "d3-selection";
-import {calcScales} from "../utils/commonFunctions";
-import {heatColourScale} from "../utils/colours";
-import {getRelativeReferenceMapping} from "../utils/config";
+import {calcScales} from "../../utils/commonFunctions";
+import {heatColourScale} from "../../utils/colours";
+import {getRelativeReferenceMapping} from "../../utils/config";
+import Container, {Title, HoverInfoBox} from "./styles";
 
 const EMPTY_CELL_COLOUR = "rgba(256, 256, 256, 0.15)"
 
@@ -283,20 +284,16 @@ class ReferenceHeatmap extends React.Component {
     }
     render() {
         return (
-            <div
-                className={this.props.className}
-                style={{width: this.props.width}}
-                ref={(r) => {this.boundingDOMref = r}}
-            >
-                <div className="chartTitle">{this.props.title}</div>
-                <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
+            <Container width={this.props.width} ref={(r) => {this.boundingDOMref = r}}>
+                <Title>{this.props.title}</Title>
+                <HoverInfoBox width={this.state.hoverWidth} ref={(r) => {this.infoRef = r}}/>
                 <svg
                     ref={(r) => {this.DOMref = r}}
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
                 {this.props.renderProp ? this.props.renderProp : null}
-            </div>
+            </Container>
         )
     }
 }

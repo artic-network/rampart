@@ -16,11 +16,13 @@ import React, {useState} from 'react';
 import { IoIosSave } from "react-icons/io";
 import BarcodeNames from "./BarcodeNames";
 import { isEqual } from "lodash";
+import { ConfigContainer } from "../styles";
+import ModernButton from "../../reusable/ModernButton";
 
 const SaveConfig = ({handleClick}) => (
-    <button className="modernButton" onClick={handleClick}>
+    <ModernButton onClick={handleClick}>
         <div><IoIosSave/><span>save config</span></div>
-    </button>
+    </ModernButton>
 )
 
 const Config = ({config, setConfig, closeSidebar}) => {
@@ -47,7 +49,7 @@ const Config = ({config, setConfig, closeSidebar}) => {
     }
 
     return (
-        <div className="config" onDrop={(e) => {e.preventDefault()}}>
+        <ConfigContainer onDrop={(e) => {e.preventDefault()}}>
 
             <h1>Set Config</h1>
 
@@ -55,7 +57,7 @@ const Config = ({config, setConfig, closeSidebar}) => {
 
             <SaveConfig handleClick={submit}/>
 
-        </div>
+        </ConfigContainer>
     )
 
 }

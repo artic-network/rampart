@@ -14,10 +14,11 @@
 
 import React from 'react';
 import { select } from "d3-selection";
-import {calcScales, drawAxes} from "../utils/commonFunctions";
-import {drawSteps} from "../d3/drawSteps";
+import {calcScales, drawAxes} from "../../utils/commonFunctions";
+import {drawSteps} from "../../d3/drawSteps";
 import { max } from "d3-array";
-import { getLogYAxis } from "../utils/config";
+import { getLogYAxis } from "../../utils/config";
+import Container, {Title, HoverInfoBox} from "./styles";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -56,18 +57,18 @@ class ReadLengthDistribution extends React.Component {
   }
   render() {
     return (
-      <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
-        <div className="chartTitle">
+      <Container width={this.props.width} ref={(r) => {this.boundingDOMref = r}}>
+        <Title>
           {this.props.title}
-        </div>
-        <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
+        </Title>
+        <HoverInfoBox width={this.state.hoverWidth} ref={(r) => {this.infoRef = r}}/>
         <svg
           ref={(r) => {this.DOMref = r}}
           height={this.state.chartGeom.height || 0}
           width={this.state.chartGeom.width || 0}
         />
         {this.props.renderProp ? this.props.renderProp : null}
-      </div>
+      </Container>
     )
   }
 }

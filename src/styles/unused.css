@@ -1,0 +1,56 @@
+/* styles once in RAMPART but no longer */
+
+
+  /* ------------------ VIEW OPTIONS SIDEBAR ------------ */
+  .swatches-picker > div > div {
+    background: inherit !important; /* override the inline styles provided by the component */
+    box-shadow: none !important;
+  }
+  .colorPickerContainer {
+    padding-top: 50px;
+  }
+  .viewOptions {
+    width: 400px;
+    min-width: 400px;
+  }
+  .viewOptions > div.colourSwatch {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-bottom: 3px;
+  }
+  .viewOptions > div.colourSwatch > div:nth-child(1) {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+  }
+  .viewOptions > div.colourSwatch > div:nth-child(2) {
+    /* display: inline-block; */
+    padding-left: 10px;
+    font-size: 1.2em;
+    font-weight: 400;
+  }
+
+
+
+  /* -------------- BASECALLED DIR ---------------- */
+  .startUp > label {
+    display: block;
+    padding: 5px;
+  }
+  .startUp input {
+    border-radius: 3px;
+    border: 2px solid ${(props) => props.theme.articRed};
+    background-color: ${(props) => props.theme.foregroundColour};
+    color: ${(props) => props.theme.articRed};
+    font-size: 16px;
+    margin-left: 10px;
+    height: 22px;
+    padding: 4px;
+    width: 80vw;
+    max-width: 800px;
+  }
+  .startUp > button {
+    margin-top: 50px;
+    margin-bottom: 100px;
+  }

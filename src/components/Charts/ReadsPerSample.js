@@ -14,9 +14,10 @@
 
 import React from 'react';
 import { select, mouse } from "d3-selection";
-import {drawAxes} from "../utils/commonFunctions";
+import {drawAxes} from "../../utils/commonFunctions";
 import {scaleLinear, scaleLog, scaleOrdinal} from "d3-scale";
-import { getLogYAxis } from "../utils/config";
+import { getLogYAxis } from "../../utils/config";
+import Container, {Title, HoverInfoBox} from "./styles";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -170,11 +171,11 @@ class ReadsPerSample extends React.Component {
   }
   render() {
     return (
-        <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
-          <div className="chartTitle">
+        <Container width={this.props.width} ref={(r) => {this.boundingDOMref = r}}>
+          <Title>
             {this.props.title}
-          </div>
-          <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
+          </Title>
+          <HoverInfoBox width={this.state.hoverWidth} ref={(r) => {this.infoRef = r}}/>
           <div className="centerHorizontally">
             <svg
                 ref={(r) => {this.DOMref = r}}
@@ -183,7 +184,7 @@ class ReadsPerSample extends React.Component {
             />
           </div>
           {this.props.renderProp ? this.props.renderProp : null}
-        </div>
+        </Container>
     )
   }
 }

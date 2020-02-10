@@ -13,27 +13,28 @@
  */
 
 import React, {useState, useEffect} from 'react';
-import CoveragePlot from "../Coverage";
-import ReadLengthDistribution from "../ReadLengthDistribution";
-import CoverageOverTime from "../CoverageOverTime";
+import CoveragePlot from "../Charts/Coverage";
+import ReadLengthDistribution from "../Charts/ReadLengthDistribution";
+import CoverageOverTime from "../Charts/CoverageOverTime";
 import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
 import { TimerContext } from "../App";
+import SamplePanelContainer, {ChartContainer, ExpandIconContainer} from "./styles";
 
 const ExpandChart = ({handleClick}) => {
   return (
-      <div className="chartExpandContractIcon" onClick={handleClick}>
+      <ExpandIconContainer onClick={handleClick}>
         <IoIosExpand onClick={handleClick}/>
-      </div>
+      </ExpandIconContainer>
   )
 };
 const ContractChart = ({handleClick}) => {
   return (
-      <div className="chartExpandContractIcon" onClick={handleClick}>
+      <ExpandIconContainer onClick={handleClick}>
         <IoIosContract onClick={handleClick}/>
-      </div>
+      </ExpandIconContainer>
   )
 };
 
@@ -81,7 +82,6 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
   const charts = {
     coverage: (
       <CoveragePlot
-        className="graphContainer"
         width={(showSinglePanel === "coverage") ? "100%" : "40%"}
         canShowReferenceMatches={true}
         coverage={coverageData}
@@ -98,7 +98,6 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
     ),
     readLength: (
       <ReadLengthDistribution
-        className="graphContainer"
         title={"Read Lengths"}
         width={(showSinglePanel === "readLength") ? "100%" : "25%"}
         xyValues={sampleData.readLengths.xyValues}
@@ -114,7 +113,6 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
     ),
     coverageOverTime: (
       <CoverageOverTime
-        title={"Coverage Progress"}
         width={(showSinglePanel === "coverageOverTime") ? "100%" : "30%"}
         className="graphContainer"
         temporalData={sampleData.temporal}
@@ -132,7 +130,6 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
             title={"Read mapping similarities"}
             width={(showSinglePanel === "refSimilarity") ? "100%" : "50%"}
             key="refSimilarity"
-            className="graphContainer"
             colour={sampleColour}
             data={Object.keys(sampleData.refMatchSimilarities).map(
                 (refName) => ({refName, similarities: sampleData.refMatchSimilarities[refName]})
@@ -153,17 +150,17 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
     charts[showSinglePanel] :
     [charts.coverage, charts.readLength, charts.coverageOverTime, charts.refSimilarity];
     return (
-    <div className="panelFlexRow">
+    <ChartContainer>
         {chartsToShow}
-    </div>
+    </ChartContainer>
     )
   };
 
   /* ----------------- R E N D E R ---------------- */
   return (
-    <div
-      className={`panelContainer ${panelExpanded ? "expanded" : "collapsed"}`}
-      style={{borderColor: sampleColour}}
+    <SamplePanelContainer
+      panelExpanded={panelExpanded}
+      sampleColour={sampleColour}
     > 
       <TimerContext.Consumer>
         {(timeSinceLastDataUpdate) => (
@@ -188,7 +185,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
         />
       ) : null}
       {transitionInProgress ? null : renderCharts()}
-    </div>
+    </SamplePanelContainer>
   );
 };
 

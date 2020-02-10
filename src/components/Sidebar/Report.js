@@ -14,6 +14,7 @@
 
 import React from 'react';
 import {makeTimeFormatter} from "../../utils/commonFunctions";
+import {ReportContainer} from "./styles";
 
 const TimeInfo = ({data}) => {
   const timeFormatter = makeTimeFormatter();
@@ -185,12 +186,12 @@ const Report = ({dataPerSample, config}) => {
   }
 
   return (
-    <div className="report">
+    <ReportContainer>
       <TimeInfo data={dataPerSample}/>
       <ReadCounts data={dataPerSample} config={config}/>
       <ReferenceMatches data={dataPerSample} config={config}/>
       <CurrentCoverageStats data={dataPerSample} config={config}/>
-    </div>
+    </ReportContainer>
   )
 
 }

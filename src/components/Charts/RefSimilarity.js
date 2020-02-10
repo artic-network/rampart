@@ -18,6 +18,7 @@ import { select } from "d3-selection";
 import {scaleLinear, scaleBand} from "d3-scale";
 import { histogram } from "d3-array";
 import { curveCatmullRom, area } from "d3-shape";
+import Container, {Title} from "./styles";
 
 const calcChartGeometry = (ref) => {
     if (!ref.current) return null;
@@ -117,15 +118,13 @@ const RefSimilarity = ({width, title, className, colour, data, renderProp}) => {
     }, [chartGeom, svgRef, colour, data])
 
     return (
-        <div className={className} style={{width}} ref={containerRef}>
-            <div className="chartTitle">
-                {title}
-            </div>
+        <Container width={width} ref={containerRef}>
+            <Title>{title}</Title>
             {chartGeom ? (
                 <svg ref={svgRef} height={chartGeom.height} width={chartGeom.width}/>
             ) : null}
             { renderProp ? renderProp : null }
-        </div>
+        </Container>
     )
 }
 

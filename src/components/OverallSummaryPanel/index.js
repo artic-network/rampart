@@ -13,26 +13,35 @@
  */
 
 import React, { useState } from 'react';
-import CoveragePlot from "../Coverage";
-import ReadsOverTime from "../ReadsOverTime";
-import ReadsPerSample from "../ReadsPerSample";
-import ReferenceHeatmap from "../ReferenceHeatmap";
+import styled from 'styled-components';
+import CoveragePlot from "../Charts/Coverage";
+import ReadsOverTime from "../Charts/ReadsOverTime";
+import ReadsPerSample from "../Charts/ReadsPerSample";
+import ReferenceHeatmap from "../Charts/ReferenceHeatmap";
+import { ChartContainer, ExpandIconContainer } from "../SamplePanel/styles";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
 
 const ExpandChart = ({handleClick}) => {
     return (
-        <div className="chartExpandContractIcon" onClick={handleClick}>
+        <ExpandIconContainer onClick={handleClick}>
             <IoIosExpand onClick={handleClick}/>
-        </div>
+        </ExpandIconContainer>
     )
 };
 const ContractChart = ({handleClick}) => {
     return (
-        <div className="chartExpandContractIcon" onClick={handleClick}>
+        <ExpandIconContainer onClick={handleClick}>
             <IoIosContract onClick={handleClick}/>
-        </div>
+        </ExpandIconContainer>
     )
 };
+
+const Container = styled.div`
+    width: calc(100% - 30px);
+    height: 350px;              /* adjusting will also adjust the graphs */
+    min-height: 350px;          /* as they calculate via document selector query */
+    margin: 10px 10px 0px 10px;
+`;
 
 /**
  * See <Panel> for why we use timeouts here
@@ -59,7 +68,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePan
     const charts = {
         coverage: (
             <CoveragePlot
-                className="graphContainer"
                 width={chartToDisplay === "coverage" ? "85%" : "35%"}
                 canShowReferenceMatches={false}
                 coverage={dataPerSample}
@@ -74,7 +82,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePan
         ),
         readsOverTime: (
             <ReadsOverTime
-                className="graphContainer"
                 width={chartToDisplay === "readsOverTime" ? "85%" : "22%"}
                 title={"Mapped reads over time"}
                 temporalData={combinedData.temporal}
@@ -88,7 +95,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePan
         ),
         readsPerSample: (
             <ReadsPerSample
-                className="graphContainer"
                 width={chartToDisplay === "readsPerSample" ? "85%" : "18%"}
                 title="Mapped Reads / Sample"
                 data={dataPerSample}
@@ -104,7 +110,6 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePan
         ),
         referenceHeatmap: (
             <ReferenceHeatmap
-                className="graphContainer"
                 width={chartToDisplay === "referenceHeatmap" ? "85%" : "25%"}
                 title={config.display.relativeReferenceMapping ? "Relative Reference Matches" : "Reference Matches"}
                 data={dataPerSample}
@@ -139,11 +144,11 @@ const OverallSummaryPanel = ({combinedData, dataPerSample, config, goToSamplePan
 
     /* ----------------- R E N D E R ---------------- */
     return (
-        <div id="overallSummaryContainer">
-            <div className="panelFlexRow">
+        <Container>
+            <ChartContainer>
                 {transitionInProgress ? null : renderGraphs()}
-            </div>
-        </div>
+            </ChartContainer>
+        </Container>
     )
 };
 

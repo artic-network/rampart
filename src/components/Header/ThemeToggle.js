@@ -13,14 +13,14 @@
  */
 
 import React from 'react';
-import Toggle from '../toggle';
+import Toggle from '../reusable/toggle';
 
-const ThemeToggle = ({isLight, onChange}) => {
+const ThemeToggle = ({lightMode, onChange}) => {
     return (
         <Toggle
             labelLeft="light"
             labelRight="dark"
-            toggleOn={isLight}
+            toggleOn={lightMode}
             handleToggle={onChange}
         />
     );

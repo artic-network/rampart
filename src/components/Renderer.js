@@ -15,15 +15,14 @@
 import React from 'react';
 import PropTypes from "prop-types";
 import { ThemeProvider } from 'styled-components';
-import { GlobalStyle, lightTheme, mainTheme, darkTheme } from "../styles";
+import { GlobalStyle, palette, AppContainer } from "../styles";
 import Header from "./Header";
 import Footer from "./Footer";
 import "../styles/fonts.css";
 import 'rc-slider/assets/index.css';
 import Modal from "./modal";
-import Sidebar, {sidebarButtonNames} from "./Sidebar/index";
-import PanelManager from "./PanelManager";
-
+import Sidebar, {sidebarButtonNames} from "./Sidebar";
+import PanelManager from "./PanelManager/index.js";
 
 class Renderer extends React.Component {
     constructor(props) {
@@ -32,13 +31,13 @@ class Renderer extends React.Component {
             sidebarOpen: false,
             // currently storing light vs dark theme as a state variable, but could explore other
             // solutions such as localStorage -- https://css-tricks.com/a-dark-mode-toggle-with-react-and-themeprovider/
-            theme: "light"
+            lightMode: true
         }
         this.setSidebarOpenState = (newValue) => {
             this.setState({sidebarOpen: newValue});
         }
         this.toggleTheme = () => {
-            this.setState({theme: this.state.theme === "light" ? "dark" : "light"});
+            this.setState({lightMode: !this.state.lightMode});
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
@@ -51,13 +50,10 @@ class Renderer extends React.Component {
           .length;
     }
     render() {
-        const theme = this.state.theme === "light" ?
-            {...mainTheme, ...lightTheme} :
-            {...mainTheme, ...darkTheme};
         return (
-            <ThemeProvider theme={theme}>
+            <ThemeProvider theme={{...palette, lightMode: this.state.lightMode}}>
                 <GlobalStyle/>
-                <div className="mainContainer">
+                <AppContainer>
                     <Header
                         config={this.props.config}
                         setConfig={this.props.setConfig}
@@ -66,7 +62,7 @@ class Renderer extends React.Component {
                         combinedData={this.props.combinedData}
                         socket={this.props.socket}
                         infoMessages={this.props.infoMessages}
-                        theme={this.state.theme}
+                        lightMode={this.state.lightMode}
                         toggleTheme={this.toggleTheme}
                     />
 
@@ -80,8 +76,8 @@ class Renderer extends React.Component {
                                 socket={this.props.socket}
                         />)
                     }
-
                     <div id="contextMenuPortal"/>
+
 
                     <Footer/>
                     <Sidebar 
@@ -102,7 +98,7 @@ class Renderer extends React.Component {
 
 
                     <div id="modalPortal"/>
-                </div>
+                </AppContainer>
             </ThemeProvider>
         )
     }

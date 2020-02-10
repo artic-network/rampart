@@ -14,8 +14,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 // import PropTypes from "prop-types";
-import SamplePanel from "./SamplePanel"
-import OverallSummaryPanel from "./OverallSummaryPanel";
+import SamplePanel from "../SamplePanel"
+import OverallSummaryPanel from "../OverallSummaryPanel";
 import { isEqual } from "lodash";
 
 const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, socket}) => {

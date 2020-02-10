@@ -16,6 +16,7 @@ import React from 'react';
 import PropTypes from "prop-types";
 import Modal from "../modal";
 import { IoMdPlay } from "react-icons/io";
+import ModernButton from "../reusable/ModernButton";
 
 export const getPostProcessingMenuItems = (config, setPostProcessingState) => {
     return Object.keys(config.pipelines)
@@ -38,10 +39,12 @@ export const PostProcessingRunner = ({pipeline, dismissModal, socket, sampleName
     return (
         <Modal dismissModal={dismissModal}>
             <h2>{pipeline.name}</h2>
-
-            <button className="modernButton" onClick={send}>
-                <div><IoMdPlay/><span>TRIGGER</span></div>
-            </button>
+            <ModernButton onClick={send}>
+                <>
+                    <IoMdPlay/>
+                    <span>TRIGGER</span>
+                </>
+            </ModernButton>
         </Modal>
     )
 };

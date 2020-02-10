@@ -18,6 +18,8 @@ import Config from "./Config";
 import Report from "./Report";
 // import ViewOptions from "./ViewOptions";
 import Filters from "./Filters";
+import Container from "./styles";
+import ModernButton from "../reusable/ModernButton";
 
 /**
  * React component to render & control a sidebar which transitions
@@ -26,25 +28,25 @@ import Filters from "./Filters";
 const SidebarContainer = ({title, open, onChange, children, idx}) => {
     if (!children) {
         return (
-            <div className="sidebar closed"/>
+            <Container className="closed"/>
         )
     }
     return (
-        <div className="sidebar open">
+        <Container className="open">
             <div className="inner">
-            <button className="modernButton topRight" onClick={onChange}>
-                <div><IoIosCloseCircle/><span>close sidebar</span></div>
-            </button>
-            {children}
-            <div style={{minHeight: "50px"}}/>
+                <ModernButton className="topRight" onClick={onChange}>
+                    <div><IoIosCloseCircle/><span>close sidebar</span></div>
+                </ModernButton>
+                {children}
+                <div style={{minHeight: "50px"}}/>
             </div>
-        </div>
+        </Container>
     )
 };
 
 export const sidebarButtonNames = [
     {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
-    {label: (<div><IoIosOptions/><span>settings</span></div>), value: "viewOptions"},
+    // {label: (<div><IoIosOptions/><span>settings</span></div>), value: "viewOptions"},
     {label: (<div><IoIosOptions/><span>filters</span></div>), value: "readFilters"},
     {label: (<div><IoMdToday/><span>report</span></div>), value: "report"}
 ]

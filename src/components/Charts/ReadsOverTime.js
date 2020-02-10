@@ -15,10 +15,11 @@
 import React from 'react';
 import { select, mouse } from "d3-selection";
 import { line, curveBasis } from "d3-shape";
-import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../utils/commonFunctions";
-import {defaultLineColour} from "../utils/colours";
-import { getLogYAxis } from "../utils/config";
-import Toggle from "./toggle";
+import {calcScales, drawAxes, makeTimeFormatter, findLineYposGivenXpos} from "../../utils/commonFunctions";
+import {defaultLineColour} from "../../utils/colours";
+import { getLogYAxis } from "../../utils/config";
+import Toggle from "../reusable/toggle";
+import Container, {HoverInfoBox} from "./styles";
 
 const timeFormatter = makeTimeFormatter();
 
@@ -136,10 +137,7 @@ class ReadsOverTime extends React.Component {
 
     render() {
         return (
-            <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
-                {/*<div className="chartTitle">*/}
-                {/*{this.props.title}*/}
-                {/*</div>*/}
+            <Container width={this.props.width} ref={(r) => {this.boundingDOMref = r}}>
                 <div className="centerHorizontally">
                     <Toggle
                         labelLeft="Mapped reads"
@@ -148,14 +146,14 @@ class ReadsOverTime extends React.Component {
                         toggleOn={false}
                     />
                 </div>
-                <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth}} ref={(r) => {this.infoRef = r}}/>
+                <HoverInfoBox width={this.state.hoverWidth} ref={(r) => {this.infoRef = r}}/>
                 <svg
                     ref={(r) => {this.DOMref = r}}
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
                 {this.props.renderProp ? this.props.renderProp : null}
-            </div>
+            </Container>
         )
     }
 }

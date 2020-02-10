@@ -14,13 +14,15 @@
 
 import React from 'react';
 import { select } from "d3-selection";
-import {calcXScale, calcYScale, drawAxes} from "../utils/commonFunctions";
+import {calcXScale, calcYScale, drawAxes} from "../../utils/commonFunctions";
 import { max } from "d3-array";
-import { drawSteps } from "../d3/drawSteps";
-import { drawGenomeAnnotation } from "../d3/genomeAnnotation";
-import { drawStream } from "../d3/stream";
-import Toggle from "./toggle";
-import { getLogYAxis } from "../utils/config";
+import { drawSteps } from "../../d3/drawSteps";
+import { drawGenomeAnnotation } from "../../d3/genomeAnnotation";
+import { drawStream } from "../../d3/stream";
+import Toggle from "../reusable/toggle";
+import { getLogYAxis } from "../../utils/config";
+import Container, {Title, HoverInfoBox} from "./styles";
+import CenterHorizontally from "../reusable/CenterHorizontally";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
 const calcChartGeom = (DOMRect) => ({
@@ -98,29 +100,27 @@ class CoveragePlot extends React.Component {
     }
     render() {
         return (
-            <div className={this.props.className} style={{width: this.props.width}} ref={(r) => {this.boundingDOMref = r}}>
+            <Container width={this.props.width} ref={(r) => {this.boundingDOMref = r}}>
                 { !this.props.canShowReferenceMatches ? (
-                    <div className="chartTitle">
-                        Read Depth
-                    </div>
+                    <Title>Read Depth</Title>
                 ) : (
-                    <div className="centerHorizontally">
+                    <CenterHorizontally>
                         <Toggle
                             labelLeft="depth"
                             labelRight="references"
                             handleToggle={this.toggleReadDepthVsReferenceMatches}
                             toggleOn={false}
                         />
-                    </div>
+                    </CenterHorizontally>
                 )}
-                <div className="hoverInfo" style={{maxWidth: this.state.hoverWidth || 0}} ref={(r) => {this.infoRef = r}}/>
+                <HoverInfoBox width={this.state.hoverWidth || 0} ref={(r) => {this.infoRef = r}}/>
                 <svg
                     ref={(r) => {this.DOMref = r}}
                     height={this.state.chartGeom.height || 0}
                     width={this.state.chartGeom.width || 0}
                 />
                 {this.props.renderProp ? this.props.renderProp : null}
-            </div>
+            </Container>
         )
     }
 }

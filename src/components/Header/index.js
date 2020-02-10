@@ -21,6 +21,8 @@ import { TimerContext } from "../App";
 import RunSummary from "./RunSummary";
 import PipelineLog from "./PipelineLog";
 import ThemeToggle from "./ThemeToggle";
+import HeaderContainer from "./styles";
+import ModernButton from "../reusable/ModernButton";
 
 class Header extends React.Component {
   constructor(props) {
@@ -44,15 +46,15 @@ class Header extends React.Component {
   renderButtons() {
     return this.props.sidebarButtonNames.map(({label, value}) => {
       return (
-        <button className="modernButton" onClick={() => this.props.sidebarOpenCB(value)} key={value}>
+        <ModernButton onClick={() => this.props.sidebarOpenCB(value)} key={value}>
           {label}
-        </button>
+        </ModernButton>
       )
     })
   }
   render() {
     return (
-      <div className="header">
+      <HeaderContainer>
 
         <div className="logo">
           <a href="http://artic.network" target="_blank" rel="noopener noreferrer">
@@ -78,14 +80,14 @@ class Header extends React.Component {
 
         <div className="buttons">
           {this.props.sidebarButtonNames.map(({label, value}) => (
-            <button className="modernButton" onClick={() => this.props.sidebarOpenCB(value)} key={value}>
+            <ModernButton onClick={() => this.props.sidebarOpenCB(value)} key={value}>
               {label}
-            </button>
+            </ModernButton>
           ))}
-          <ThemeToggle isLight={this.props.theme==="light"} onChange={this.props.toggleTheme}/>
+          <ThemeToggle lightMode={this.props.lightMode} onChange={this.props.toggleTheme}/>
         </div>
 
-      </div>
+      </HeaderContainer>
     )
 
   }

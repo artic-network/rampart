@@ -14,6 +14,7 @@
 
 import React, {useState, useReducer, useEffect, useCallback} from 'react';
 import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle, IoIosAlert, IoIosCloseCircle } from "react-icons/io";
+import { PipelineContainer } from "./styles";
 
 // const messageHeight = 25; // px. Dynamically set here not via CSS.
 // const maxMessagesPerPipeline = 10;
@@ -32,7 +33,7 @@ const Pipeline = ({pipelineKey: key, data, socket}) => {
 
 
   return (
-    <div className={`pipeline ${status}`} key={key}>
+    <PipelineContainer status={status} key={key}>
 
       <div className="topRow">
 
@@ -69,7 +70,7 @@ const Pipeline = ({pipelineKey: key, data, socket}) => {
         </div>
       )) : null}
 
-    </div>
+    </PipelineContainer>
   )
 }
 
