@@ -25,7 +25,7 @@ const { setUpPipelines } = require("./pipeline");
 const { modifySamplesAndBarcodes } = require("./modify");
 const { readConfigFile, findConfigFile, assert, setBarcodesFromFile } = require("./helpers");
 
-const DEFAULT_PROTOCOL_PATH = "default_protocol";
+const DEFAULT_PROTOCOL_PATH = "protocols/default";
 const PROTOCOL_FILENAME= "protocol.json";
 const GENOME_CONFIG_FILENAME= "genome.json";
 const PRIMERS_CONFIG_FILENAME = "primers.json";
@@ -39,7 +39,7 @@ const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
  *
  * This will take configuration in the following order:
  *
- * [RAMPART_ROOT]/default_protocol/
+ * [RAMPART_ROOT]/protocols/default
  * [PROTOCOL_PATH]/
  * current working directory/
  *

@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - "python>=3"
-  - "nodejs>=12"
+  - "nodejs=12"
   - pip
   - snakemake-minimal=5.8.1
   - biopython=1.74
