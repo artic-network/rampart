@@ -18,10 +18,11 @@ import {drawAxes} from "../../utils/commonFunctions";
 import {scaleLinear, scaleLog, scaleOrdinal} from "d3-scale";
 import { getLogYAxis } from "../../utils/config";
 import Container, {Title, HoverInfoBox} from "./styles";
+import CenterHorizontally from "../reusable/CenterHorizontally";
 
 /* given the DOM dimensions of the chart container, calculate the chart geometry (used by the SVG & D3) */
-const calcChartGeom = (DOMRect) => ({
-  width: DOMRect.width > 500 ? 500 : DOMRect.width,
+const calcChartGeom = (DOMRect, nSamples) => ({
+  width: Math.min((nSamples*20+100), DOMRect.width),
   height: DOMRect.height, // title line
   spaceLeft: 60,
   spaceRight: 0,
@@ -161,7 +162,7 @@ class ReadsPerSample extends React.Component {
     drawColumns(this.state.svg, chartGeom, scales, counts, barWidth, colours, samples, this.infoRef, this.props.data, this.props.goToSamplePanel);
   }
   componentDidMount() {
-    const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect());
+    const chartGeom = calcChartGeom(this.boundingDOMref.getBoundingClientRect(), Object.keys(this.props.data).length);
     const svg = select(this.DOMref);
     const hoverWidth = parseInt(chartGeom.width * 4/5, 10);
     this.setState({chartGeom, svg, hoverWidth})
@@ -176,13 +177,13 @@ class ReadsPerSample extends React.Component {
             {this.props.title}
           </Title>
           <HoverInfoBox width={this.state.hoverWidth} ref={(r) => {this.infoRef = r}}/>
-          <div className="centerHorizontally">
+          <CenterHorizontally>
             <svg
                 ref={(r) => {this.DOMref = r}}
                 height={this.state.chartGeom.height || 0}
                 width={this.state.chartGeom.width || 0}
             />
-          </div>
+          </CenterHorizontally>
           {this.props.renderProp ? this.props.renderProp : null}
         </Container>
     )
