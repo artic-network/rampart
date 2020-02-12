@@ -60,13 +60,20 @@ const protocolsList = protocolsSubparsers.addParser("list",
 )
 protocolsList.addArgument('--verbose', {action: "storeTrue",  help: "longform output"});
 
+
 const protocolsAdd = protocolsSubparsers.addParser("add",
     {description: "Add a protocol", addHelp: true}
 )
+protocolsAdd.addArgument('name', {type: "string", help: "Protocol name. Will be a directory, so no spaces etc please!"});
+protocolsAdd.addArgument('url', {type: "string", help: "URL to zip file of protocol"});
+protocolsAdd.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
+protocolsAdd.addArgument('--subdir', {type: "string",  help: "Subfolder inside zip where the protocol is to be found"});
+protocolsAdd.addArgument(['-f', '--force'], {action: "storeTrue", help: "Overwrite existing protocol, if one exists"});
 
-const protocolsUpdate = protocolsSubparsers.addParser("update",
-    {description: "Update the protocol registry with available ARTIC protocols", addHelp: true}
-)
+
+// const protocolsUpdate = protocolsSubparsers.addParser("update",
+//     {description: "Update the protocol registry with available ARTIC protocols", addHelp: true}
+// )
 
 
 
