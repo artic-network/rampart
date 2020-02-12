@@ -7,6 +7,7 @@ const startUp = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;
 const { fatal, trace } = require('./server/utils');
+const listProtocols = require("./server/protocols/list").default;
 
 const main = async () => {
 
@@ -33,7 +34,7 @@ const main = async () => {
                 await startBasecalledFilesWatcher();
                 break;
             case "protocols":
-                console.log("PROTOCOLS SUBCOMMAND", args);
+                if (args.protocolCommand === "list") listProtocols();
                 break;
             default:
                 throw new Error("Unknown subcommand");

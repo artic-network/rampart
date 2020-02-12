@@ -52,11 +52,22 @@ development.addArgument('--mockFailures', {action: "storeTrue", help: "stochasti
 
 
 /* --------------- PROTOCOL REGISTRY  -------- */
-const protocolsSubparser = subparsers.addParser('protocols', {addHelp:true});
-const protocols = protocolsSubparser.addMutuallyExclusiveGroup();
-protocols.addArgument('--update', {action: "storeTrue", help: "Update the protocol registry with available ARTIC protocols"});
-protocols.addArgument('--list', {action: "storeTrue", help: "List the (locally) available protocols"});
-protocols.addArgument('--add', {action: "storeTrue", help: "Add a protocol"});
+const protocols = subparsers.addParser('protocols', {addHelp:true});
+const protocolsSubparsers = protocols.addSubparsers({title: "subcommands", dest: "protocolCommand"});
+
+const protocolsList = protocolsSubparsers.addParser("list",
+    {description: "List the (locally) available protocols", addHelp: true}
+)
+protocolsList.addArgument('--verbose', {action: "storeTrue",  help: "longform output"});
+
+const protocolsAdd = protocolsSubparsers.addParser("add",
+    {description: "Add a protocol", addHelp: true}
+)
+
+const protocolsUpdate = protocolsSubparsers.addParser("update",
+    {description: "Update the protocol registry with available ARTIC protocols", addHelp: true}
+)
+
 
 
 /** Historically, RAMPART didn't have subparsers. This function will allow us to run

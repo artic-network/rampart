@@ -103,6 +103,10 @@ function ensurePathExists(path, {make=false}={}) {
   }
 }
 
+function getProtocolsPath() {
+    return path.join(__dirname, "..", "protocols");
+}
+
 module.exports = {
   normalizePath,
   getAbsolutePath,
@@ -114,5 +118,6 @@ module.exports = {
   verbose,
   trace,
   deleteFolderRecursive,
-  ensurePathExists
+  ensurePathExists,
+  getProtocolsPath
 };
