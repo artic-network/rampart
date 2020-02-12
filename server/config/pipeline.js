@@ -48,7 +48,7 @@ function setUpPipelines(config, args, pathCascade) {
                 if (pipeline.ignore) return;
 
                 parseAnnotationRequires(pipeline, config, pathCascade, args)
-                mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
+                pipeline.configOptions = mergeAdditionalAnnotationOptions(pipeline.configOptions, config, args);
                 // if any samples have been set (and therefore associated with barcodes) then we limit the run to those barcodes
                 if (config.run.samples.length) {
                     if (pipeline.configOptions.limit_barcodes_to) {
@@ -107,6 +107,7 @@ function mergeAdditionalAnnotationOptions(configOptions, config, args) {
             configOptions[values[0]] = (values.length > 1 ? values[1] : "");
         });
     }
+    return configOptions
 }
 
 /**
