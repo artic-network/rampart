@@ -3,11 +3,15 @@ const path = require('path');
 const chalk = require('chalk');
 const { getProtocolsPath, warn } = require("../utils");
 
-const main = () => {
+const main = (args) => {
     const protocolsPath = getProtocolsPath()
-    const protocolDirs = fs.readdirSync(protocolsPath)
+    let protocolDirs = fs.readdirSync(protocolsPath)
         .map((name) => [name, path.join(protocolsPath, name)])
         .filter(([, source]) => fs.lstatSync(source).isDirectory())
+
+    if (args.name.length) {
+        protocolDirs = protocolDirs.filter(([dir, ]) => args.name.includes(dir));
+    }
 
     printDashedLine();
     if (global.VERBOSE) {

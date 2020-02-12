@@ -9,6 +9,8 @@ const Datastore = require("./server/datastore").default;
 const { fatal, trace } = require('./server/utils');
 const listProtocols = require("./server/protocols/list").default;
 const addProtocols = require("./server/protocols/add").default;
+const removeProtocols = require("./server/protocols/remove").default;
+
 
 const main = async () => {
 
@@ -35,8 +37,9 @@ const main = async () => {
                 await startBasecalledFilesWatcher();
                 break;
             case "protocols":
-                if (args.protocolCommand === "list") listProtocols();
+                if (args.protocolCommand === "list") listProtocols(args);
                 if (args.protocolCommand === "add") await addProtocols(args);
+                if (args.protocolCommand === "remove") removeProtocols(args);
                 break;
             default:
                 throw new Error("Unknown subcommand");

@@ -58,6 +58,7 @@ const protocolsSubparsers = protocols.addSubparsers({title: "subcommands", dest:
 const protocolsList = protocolsSubparsers.addParser("list",
     {description: "List the (locally) available protocols", addHelp: true}
 )
+protocolsList.addArgument('name', {nargs:"*", type:"string", help:"Limit output to these protocols"});
 protocolsList.addArgument('--verbose', {action: "storeTrue",  help: "longform output"});
 
 
@@ -65,11 +66,17 @@ const protocolsAdd = protocolsSubparsers.addParser("add",
     {description: "Add a protocol", addHelp: true}
 )
 protocolsAdd.addArgument('name', {type: "string", help: "Protocol name. Will be a directory, so no spaces etc please!"});
-protocolsAdd.addArgument('url', {type: "string", help: "URL to zip file of protocol"});
+protocolsAdd.addArgument('source', {type: "string", help: "URL to zip file of protocol, or path to local zip file"});
 protocolsAdd.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
 protocolsAdd.addArgument('--subdir', {type: "string",  help: "Subfolder inside zip where the protocol is to be found"});
 protocolsAdd.addArgument(['-f', '--force'], {action: "storeTrue", help: "Overwrite existing protocol, if one exists"});
 
+
+const protocolsRemove = protocolsSubparsers.addParser("remove",
+    {description: "Update the protocol registry with available ARTIC protocols", addHelp: true}
+)
+protocolsRemove.addArgument('name', {nargs:"+", type:"string", help:"Protocols to remove"});
+protocolsRemove.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
 
 // const protocolsUpdate = protocolsSubparsers.addParser("update",
 //     {description: "Update the protocol registry with available ARTIC protocols", addHelp: true}

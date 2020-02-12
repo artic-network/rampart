@@ -4,7 +4,7 @@ const unzipper = require('unzipper');
 const fetch = require('node-fetch');
 const util = require('util');
 const streamPipeline = util.promisify(require('stream').pipeline);
-const { getProtocolsPath, verbose, log } = require("../utils");
+const { getProtocolsPath, verbose, log, warn, fatal } = require("../utils");
 
 const main = async (args) => {
 
@@ -18,13 +18,42 @@ const main = async (args) => {
         }
     }
 
-    const zipPath = await fetchZipFile(args.url);
-    await extract(zipPath, thisProtocolDir, args.subdir)
+    /* Manage different sources  - URL (zips), local zip file, local directory */
+    let zipPath, folderPath, shouldRemoveZip;
+    if (args.source.match(/^http[s]?:\/\//)) {
+        zipPath = await fetchZipFile(args.source);
+        shouldRemoveZip=true;
+    } else if (fs.existsSync(args.source) && path.parse(args.source).ext === ".zip") {
+        zipPath = makePathAbsolute(args.source);
+    } else if (fs.existsSync(args.source) && fs.lstatSync(args.source).isDirectory()) {
+        if (args.subdir) warn("--subdir will be ignored when sourcing from a local directory")
+        folderPath = makePathAbsolute(args.source)
+    } else {
+        fatal("Couldn't interpret provided protocol source!")
+    }
 
-    rm(zipPath)
+    if (zipPath) {
+        await extract(zipPath, thisProtocolDir, args.subdir)
+        if (shouldRemoveZip) rm(zipPath)
+    } else if (folderPath) {
+        copyFolderSync(folderPath, thisProtocolDir)
+    }
     log(`Successfully added protocol "${args.name}"`)
 }
 
+
+function copyFolderSync(from, to) {
+    /* https://stackoverflow.com/a/52338335 */
+    fs.mkdirSync(to);
+    fs.readdirSync(from).forEach(element => {
+        if (fs.lstatSync(path.join(from, element)).isFile()) {
+            fs.copyFileSync(path.join(from, element), path.join(to, element));
+        } else {
+            copyFolderSync(path.join(from, element), path.join(to, element));
+        }
+    });
+
+}
 
 async function extract(zipPath, protocolDir, subdir) {
     return new Promise((resolve, reject) => {
@@ -77,6 +106,13 @@ function rm(path) {
         return true;
     }
     return false;
+}
+
+function makePathAbsolute(source) {
+if (path.isAbsolute(source)) {
+    return source
+}
+    return path.join(process.cwd(), source);
 }
 
 module.exports = { default: main}

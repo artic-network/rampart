@@ -23,6 +23,7 @@ RAMPART was originally designed to work with amplicon-based primer schemes (e.g.
 * [Running an example dataset & understanding the visualisations](docs/examples.md)
 * [Setting up for your own run](docs/setting-up.md)
 * [Configuring RAMPART using protocols](docs/protocols.md)
+* [Manging which protocols RAMPART can use](docs/managing-protocols.md)
 * [Debugging when things don't work](docs/debugging.md)
 * [Notes relating to RAMPART development](docs/developing.md)
 
