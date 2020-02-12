@@ -18,8 +18,10 @@
  * ------------------------------------------------------------------------
  */
 
+const fs = require('fs');
+const path = require('path');
 const { UNMAPPED_LABEL } = require("../magics");
-const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, fatal } = require("../utils");
+const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, fatal, getProtocolsPath } = require("../utils");
 const { newSampleColour } = require("../colours");
 const { setUpPipelines } = require("./pipeline");
 const { modifySamplesAndBarcodes } = require("./modify");
@@ -119,15 +121,21 @@ function setUpPathCascade(args) {
     //verbose("config", `Default protocol path: ${defaultProtocolPath}`);
 
     const pathCascade = [
-        normalizePath(defaultProtocolPath) // always read config from the default protocol
+        normalizePath(defaultProtocolPath) // always read config from the default protocol (but overwrite with other data as available)
     ];
 
     const userProtocol = args.protocol || (process.env.RAMPART_PROTOCOL || undefined);
 
     if (userProtocol) {
-        const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
-        //verbose("config", `Protocol path: ${userProtocolPath}`);
-        pathCascade.push(normalizePath(userProtocolPath));
+        /* First we check if it's set as a "rampart" protocol (e.g. via `rampart protocols add ...`) */
+        if (!userProtocol.includes('/') && fs.existsSync(path.join(getProtocolsPath(), userProtocol))) {
+            verbose("config", `Found RAMPART protocol for ${userProtocol}`);
+            pathCascade.push(normalizePath(path.join(getProtocolsPath(), userProtocol)));
+        } else {
+            const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
+            //verbose("config", `Protocol path: ${userProtocolPath}`);
+            pathCascade.push(normalizePath(userProtocolPath));
+        }
     }
 
     pathCascade.push("./"); // add current working directory

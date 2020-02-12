@@ -33,7 +33,7 @@ const getAbsolutePath = (filepath, {relativeTo=undefined}={}) => {
     return filepath;
   }
   if (relativeTo) {
-    if (!path.isAbsolute) {
+    if (!path.isAbsolute(relativeTo)) {
       console.error(`ERROR. Provided path ${relativeTo} must be absolute.`);
     }
     return path.join(relativeTo, filepath)
