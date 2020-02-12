@@ -21,12 +21,16 @@ const parser = new argparse.ArgumentParser({
   description: `RAMPART v${version}: Read Assignment, Mapping, and Phylogenetic Analysis in Real Time`,
   epilog: ``
 });
-parser.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
-parser.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
-parser.addArgument('--protocol', {help: "path to a directory containing protocol config files"});
+const subparsers = parser.addSubparsers({title: "subcommands", dest: "subcommandName"});
 
-/* ----------------- CONFIG OPTIONS -------------------- */
-const config = parser.addArgumentGroup({title: 'Config commands', description: "Override options from config files"});
+/* -------------- RUN -- the main subparser ------------- */
+const run = subparsers.addParser('run', {addHelp: true});
+run.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
+run.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
+run.addArgument('--protocol', {help: "path to a directory containing protocol config files"});
+
+/* -------------- RUN // CONFIG OPTIONS -------------------- */
+const config = run.addArgumentGroup({title: 'Config commands', description: "Override options from config files"});
 config.addArgument('--title', {help: "experiment title"});
 config.addArgument('--basecalledPath', {help: "path to basecalled FASTQ directory (default: don't annotate FASTQs)"});
 config.addArgument('--annotatedPath', {help: "path to destination directory for annotation CSVs - will be created if it doesn't exist (default: './annotations')"});
@@ -35,19 +39,46 @@ config.addArgument('--referencesLabel', {help: "the reference header field to us
 config.addArgument('--barcodeNames', {nargs: '+', help: "specify mapping of barcodes to sample names - e.g. 'BC01=Sample1' (can have more than one barcode mapping to the same name)"});
 config.addArgument('--annotationOptions', {nargs: '+', help: "pass through config options to the annotation script (key=value pairs)"});
 
-const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
+/* -------------- RUN // RUNTIME OPTIONS -------------------- */
+const runtime = run.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
 runtime.addArgument('--clearAnnotated', {action: "storeTrue", help: "remove any annotation files present when RAMPART starts up (force re-annotation of all FASTQs)"});
 runtime.addArgument('--simulateRealTime', {type: 'int', defaultValue: 0, help: "simulate real-time annotation with given delay between files (default none)"});
 
-/* ----------------- DEVELOPMENT -------------------- */
-const development = parser.addArgumentGroup({title: 'Development commands'});
+/* ---------------- RUN // DEVELOPMENT OPTIONS -------------------- */
+const development = run.addArgumentGroup({title: 'Development commands'});
 development.addArgument('--devClient', {action: "storeTrue", help: "don't serve build (client)"});
 development.addArgument('--mockFailures', {action: "storeTrue", help: "stochastic failures (annotating / parsing)"});
 
-/* ----------------- DEPRECATED -------------------- */
-// const deprecated = parser.addArgumentGroup({title: 'Deprecated commands'});
-// config.addArgument('--referenceConfigPath', {help: "JSON reference config"});
+
+
+/* --------------- PROTOCOL REGISTRY  -------- */
+const protocolsSubparser = subparsers.addParser('protocols', {addHelp:true});
+const protocols = protocolsSubparser.addMutuallyExclusiveGroup();
+protocols.addArgument('--update', {action: "storeTrue", help: "Update the protocol registry with available ARTIC protocols"});
+protocols.addArgument('--list', {action: "storeTrue", help: "List the (locally) available protocols"});
+protocols.addArgument('--add', {action: "storeTrue", help: "Add a protocol"});
+
+
+/** Historically, RAMPART didn't have subparsers. This function will allow us to run
+ * RAMPART using the old syntax by creating a default subparser if none is specified
+ * https://stackoverflow.com/questions/6365601/default-sub-command-or-handling-no-sub-command-with-argparse
+ */
+const ensureDefaultSubparser = (name) => {
+    /*  */
+    for (let arg of process.argv.slice(1)) {
+        if (['-h', '--help', '--version'].includes(arg)) {// global help if no subparser
+            return;
+        }
+    }
+    for (let x of Object.keys(subparsers.choices)) {
+        if (process.argv.slice(1).includes(x)) {
+            return;
+        }
+    }
+    process.argv.splice(2, 0, name);
+}
 
 module.exports = {
-  parser
+  parser,
+  ensureDefaultSubparser
 };
