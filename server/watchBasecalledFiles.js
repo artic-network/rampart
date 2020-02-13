@@ -16,8 +16,9 @@ const chokidar = require('chokidar');
 const fs = require('fs');
 const path = require('path');
 const { sleep, verbose, log } = require('./utils');
+const { makeFileSortFunction } = require("./startUp");
 
-const newFastqFileHandler = (newfile, details) => {
+const newFastqFileHandler = (newfile) => {
   if (!newfile.endsWith(".fastq")) return;
   try {
     const basename = path.basename(newfile, ".fastq")
@@ -39,15 +40,35 @@ const newFastqFileHandler = (newfile, details) => {
 }
 
 const startWatcher = () => {
+  let initialScanComplete = false;
+  const fastqsAtInitialScan = [];
   const watcher = chokidar.watch(global.config.run.basecalledPath, {
     ignored: /(^|[/\\])\../,
     interval: 1000,
     persistent: true,
     depth: 1
   });
-  log(`Started watching folder ${global.config.run.basecalledPath}`);
-  log(`(basecalled files created here will be annotated and loaded)\n`);
-  watcher.on("add", newFastqFileHandler);
+  log(`Scanning folder ${global.config.run.basecalledPath} for FASTQs`);
+  log(`(basecalled files which exist here (or are created here by MinKNOW) will be annotated and loaded)\n`);
+  watcher.on("add", (filepath) => {
+    if (initialScanComplete) {
+      newFastqFileHandler(filepath);
+    } else {
+      if (path.parse(filepath).ext === ".fastq") {
+        fastqsAtInitialScan.push(filepath)
+      }
+    }
+  });
+  watcher.on('ready', () => {
+    const filepathsToBeAnnotated = fastqsAtInitialScan
+        .filter((fp) => !global.filesSeen.has(path.basename(fp, ".fastq")))
+    log(`Initial scan for FASTQs complete. Found ${fastqsAtInitialScan.length} files, ${filepathsToBeAnnotated.length} of which had not already been annotated.`);
+    filepathsToBeAnnotated
+      .sort(makeFileSortFunction(".fastq"))
+      .forEach((filepath) => newFastqFileHandler(filepath))
+    initialScanComplete = true;
+    log(`Watching for new files`);
+  });
 }
 
 

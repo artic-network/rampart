@@ -30,89 +30,55 @@ const getFilesFromDirectory = async (dir, extension) => {
         .map((j) => path.join(dir, j));
 };
 
+// Create a sort function which will take a filename or filepath,
+// and analyse the basename (less the provided `extension`).
+// We attempt to sort using a numerical field at the end of the basename,
+// and if this isn't present then we sort alphabetically
+const makeFileSortFunction = (extension) => (a, b) => {
+  const regex = /(\d+)$/;
+  const ai = path.basename(a, extension).match(regex);
+  const bi = path.basename(b, extension).match(regex);
+  if (ai && ai.length > 1 && bi && bi.length > 1) {
+      return parseInt(ai[1], 10) - parseInt(bi[1], 10);
+  }
+  return a.localeCompare(b);
+};
+
+
+const removeExistingAnnotatedCSVs = async () => {
+  log(`Clearing CSVs from the annotated folder (${prettyPath(global.config.run.annotatedPath)})`);
+  const annotatedFilesToDelete = await readdir(global.config.run.annotatedPath);
+  for (const file of annotatedFilesToDelete) {
+      const fullPath = path.join(global.config.run.annotatedPath, file);
+      if (!fs.lstatSync(fullPath).isDirectory() && fullPath.endsWith(".csv")) {
+          fs.unlinkSync(fullPath);
+      }
+  }
+}
+
 /**
  * Process existing datafiles (basecalled FASTQs + annotated CSVs)
  * Adds these (as appropriate, no duplicates) to annotation & parsing queues.
  */
-const processExistingData = async () => {
-    log("Scanning data already present");
+const processExistingAnnotatedCSVs = async () => {
+    const csvs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
+    const pathsOfAnnotatedCSVs = csvs.sort(makeFileSortFunction(".csv"));
 
-    /* Collect basecalled FASTQs */
-    const fastqs = await getFilesFromDirectory(global.config.run.basecalledPath, 'fastq');
-
-    const pathsOfBasecalledFastqs = fastqs.sort((a, b) => {
-        // attempt to sort using a numerical field
-        const regex = /(\d+)\.fastq/;
-        const ai = a.match(regex);
-        const bi = b.match(regex);
-
-        if (ai && ai.length > 1 && bi && bi.length > 1) {
-            return parseInt(ai[1], 10) - parseInt(bi[1], 10);
-        }
-
-        // no numerical fields so sort alphabetically
-        return a.localeCompare(b);
-    });
-    log(`  * Found ${pathsOfBasecalledFastqs.length} basecalled fastqs in ${prettyPath(global.config.run.basecalledPath)}`);
-
-    /* Annotated files (CSVs) are added to the `parsingQueue` and `globals.filesSeen` */
-    if (global.config.run.clearAnnotated) {
-        log(`  * Clearing CSVs from the annotated folder (${prettyPath(global.config.run.annotatedPath)})`);
-        const annotatedFilesToDelete = await readdir(global.config.run.annotatedPath);
-        for (const file of annotatedFilesToDelete) {
-            const fullPath = path.join(global.config.run.annotatedPath, file);
-            if (!fs.lstatSync(fullPath).isDirectory() && fullPath.endsWith(".csv")) {
-                fs.unlinkSync(fullPath);
-            }
-        }
-    } else {
-        const csvs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
-
-        const pathsOfAnnotatedCSVs = csvs.sort((a, b) => {
-            // attempt to sort using a numerical field
-            const regex = /(\d+)\.csv/;
-            const ai = a.match(regex);
-            const bi = b.match(regex);
-
-            if (ai && ai.length > 1 && bi && bi.length > 1) {
-                return parseInt(ai[1], 10) - parseInt(bi[1], 10);
-            }
-
-            // no numerical fields so sort alphabetically
-            return a.localeCompare(b);
-        });
-
-        log(`  * Found ${pathsOfAnnotatedCSVs.length} annotated CSV files in ${prettyPath(global.config.run.annotatedPath)}`);
-        /* TODO - we could sort these based on time stamps if we wished */
-        /* TODO - we could filter these to remove ones without a corresponding FASTQ, but that wouldn't let
-        us start from annotated files which may be useful */
-        pathsOfAnnotatedCSVs.forEach((f) => {
-            addToParsingQueue(f);
-            global.filesSeen.add(path.basename(f, '.csv'));
-        });
-    }
-
-    /* For those FASTQs without a corresponding annotated CSV, add them to `global.pipelineRunners.annotation`
-    and to `globals.filesSeen` */
+    log(`Found ${pathsOfAnnotatedCSVs.length} annotated CSV files in ${prettyPath(global.config.run.annotatedPath)}. FASTQs with the same filename as these will be ignored.`);
     /* TODO - we could sort these based on time stamps if we wished */
-    pathsOfBasecalledFastqs.forEach((f) => {
-        const basename = path.basename(f, '.fastq');
-        if (global.filesSeen.has(basename)) {
-            return; /* annotated CSV present (added above) */
-        }
-        global.pipelineRunners.annotation.addToQueue({
-            name: `Annotating ${basename}`,
-            input_path: global.config.run.basecalledPath,
-            output_path: global.config.run.annotatedPath,
-            filename_stem: basename
-        });
-        global.filesSeen.add(basename);
+    /* TODO - we could filter these to remove ones without a corresponding FASTQ, but that wouldn't let
+    us start from annotated files which may be useful */
+    pathsOfAnnotatedCSVs.forEach((f) => {
+        addToParsingQueue(f);
+        global.filesSeen.add(path.basename(f, '.csv'));
     });
+}
 
-    return true;
+module.exports = {
+    removeExistingAnnotatedCSVs,
+    processExistingAnnotatedCSVs,
+    makeFileSortFunction
 };
-
-module.exports = {processExistingData};
 
 
 

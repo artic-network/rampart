@@ -3,7 +3,7 @@
 const server = require("./server/server");
 const { parser } = require("./server/args");
 const { getInitialConfig } = require("./server/config/getInitialConfig");
-const { processExistingData } = require("./server/startUp");
+const startUp = require("./server/startUp");
 const { startBasecalledFilesWatcher } = require("./server/watchBasecalledFiles");
 const Datastore = require("./server/datastore").default;
 const { fatal, trace } = require('./server/utils');
@@ -21,7 +21,11 @@ const main = async () => {
 
         server.run({devClient: args.devClient, ports: args.ports});
 
-        await processExistingData();
+        if (global.config.run.clearAnnotated) {
+          await startUp.removeExistingAnnotatedCSVs();
+        } else {
+          await startUp.processExistingAnnotatedCSVs();
+        }
         await startBasecalledFilesWatcher();
 
     } catch (err) {
