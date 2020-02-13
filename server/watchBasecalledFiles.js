@@ -50,7 +50,8 @@ const startWatcher = () => {
     ignored: /(^|[/\\])\../,
     interval: 1000,
     persistent: true,
-    depth: 1
+    /* Allow FASTQs to be in nested subdirs 2 deep (e.g. ${basecalldePath}/a/b/*fastq) */
+    depth: 2,
   });
   log(`Scanning folder ${global.config.run.basecalledPath} for FASTQs`);
   log(`(basecalled files which exist here (or are created here by MinKNOW) will be annotated and loaded)\n`);
