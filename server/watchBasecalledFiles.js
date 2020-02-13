@@ -48,7 +48,6 @@ const startWatcher = () => {
   const fastqsAtInitialScan = [];
   const watcher = chokidar.watch(global.config.run.basecalledPath, {
     ignored: /(^|[/\\])\../,
-    interval: 1000,
     persistent: true,
     /* Allow FASTQs to be in nested subdirs 2 deep (e.g. ${basecalldePath}/a/b/*fastq) */
     depth: 2,
