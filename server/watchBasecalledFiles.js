@@ -51,6 +51,11 @@ const startWatcher = () => {
     persistent: true,
     /* Allow FASTQs to be in nested subdirs 2 deep (e.g. ${basecalldePath}/a/b/*fastq) */
     depth: 2,
+    /* We want the `add` event to fire _after_ MinKNOW has written the file */
+    awaitWriteFinish: {
+      stabilityThreshold: 4000, // Amount of time in milliseconds for a file size to remain constant before emitting its event.
+      pollInterval: 1000        // file size polling interval, in milliseconds.
+    }
   });
   log(`Scanning folder ${global.config.run.basecalledPath} for FASTQs`);
   log(`(basecalled files which exist here (or are created here by MinKNOW) will be annotated and loaded)\n`);
