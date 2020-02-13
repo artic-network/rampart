@@ -15,25 +15,29 @@
 const chokidar = require('chokidar');
 const fs = require('fs');
 const path = require('path');
-const { sleep, verbose, log } = require('./utils');
+const { sleep, verbose, log, warn } = require('./utils');
 const { makeFileSortFunction } = require("./startUp");
 
 const newFastqFileHandler = (newfile) => {
-  if (!newfile.endsWith(".fastq")) return;
-  try {
-    const basename = path.basename(newfile, ".fastq")
-    if (global.filesSeen.has(basename)) {
+  try{
+    const pathInfo = path.parse(newfile);
+    if (pathInfo.ext !== ".fastq") return;
+    if (global.filesSeen.has(pathInfo.name)) {
+      // This shouldn't happen as FASTQs present at start-up are filtered 
+      // against `filesSeen` before being passed to `newFastqFileHandler`
+      // Therefore how can a "new" FASTQ already have been seen / annotated?
+      warn(`Detected "new" FASTQ ${pathInfo.name} which has already been seen!`)
       return;
     }
-    verbose("fastq watcher", `new basecalled file => adding "${basename}" to annotation queue.`);
+    verbose("fastq watcher", `new basecalled file => adding "${pathInfo.name}" to annotation queue.`);
 
     global.pipelineRunners.annotation.addToQueue({
-      input_path: global.config.run.basecalledPath,
+      input_path: pathInfo.dir,
       output_path: global.config.run.annotatedPath,
-      filename_stem: basename
+      filename_stem: pathInfo.name
     });
 
-    global.filesSeen.add(basename);
+    global.filesSeen.add(pathInfo.name);
   } catch (err) {
     console.log(err);
   }
