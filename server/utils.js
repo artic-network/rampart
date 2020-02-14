@@ -15,6 +15,8 @@
 const path = require('path')
 const fs = require("fs");
 const chalk = require('chalk');
+const execSync = require('child_process').execSync;
+const fetch = require('node-fetch');
 
 /**
  * Appends a `/` to the end of a path if not there
@@ -107,6 +109,35 @@ function getProtocolsPath() {
     return path.join(__dirname, "..", "protocols");
 }
 
+
+function rm(path) {
+    if (fs.existsSync(path)) {
+        fs.unlinkSync(path)
+        return true;
+    }
+    return false;
+}
+
+function makePathAbsolute(source) {
+    if (path.isAbsolute(source)) {
+        return source
+    }
+    return path.join(process.cwd(), source);
+}
+
+async function fetchRegistry() {
+    // for testing purposes uncomment next line
+    // return JSON.parse(fs.readFileSync(path.join(getProtocolsPath(), "registry.json")));
+    const response = await fetch("https://artic.s3.climb.ac.uk/rampart-protocols-alpha/registry.json");
+    if (!response.ok) throw new Error(`Error fetching ARTIC protocols registry: ${response.statusText}`)
+    return await response.json();
+}
+
+function checkSha256(zipPath, hash) {
+    const stdout = execSync(`openssl sha256 ${zipPath}`, {encoding: 'utf8'})
+    return stdout.match(/=\s(.+)\n/)[1] === hash;
+}
+
 module.exports = {
   normalizePath,
   getAbsolutePath,
@@ -119,5 +150,9 @@ module.exports = {
   trace,
   deleteFolderRecursive,
   ensurePathExists,
-  getProtocolsPath
+  getProtocolsPath,
+  rm,
+  makePathAbsolute,
+  fetchRegistry,
+  checkSha256
 };

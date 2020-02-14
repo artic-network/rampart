@@ -21,7 +21,7 @@ const main = async () => {
     try {
         switch (args.subcommandName) {
             case "run":
-                const {config, pipelineRunners} = getInitialConfig(args);
+                const {config, pipelineRunners} = await getInitialConfig(args);
                 global.config = config;
                 global.pipelineRunners = pipelineRunners;
                 global.datastore = new Datastore();
@@ -37,7 +37,7 @@ const main = async () => {
                 await startBasecalledFilesWatcher();
                 break;
             case "protocols":
-                if (args.protocolCommand === "list") listProtocols(args);
+                if (args.protocolCommand === "list") await listProtocols(args);
                 if (args.protocolCommand === "add") await addProtocols(args);
                 if (args.protocolCommand === "remove") removeProtocols(args);
                 break;

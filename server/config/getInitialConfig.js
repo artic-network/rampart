@@ -21,11 +21,12 @@
 const fs = require('fs');
 const path = require('path');
 const { UNMAPPED_LABEL } = require("../magics");
-const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, warn, fatal, getProtocolsPath } = require("../utils");
+const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, warn, fatal, getProtocolsPath, fetchRegistry } = require("../utils");
 const { newSampleColour } = require("../colours");
 const { setUpPipelines } = require("./pipeline");
 const { modifySamplesAndBarcodes } = require("./modify");
 const { readConfigFile, findConfigFile, assert, setBarcodesFromFile } = require("./helpers");
+const { addFromRegistry } = require("../protocols/add");
 
 const DEFAULT_PROTOCOL_PATH = "protocols/default";
 const PROTOCOL_FILENAME= "protocol.json";
@@ -67,8 +68,12 @@ const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
  * `--barcodeNames`, `--title`, `--basecalledPath`
  *
  */
-function getInitialConfig(args) {
-    const pathCascade = setUpPathCascade(args);
+async function getInitialConfig(args) {
+    /* We don't read the `run_configuration.json` from the pathCascade --
+    it _must_ be in the current working directory */
+    const runConfigJson = readConfigFile(["./"], RUN_CONFIG_FILENAME);
+
+    const pathCascade = await setUpPathCascade(args, runConfigJson);
     console.log(pathCascade);
 
     const config = {};
@@ -87,7 +92,7 @@ function getInitialConfig(args) {
         clearAnnotated: false,
         simulateRealTime: 0,
         samples: [],
-        ...readConfigFile(pathCascade, RUN_CONFIG_FILENAME)
+        ...runConfigJson
     };
 
     /* override any sample - barcode links via a provided barcodes CSV file */
@@ -115,30 +120,54 @@ function getInitialConfig(args) {
 
 
 /** */
-function setUpPathCascade(args) {
+async function setUpPathCascade(args, runConfigJson) {
     const serverDir = __dirname;
     const rampartSourceDir = serverDir.substring(0, serverDir.length - 14); // no trailing slash
     const defaultProtocolPath = getAbsolutePath(DEFAULT_PROTOCOL_PATH, {relativeTo: rampartSourceDir});
     //verbose("config", `Default protocol path: ${defaultProtocolPath}`);
+    let registry;
 
     const pathCascade = [
         normalizePath(defaultProtocolPath) // always read config from the default protocol (but overwrite with other data as available)
     ];
+    const protocolArray = args.protocol ||
+        runConfigJson.protocol ||
+        (process.env.RAMPART_PROTOCOL ? process.env.RAMPART_PROTOCOL.split(" ") : undefined) ||
+        [];
 
-    const protocolArray = args.protocol || (process.env.RAMPART_PROTOCOL ? process.env.RAMPART_PROTOCOL.split(" ") : []);
     for (const userProtocol of protocolArray) {
-        /* First we check if it's set as a "rampart" protocol (e.g. via `rampart protocols add ...`) */
-        if (!userProtocol.includes('/') && fs.existsSync(path.join(getProtocolsPath(), userProtocol))) {
+        /* First we check if it's locally available as a "rampart" protocol
+        (e.g. created `rampart protocols add ...`) */
+        const canonicalPath = path.join(getProtocolsPath(), userProtocol);
+        if (!userProtocol.includes('/') && fs.existsSync(canonicalPath)) {
             verbose("config", `Found RAMPART protocol for ${userProtocol}`);
-            pathCascade.push(normalizePath(path.join(getProtocolsPath(), userProtocol)));
-        } else {
-            const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
-            if (fs.existsSync(userProtocolPath)) {
-              pathCascade.push(normalizePath(userProtocolPath));
-            } else {
-              warn(`Couldn't identify the requested protocol "${userProtocol}"! Attempting to carry on...`)
+            pathCascade.push(normalizePath(canonicalPath));
+            continue;
+        }
+        /* Next check if it's a path on the (local) filesystem) */
+        const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
+        if (fs.existsSync(userProtocolPath)) {
+            pathCascade.push(normalizePath(userProtocolPath));
+            continue;
+        }
+        /* Finally query the ARTIC registry */
+        if (!registry) {
+            try {
+                log("Fetching ARTIC registry to obtain missing protocols")
+                registry = await fetchRegistry();
+            } catch (err) {
+                warn(`Couldn't fetch the registry of protocols (perhaps you're offline)`)
             }
         }
+        if (registry && registry.protocols[userProtocol]) {
+            log(`Adding required protocol ${userProtocol} from the ARTIC registry...`);
+            await addFromRegistry(registry, userProtocol, canonicalPath, false)
+            if (fs.existsSync(canonicalPath)) {
+                pathCascade.push(normalizePath(canonicalPath));
+                continue;
+            }
+        }
+        warn(`Couldn't identify the requested protocol "${userProtocol}"! Attempting to carry on...`)
     }
 
     pathCascade.push("./"); // add current working directory

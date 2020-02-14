@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { getProtocolsPath, warn, log } = require("../utils");
 
-const main = async (args) => {
+const main = (args) => {
     args.name.forEach((name) => {
         if (name === "default") {
             warn(`Can't delete the default protocol!`)

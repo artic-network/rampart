@@ -4,9 +4,12 @@ const unzipper = require('unzipper');
 const fetch = require('node-fetch');
 const util = require('util');
 const streamPipeline = util.promisify(require('stream').pipeline);
-const { getProtocolsPath, verbose, log, warn, fatal } = require("../utils");
+const { getProtocolsPath, verbose, log, warn, fatal, rm, makePathAbsolute, fetchRegistry, checkSha256 } = require("../utils");
 
 const main = async (args) => {
+    if (args.name.match(/[\s/]/)) {
+        fatal("Name contains invalid characters!");
+    }
 
     const thisProtocolDir = path.join(getProtocolsPath(), args.name);
     if (fs.existsSync(thisProtocolDir)) {
@@ -18,27 +21,49 @@ const main = async (args) => {
         }
     }
 
-    /* Manage different sources  - URL (zips), local zip file, local directory */
-    let zipPath, folderPath, shouldRemoveZip;
-    if (args.source.match(/^http[s]?:\/\//)) {
-        zipPath = await fetchZipFile(args.source);
-        shouldRemoveZip=true;
-    } else if (fs.existsSync(args.source) && path.parse(args.source).ext === ".zip") {
-        zipPath = makePathAbsolute(args.source);
-    } else if (fs.existsSync(args.source) && fs.lstatSync(args.source).isDirectory()) {
-        if (args.subdir) warn("--subdir will be ignored when sourcing from a local directory")
-        folderPath = makePathAbsolute(args.source)
-    } else {
-        fatal("Couldn't interpret provided protocol source!")
-    }
-
-    if (zipPath) {
+    if (args.url) {
+        if (!args.url.match(/^http[s]?:\/\//)) {
+            fatal("Provided URL is not valid!")
+        }
+        const zipPath = await fetchZipFile(args.url, args.name+".zip");
         await extract(zipPath, thisProtocolDir, args.subdir)
-        if (shouldRemoveZip) rm(zipPath)
-    } else if (folderPath) {
-        copyFolderSync(folderPath, thisProtocolDir)
+        if (!args.keepZip) rm(zipPath)
+    } else if (args.local) {
+        if (!fs.existsSync(args.local)) {
+            fatal(`"${args.local}" doesn't exist`)
+        }
+        if (path.parse(args.local).ext === ".zip") {
+            const zipPath = makePathAbsolute(args.local);
+            await extract(zipPath, thisProtocolDir, args.subdir)
+        } else if (fs.lstatSync(args.local).isDirectory()) {
+            if (args.subdir) warn("--subdir will be ignored when sourcing from a local directory")
+            const folderPath = makePathAbsolute(args.local);
+            copyFolderSync(folderPath, thisProtocolDir);
+        } else {
+            fatal(`"${args.local}" must be either a zip file or a directory`)
+        }
+    } else {
+        /* fetch from the registry! */
+        const registry = await fetchRegistry();
+        await addFromRegistry(registry, args.name, thisProtocolDir, args.keepZip)
     }
     log(`Successfully added protocol "${args.name}"`)
+}
+
+async function addFromRegistry(registry, name, protocolsDir, keepZip) {
+    if (!registry.protocols[name]) fatal(`protocol not found in registry`)
+    const zipPath = await fetchZipFile(registry.protocols[name].url, name+".zip");
+    if (registry.protocols[name].sha256) {
+        try {
+            checkSha256(zipPath, registry.protocols[name].sha256)
+            verbose("protocols", `sha256 ok: ${registry.protocols[name].sha256}`)
+        } catch (err) {
+            console.log(err)
+            warn("File hash does not match!")
+        }
+    }
+    await extract(zipPath, protocolsDir)
+    if (!keepZip) rm(zipPath)
 }
 
 
@@ -89,8 +114,8 @@ async function extract(zipPath, protocolDir, subdir) {
   };
   
 
-async function fetchZipFile(url) {
-    const zipPath = path.join(getProtocolsPath(), "tmp.zip");
+async function fetchZipFile(url, filename) {
+    const zipPath = path.join(getProtocolsPath(), filename);
     // if (fs.existsSync(zipPath)) return zipPath // debug only
     rm(zipPath);
     verbose("protocols", `Downloading ${url} -> ${zipPath}`);
@@ -100,19 +125,5 @@ async function fetchZipFile(url) {
     return zipPath;
 }
 
-function rm(path) {
-    if (fs.existsSync(path)) {
-        fs.unlinkSync(path)
-        return true;
-    }
-    return false;
-}
 
-function makePathAbsolute(source) {
-if (path.isAbsolute(source)) {
-    return source
-}
-    return path.join(process.cwd(), source);
-}
-
-module.exports = { default: main}
+module.exports = { default: main, addFromRegistry}
