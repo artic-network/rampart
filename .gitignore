@@ -46,4 +46,3 @@ binned*
 # protocols
 /protocols/*
 !/protocols/default/
-!/protocols/artic-ebola-1.1/
