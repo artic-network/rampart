@@ -27,7 +27,7 @@ const subparsers = parser.addSubparsers({title: "subcommands", dest: "subcommand
 const run = subparsers.addParser('run', {addHelp: true});
 run.addArgument('--verbose', {action: "storeTrue",  help: "verbose output"});
 run.addArgument('--ports', {type: 'int', nargs: 2, defaultValue: [3000, 3001], help: "The ports to talk to the client over. First: client delivery, i.e. what localhost port to access rampart via (default: 3000). Second: socket to transfer data over (default: 3001)"});
-run.addArgument('--protocol', {help: "path to a directory containing protocol config files"});
+run.addArgument('--protocol', {metavar: 'name', help: "name(s) of protocol(s) to use / path(s) to directory containing protocol config files", nargs: '*'});
 
 /* -------------- RUN // CONFIG OPTIONS -------------------- */
 const config = run.addArgumentGroup({title: 'Config commands', description: "Override options from config files"});

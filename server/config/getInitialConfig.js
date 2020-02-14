@@ -21,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const { UNMAPPED_LABEL } = require("../magics");
-const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, fatal, getProtocolsPath } = require("../utils");
+const { ensurePathExists, normalizePath, getAbsolutePath, log, verbose, warn, fatal, getProtocolsPath } = require("../utils");
 const { newSampleColour } = require("../colours");
 const { setUpPipelines } = require("./pipeline");
 const { modifySamplesAndBarcodes } = require("./modify");
@@ -69,6 +69,7 @@ const BARCODES_TO_SAMPLE_FILENAME = "barcodes.csv";
  */
 function getInitialConfig(args) {
     const pathCascade = setUpPathCascade(args);
+    console.log(pathCascade);
 
     const config = {};
     config.protocol = readConfigFile(pathCascade, PROTOCOL_FILENAME);
@@ -124,17 +125,19 @@ function setUpPathCascade(args) {
         normalizePath(defaultProtocolPath) // always read config from the default protocol (but overwrite with other data as available)
     ];
 
-    const userProtocol = args.protocol || (process.env.RAMPART_PROTOCOL || undefined);
-
-    if (userProtocol) {
+    const protocolArray = args.protocol || (process.env.RAMPART_PROTOCOL ? process.env.RAMPART_PROTOCOL.split(" ") : []);
+    for (const userProtocol of protocolArray) {
         /* First we check if it's set as a "rampart" protocol (e.g. via `rampart protocols add ...`) */
         if (!userProtocol.includes('/') && fs.existsSync(path.join(getProtocolsPath(), userProtocol))) {
             verbose("config", `Found RAMPART protocol for ${userProtocol}`);
             pathCascade.push(normalizePath(path.join(getProtocolsPath(), userProtocol)));
         } else {
             const userProtocolPath = getAbsolutePath(userProtocol, {relativeTo: process.cwd()});
-            //verbose("config", `Protocol path: ${userProtocolPath}`);
-            pathCascade.push(normalizePath(userProtocolPath));
+            if (fs.existsSync(userProtocolPath)) {
+              pathCascade.push(normalizePath(userProtocolPath));
+            } else {
+              warn(`Couldn't identify the requested protocol "${userProtocol}"! Attempting to carry on...`)
+            }
         }
     }
 
