@@ -106,6 +106,8 @@ class PipelineRunner {
             // add in job-specific config options
             pipelineConfig.push(...this._convertConfigObjectToArray(job));
 
+            // samples="{sample1:[BC01],sample2:[BC02,BC03]}"
+            pipelineConfig.push(`samples="{${job.sample_name}: [${job.barcodes}]}"`);
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])
