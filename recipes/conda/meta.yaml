@@ -1,13 +1,13 @@
-{% set version = "1.0.4" %}
+{% set version = "1.0.5" %}
 
 package:
   name: rampart
   version: {{ version }}
 
 source:
-  url: https://github.com/artic-network/rampart/archive/v1.0.4.tar.gz
+  url: https://github.com/artic-network/rampart/archive/v1.0.5.tar.gz
   folder: rampart
-  sha256: d02ae76233cdc545ca94c454a38df43efad4f594855b63283f19190311f83a78
+  sha256: ad11685e2ce3454afff726fe6f3105c97f6e5454a5be875a451870e058327344
 
 requirements:
   build:
