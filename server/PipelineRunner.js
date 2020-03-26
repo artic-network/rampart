@@ -93,17 +93,22 @@ class PipelineRunner {
 
     _convertConfigObjectToArrayOfStrings(configObject) {
         const charsToQuote = [" ", "{", "}", "|", ">", "<", "*", "&", ";"];
-        const quoteIfNeeded = (data) =>
-            charsToQuote.map((c) => data.includes(c)).filter((a) => !!a).length ? `"${data}"` : data
+        const quoteIfNeeded = (data) => {
+            return charsToQuote.map((c) => data.includes(c)).filter((a) => !!a).length ? `"${data}"` : data
+        }
         return Object.entries(configObject)
             .map(([key, value]) => {
                 /* if value is the empty string, snakemake just sees the key */
                 if (value === "") {
                     return key;
                 }
-                /* string & number values go to key=string */
-                if (typeof(value) === "string" || typeof(value) === "number") {
+                /* string & number values go to key=string.*/
+                if (typeof(value) === "string") {
                     return `${key}=${quoteIfNeeded(value)}`;
+                }
+                /* number values go to key=string.*/
+                if (typeof(value) === "number") {
+                    return `${key}=${value}`;
                 }
                 /* `key -> [v1, v2, v3]` goes to `key=v1,v2,v3` */
                 if (Array.isArray(value)) {
@@ -146,9 +151,8 @@ class PipelineRunner {
             }
             // add in job-specific config options
             pipelineConfig = {...pipelineConfig, ...job};
-
-            // samples="{sample1:[BC01],sample2:[BC02,BC03]}"
-            pipelineConfig.push(`samples="{${job.sample_name}: [${job.barcodes}]}"`);
+            console.log("JOB JOB", job)
+            pipelineConfig.samples = `{${job.sample_name}: [${job.barcodes}]}`;
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])

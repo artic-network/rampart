@@ -13,7 +13,7 @@
 	"export_reads": {
 		"name": "Export reads",
 		"path": "pipelines/bin_to_fastq",
-        "config_file": "config.yaml",
-        "run_per_sample": true
+		"config_file": "config.yaml",
+		"run_per_sample": true
 	}
 }
