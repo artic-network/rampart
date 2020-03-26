@@ -151,8 +151,6 @@ class PipelineRunner {
             }
             // add in job-specific config options
             pipelineConfig = {...pipelineConfig, ...job};
-            console.log("JOB JOB", job)
-            pipelineConfig.samples = `{${job.sample_name}: [${job.barcodes}]}`;
             let spawnArgs = ['--snakefile', this._snakefile];
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])
@@ -299,6 +297,7 @@ function createJob({key, sampleName}) {
     /* basic information */
     job.sample_name = sampleName;
     job.barcodes = global.datastore.getBarcodesForSampleName(sampleName);
+    job.samples = `{${job.sample_name}: [${job.barcodes}]}`;
     /* if filtering in place, then specify this */
     if (Object.keys(global.config.display.filters).length) {
         job = {...job, ...global.config.display.filters};
