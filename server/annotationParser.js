@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
-const { warn, verbose } = require('./utils');
+const { warn, verbose, sleep } = require('./utils');
 const { UNASSIGNED_LABEL, UNMAPPED_LABEL } = require('./magics');
 
 const parsingQueue = new Deque();
@@ -80,6 +80,8 @@ const annotationParser = async () => {
 
         isRunning = false;
 
+        /* sleep before recursing in order to allow other things in the event cue (such as client requests / responses) to run */
+        await sleep(500);
         annotationParser(); // recurse
     }
 };
