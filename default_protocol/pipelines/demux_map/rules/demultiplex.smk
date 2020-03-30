@@ -1,4 +1,7 @@
 rule demultiplex_porechop:
+    """
+        Create a FASTQ with barcode information appended to the header using porechop
+    """
     input:
         config["input_path"] + "/{filename_stem}.fastq"
     params:
@@ -32,3 +35,19 @@ rule demultiplex_porechop:
         {params.barcode_option}
         """
 
+
+def get_demuxed_fastq(wildcards):
+    """
+        For the fastq in question (gotten via wildcards), has it already been
+        demuxed (via guppy)? If so, we can just hand this FASTQ straight to the
+        next rule. If not we should call `demultiplex_porechop` in order to
+        demux it. We effect this if/else logic via returning a input path
+        which may require the invocation of the rule to create.
+    """
+    # We simply check the first line of the provided FASTQ -- if it includes "barcode" then demuxing has been done (guppy?)
+    # if it's not, then we want to run rule `demultiplex_porechop` so we return its output value
+    with open(expand(config["input_path"] + "/{filename_stem}.fastq", filename_stem=wildcards.filename_stem)[0]) as fh:
+        line1 = fh.readline()
+    if "barcode" in line1:
+        return config["input_path"] + "/{filename_stem}.fastq"
+    return config["output_path"] + "/temp/{filename_stem}.fastq"

@@ -1,4 +1,9 @@
 rule minimap2:
+    """
+    This rule takes the FASTQ and maps it to the reference panel.
+    It uses the FASTQ independent of demuxing -- i.e. it doesn't matter whether the file has barcode
+    information in the header.
+    """
     input:
         fastq= config["input_path"] + "/{filename_stem}.fastq",
         ref= config["references_file"]
@@ -18,9 +23,16 @@ rule minimap2:
 #read and writes all reads, even if they don't have a hit (no hit written as ``*`` in paf file)
 
 
+
 rule parse_mapping:
+    """
+    This rule takes the FASTQ with demuxing done as well as the minimap output (rule: `minimap2`)
+    and returns the desired output for RAMPART to ingest.
+    Since we don't know a priori whether guppy demuxing has been done, we call the function
+    `get_demuxed_fastq` to conditionally require porechop demuxing.
+    """
     input:
-        fastq= config["output_path"] + "/temp/{filename_stem}.fastq",
+        fastq=get_demuxed_fastq,
         mapped= config["output_path"] + "/temp/{filename_stem}.paf",
         reference_file = config["references_file"],
     params:
