@@ -13,11 +13,11 @@
  */
 
 import React from 'react';
-import { IoIosCloseCircle, IoMdSettings, IoIosOptions, IoMdToday } from "react-icons/io";
-import Config from "./Config";
+import { IoIosCloseCircle, IoMdToday } from "react-icons/io";
+// import Config from "./Config";
 import Report from "./Report";
 // import ViewOptions from "./ViewOptions";
-import Filters from "./Filters";
+// import Filters from "./Filters";
 import Container from "./styles";
 import ModernButton from "../reusable/ModernButton";
 
@@ -45,18 +45,21 @@ const SidebarContainer = ({title, open, onChange, children, idx}) => {
 };
 
 export const sidebarButtonNames = [
-    {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
+    // {label: (<div><IoMdSettings/><span>config</span></div>), value: "config"},
     // {label: (<div><IoIosOptions/><span>settings</span></div>), value: "viewOptions"},
-    {label: (<div><IoIosOptions/><span>filters</span></div>), value: "readFilters"},
+    // {label: (<div><IoIosOptions/><span>filters</span></div>), value: "readFilters"},
     {label: (<div><IoMdToday/><span>report</span></div>), value: "report"}
 ]
 
 const Sidebar = ({config, setConfig, combinedData, dataPerSample, sidebarOpen, setSidebarOpenState}) => {
     const sidebars = {
-      config: (<Config config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
+      /* At the end of ~march 2020 we found that storing all reads on the server, which is necessary
+      (in the current implementation) to enable read filters & barcode-sample remapping caused a 
+      memory footprint which wasn't acceptable, and so we're temporarily removing any UI which relies on it */
+      // config: (<Config config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)}/>),
     //   viewOptions: (<ViewOptions config={config} setConfig={setConfig} viewOptions={viewOptions} />), // TODO
       report: (<Report dataPerSample={dataPerSample} config={config}/>),
-      readFilters: (<Filters config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)} dataPerSample={dataPerSample} combinedData={combinedData} />)
+      // readFilters: (<Filters config={config} setConfig={setConfig} closeSidebar={() => setSidebarOpenState(undefined)} dataPerSample={dataPerSample} combinedData={combinedData} />)
     };
 
 

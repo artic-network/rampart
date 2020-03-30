@@ -83,8 +83,10 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 
     const {reads, barcodes} = createReadsFromAnnotation(fileNameStem, annotations);
 
-    /* store these reads */
-    this.reads.push(...reads);
+    /* Until ~march 2020 we stored all these reads, which allowed us to use filtering,
+    and remapping of barcodes -> samples. This caused a memory footprint which wasn't
+    acceptable, and so we're temporarily removing it, and any UI which relies on it */
+    // this.reads.push(...reads);
 
     /* update the run timestamps etc */
     this.updateTimestamp(reads);
