@@ -81,7 +81,7 @@ const annotationParser = async () => {
         isRunning = false;
 
         /* sleep before recursing in order to allow other things in the event cue (such as client requests / responses) to run */
-        await sleep(500);
+        if (!(parsingQueue.length % 20)) {await sleep(500);}
         annotationParser(); // recurse
     }
 };

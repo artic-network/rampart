@@ -52,22 +52,25 @@ const modifyConfig = (action) => {
       global.config.display.relativeReferenceMapping = action.relativeReferenceMapping;
   }
 
-  if (action.hasOwnProperty("filters")) {
-      global.config.display.filters = action.filters; // TODO: check for equality?
-      global.datastore.changeReadFilters();
-      dataHasChanged = true;
-  }
+  /* until ~march 2020 we stored all these reads, which allowed us to use filtering,
+  and remapping of barcodes -> samples. This caused a memory footprint which wasn't
+  acceptable, and so we're temporarily removing it, and any UI which relies on it */
+  // if (action.hasOwnProperty("filters")) {
+  //     global.config.display.filters = action.filters; // TODO: check for equality?
+  //     global.datastore.changeReadFilters();
+  //     dataHasChanged = true;
+  // }
 
-  if (action.hasOwnProperty("barcodeToSamples")) {
-      modifySamplesAndBarcodes(global.config, action.barcodeToSamples);
-      global.config.run.samples.forEach((s, i) => {
-          if (!s.colour) {
-              s.colour = newSampleColour(s.name);
-          }
-      })
-      global.datastore.recalcSampleData();
-      dataHasChanged = true;
-  }
+  // if (action.hasOwnProperty("barcodeToSamples")) {
+  //     modifySamplesAndBarcodes(global.config, action.barcodeToSamples);
+  //     global.config.run.samples.forEach((s, i) => {
+  //         if (!s.colour) {
+  //             s.colour = newSampleColour(s.name);
+  //         }
+  //     })
+  //     global.datastore.recalcSampleData();
+  //     dataHasChanged = true;
+  // }
 
   global.CONFIG_UPDATED();
   if (dataHasChanged) global.NOTIFY_CLIENT_DATA_UPDATED();

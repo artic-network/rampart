@@ -83,8 +83,10 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 
     const {reads, barcodes} = createReadsFromAnnotation(fileNameStem, annotations);
 
-    /* store these reads */
-    this.reads.push(...reads);
+    /* Until ~march 2020 we stored all these reads, which allowed us to use filtering,
+    and remapping of barcodes -> samples. This caused a memory footprint which wasn't
+    acceptable, and so we're temporarily removing it, and any UI which relies on it */
+    // this.reads.push(...reads);
 
     /* update the run timestamps etc */
     this.updateTimestamp(reads);
@@ -267,8 +269,6 @@ const whichReferencesToDisplay = (dataPerSample, threshold=5, maxNum=10) => {
  *   dataPerSample[<SampleName>].readLengths  {Object}
  *   dataPerSample[<SampleName>].readLengths.xyValues  {Array} 
  *   dataPerSample[<SampleName>].refMatchCoveragesStream  {Array} TODO
- *   dataPerSample[<SampleName>].refMatchSimilarities {Object}
- *   dataPerSample[<SampleName>].refMatchSimilarities[<refName>] {Array} Array of similarities
  *   combinedData              {Object}  summary of all data
  *   combinedData.mappedCount  {numeric}
  *   combinedData.temporal     {Array} TODO
@@ -295,8 +295,9 @@ Datastore.prototype.getDataForClient = function() {
             temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
             readLengthsMapped: summariseReadLengths(sampleData.readLengthMappedCounts),
             readLengths: summariseReadLengths(sampleData.readLengthCounts),
-            refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages),
-            refMatchSimilarities: sampleData.refMatchSimilarities
+            refMatchCoveragesStream: createReferenceMatchStream(sampleData.refMatchCoverages)
+            /* Following removed as the client no longer uses it - Mar 30 2020 */
+            // refMatchSimilarities: sampleData.refMatchSimilarities
         }
     }
 

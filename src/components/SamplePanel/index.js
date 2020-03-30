@@ -16,7 +16,7 @@ import React, {useState, useEffect} from 'react';
 import CoveragePlot from "../Charts/Coverage";
 import ReadLengthDistribution from "../Charts/ReadLengthDistribution";
 import CoverageOverTime from "../Charts/CoverageOverTime";
-import RefSimilarity from "../Charts/RefSimilarity";
+// import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";

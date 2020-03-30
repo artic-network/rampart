@@ -27,7 +27,7 @@ const SampleData = function() {
     this.readLengthMappedCounts = {};
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
-    this.refMatchSimilarities = {};
+    // this.refMatchSimilarities = {};
 };
 
 // const getCoverageBins = (readPos) => {
@@ -265,7 +265,8 @@ const updateSampleDataWithNewReads = (sampleData, reads) => {
 
     sampleData.updateTemporalData(reads);
 
-    sampleData.updateRefMatchSimilarities(reads);
+    /* Following removed as the client no longer uses it - Mar 30 2020 */
+    // sampleData.updateRefMatchSimilarities(reads);
 
     return {referencesSeen};
 }
