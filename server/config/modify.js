@@ -113,6 +113,7 @@ function modifySamplesAndBarcodes(config, newBarcodesToSamples) {
  * RAMPART doesn't know what references are out there, we can only add them as we see them
  * This updates the config store of the references, and triggers a client update if there are changes
  * @param {set} referencesSeen
+ * @returns {bool} has the config changed?
  */
 const updateReferencesSeen = (referencesSeen) => {
   const changes = [];
@@ -128,10 +129,12 @@ const updateReferencesSeen = (referencesSeen) => {
           changes.push(ref);
       }
   });
+
   if (changes.length) {
       verbose("config", `new references seen: ${changes.join(", ")}`);
-      global.CONFIG_UPDATED();
+      return true;
   }
+  return false;
 };
 
 const updateWhichReferencesAreDisplayed = (refsToDisplay) => {

@@ -1,6 +1,9 @@
 
 ##### Configuration #####
 
+# print("\nConfig object in Snakefile:")
+# [print("\t{} - {}".format(k, v)) for k,v in config.items()]
+
 # trim trailing slashes from paths to avoid snakemake complaining of double '/' in paths
 config["output_path"] = config["output_path"].rstrip("/")
 config["input_path"] = config["input_path"].rstrip("/")

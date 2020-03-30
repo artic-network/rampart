@@ -92,6 +92,7 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
     this.updateTimestamp(reads);
 
     /* have we observed any barcodes here which _aren't_ in the config? */
+    let newBarcodesObserved = false;
     [...barcodes].filter((b) => !getBarcodesInConfig(global.config).has(b)).forEach((barcode) => {
         verbose("datastore", `New barcode observed: ${barcode}`);
         /* create a sample in the config (should be a function) */
@@ -101,6 +102,7 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
             barcodes: [barcode],
             colour: newSampleColour(barcode)
         })
+        newBarcodesObserved = true;
         this.dataPerSample[barcode] = new SampleData(); // sample name == barcode.
     })
 
@@ -138,7 +140,8 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
 
 
     /* trigger server-client data updates */
-    updateReferencesSeen(referencesSeen);
+    const newReferencesSeen = updateReferencesSeen(referencesSeen);
+    if (newReferencesSeen || newBarcodesObserved) global.CONFIG_UPDATED();
     global.NOTIFY_CLIENT_DATA_UPDATED()
 };
 
