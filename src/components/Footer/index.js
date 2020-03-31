@@ -14,6 +14,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { version } from '../../../package.json';
 
 const Container = styled.div`
     width: 80%;
@@ -28,7 +29,7 @@ const Container = styled.div`
 const Footer = () => {
   return (
     <Container>
-      {"RAMPART is built by "}
+      {`RAMPART v${version} is built by `}
       <a href={"https://twitter.com/hamesjadfield"} target="_blank" rel="noopener noreferrer">James Hadfield</a>
       {", "}
       <a href={"https://twitter.com/pathogenomenick"} target="_blank" rel="noopener noreferrer">Nick Loman</a>
