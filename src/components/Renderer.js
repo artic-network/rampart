@@ -31,7 +31,7 @@ class Renderer extends React.Component {
             sidebarOpen: false,
             // currently storing light vs dark theme as a state variable, but could explore other
             // solutions such as localStorage -- https://css-tricks.com/a-dark-mode-toggle-with-react-and-themeprovider/
-            lightMode: true
+            lightMode: false
         }
         this.setSidebarOpenState = (newValue) => {
             this.setState({sidebarOpen: newValue});
