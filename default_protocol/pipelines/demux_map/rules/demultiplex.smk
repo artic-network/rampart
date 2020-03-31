@@ -3,7 +3,7 @@ rule demultiplex_porechop:
         Create a FASTQ with barcode information appended to the header using porechop
     """
     input:
-        config["input_path"] + "/{filename_stem}.fastq"
+        get_unzipped_fastq
     params:
         require_two_barcodes=require_two_barcodes,
         discard_middle=discard_middle,
@@ -16,7 +16,7 @@ rule demultiplex_porechop:
     threads:
         2
     output:
-        temp(config["output_path"] + "/temp/{filename_stem}.fastq")
+        temp(config["output_path"] + "/temp/{filename_stem}_demuxed.fastq")
     shell:
         """
         porechop \
@@ -46,8 +46,18 @@ def get_demuxed_fastq(wildcards):
     """
     # We simply check the first line of the provided FASTQ -- if it includes "barcode" then demuxing has been done (guppy?)
     # if it's not, then we want to run rule `demultiplex_porechop` so we return its output value
-    with open(expand(config["input_path"] + "/{filename_stem}.fastq", filename_stem=wildcards.filename_stem)[0]) as fh:
-        line1 = fh.readline()
+
+    # There is a better way to do this -- we want to force the `unzip` rule to run if necessary
+    # But, alas, snakemake is beyond me somethimes
+    if config["filename_ext"] == ".fastq.gz":
+        import gzip
+        with gzip.open(expand(config["input_path"] + "/{filename_stem}.fastq.gz", filename_stem=wildcards.filename_stem)[0], 'rb') as fh:
+            line1 = str(fh.readline())
+    else:
+        with open(expand(config["input_path"] + "/{filename_stem}.fastq", filename_stem=wildcards.filename_stem)[0]) as fh:
+            line1 = fh.readline()
+
     if "barcode" in line1:
-        return config["input_path"] + "/{filename_stem}.fastq"
-    return config["output_path"] + "/temp/{filename_stem}.fastq"
+        return get_unzipped_fastq(wildcards)
+
+    return config["output_path"] + "/temp/{filename_stem}_demuxed.fastq" # rule `demultiplex_porechop` will make this

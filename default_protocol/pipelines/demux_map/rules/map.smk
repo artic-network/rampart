@@ -5,7 +5,7 @@ rule minimap2:
     information in the header.
     """
     input:
-        fastq= config["input_path"] + "/{filename_stem}.fastq",
+        fastq=get_unzipped_fastq,
         ref= config["references_file"]
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.paf")
@@ -23,7 +23,6 @@ rule minimap2:
 #read and writes all reads, even if they don't have a hit (no hit written as ``*`` in paf file)
 
 
-
 rule parse_mapping:
     """
     This rule takes the FASTQ with demuxing done as well as the minimap output (rule: `minimap2`)
@@ -33,7 +32,7 @@ rule parse_mapping:
     """
     input:
         fastq=get_demuxed_fastq,
-        mapped= config["output_path"] + "/temp/{filename_stem}.paf",
+        mapped=config["output_path"] + "/temp/{filename_stem}.paf",
         reference_file = config["references_file"],
     params:
         path_to_script = workflow.current_basedir,
