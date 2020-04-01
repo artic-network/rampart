@@ -1,8 +1,5 @@
 # Installation
 
-> These instructions are valid for a soon-to-be released version 1.1.0.
-If you want to test this before the official release you can do so by replacing step 2 with `conda install -y jameshadfield::rampart=1.1.0`
-
 
 These instructions assume that you have installed [MinKNOW](https://community.nanoporetech.com/downloads) and are able to run it.
 
