@@ -51,7 +51,7 @@ const PanelManager = ({dataPerSample, combinedData, config, openConfigSidebar, s
     if (!isEqual(Object.keys(samplePanelsExpanded), Object.keys(dataPerSample))) {
         const state = {};
         Object.keys(dataPerSample).forEach((sampleName) => {
-            state[sampleName] = true; // set to false to start with collapsed panels
+            state[sampleName] = false; // set to false to start with collapsed panels
             if (!refs.current.has(sampleName)) refs.current.set(sampleName, {current: null});
         });
         setSamplePanelsExpanded(state);
