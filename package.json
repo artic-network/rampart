@@ -12,7 +12,7 @@
   },
   "private": false,
   "license": "AGPL-3.0-only",
-  "homepage": "http:///",
+  "homepage": "https://artic-network.github.io/rampart/",
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^3.3.1",
