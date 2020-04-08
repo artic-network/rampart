@@ -9,9 +9,10 @@ rule minimap2:
         ref= config["references_file"]
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.paf")
+    threads: config["threads"]
     shell:
         """
-        minimap2 -x map-ont \
+        minimap2 -t {threads} -x map-ont \
         --secondary=no \
         --paf-no-hit \
         --cs \
