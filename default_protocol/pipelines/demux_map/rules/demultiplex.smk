@@ -13,8 +13,7 @@ rule demultiplex_porechop:
         limit_barcodes_to = limit_barcodes_to,
         threshold = "--barcode_threshold " + str(config["barcode_threshold"]),
         diff = "--barcode_diff " + str(config["barcode_diff"])
-    threads:
-        2
+    threads: config["threads"]
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.fastq")
     shell:
@@ -23,7 +22,7 @@ rule demultiplex_porechop:
         --verbosity 0 \
         -i {input:q} \
         -o {output:q} \
-        --threads 2 \
+        --threads {threads} \
         --barcode_labels \
         {params.threshold} \
         {params.diff}\

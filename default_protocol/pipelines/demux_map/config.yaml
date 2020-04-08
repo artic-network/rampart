@@ -21,6 +21,7 @@ barcode_set: "native" # [none,native,rapid,pcr,all], defaults to `native`, `all`
 limit_barcodes_to: #barcode csv string e.g. NB01,NB02,NB03,NB04,NB05,NB06
 barcode_threshold: 80
 barcode_diff: 5
+threads: 2
 
 ##### Filtering options #####
 
