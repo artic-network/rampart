@@ -113,8 +113,8 @@ SEQKIT_FIELDS = OrderedDict([
     ('MapQual', lambda x: ('MapQual', float(x))),
     ('Acc', lambda x: ('identity', float(x)/100.0)),
     ('ReadLen', lambda x: ('read_len', int(x))),
-    ('RefAln', lambda x: ('aln_block_len', int(x))), # FIXME: not the block length
     ('RefLen', lambda x: ('ref_len', int(x))),
+    ('RefAln', lambda x: ('aln_block_len', int(x))), # FIXME: not the block length
     ('RefCov', lambda x: ('RefCov', float(x))),
     ('ReadAln', lambda x: ('ReadAln', int(x))),
     ('ReadCov', lambda x: ('ReadCov', float(x))),
@@ -135,7 +135,7 @@ def parse_line(line, header_dict):
     for i, field in enumerate(SEQKIT_FIELDS.keys()):
         name, value = SEQKIT_FIELDS[field](tokens[i])
         values[name] = value
-    if values["MapQual"] == 0:
+    if values["MapQual"] < 1:
         values["ref_hit"] = '?'
     values['query_start'] = values['LeftClip']
     values['query_end'] = values['read_len'] - values['RightClip']
@@ -145,8 +145,8 @@ def parse_line(line, header_dict):
     else:
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
     if values["ref_hit"] != "*":
-        values["mismatches"] = -1 # FIXME
-        values["matches"] = -1  # FIXME
+        values["mismatches"] = '*' # FIXME
+        values["matches"] = '*' # FIXME
     else:
         values["mismatches"] = 0
         values["mmatches"] = 0
@@ -249,7 +249,7 @@ def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_id
         # Write unmapped reads:
         for r in all_reads.keys():
             rec = OrderedDict([('read_name', r), ('ref_hit', '*'), ('identity', 0.0)])
-            rec['read_len'] = -1 # FIXME
+            rec['read_len'] = '*' # FIXME
             rec["barcode"], rec["start_time"] = header_dict[rec["read_name"]]
             write_mapping(report, rec, reference_options, reference_info, counts,min_identity)
 
