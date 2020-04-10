@@ -251,6 +251,12 @@ def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_id
             rec = OrderedDict([('read_name', r), ('ref_hit', '*'), ('identity', 0.0)])
             rec['read_len'] = '*' # FIXME
             rec["barcode"], rec["start_time"] = header_dict[rec["read_name"]]
+            rec['ref_hit'] = '*'
+            rec['ref_len'] = '*'
+            rec['coord_start'] = '*'
+            rec['coord_end'] = '*'
+            rec['matches'] = '*'
+            rec['aln_block_len'] = '*'
             write_mapping(report, rec, reference_options, reference_info, counts,min_identity)
 
     try:
