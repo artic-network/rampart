@@ -1,6 +1,6 @@
 import argparse
 from Bio import SeqIO
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from collections import Counter
 
 def parse_args():
@@ -158,22 +158,23 @@ def check_identity_threshold(mapping, min_identity):
 SEQKIT_FIELDS = OrderedDict([
     ('Read', lambda x: ('read_name', x)),
     ('Ref', lambda x: ('ref_hit', x)),
-    ('Pos', lambda x: ('coord_start', x)),
-    ('EndPos', lambda x: ('coord_end', x)),
-    ('MapQual', lambda x: ('MapQual', x)),
-    ('Acc', lambda x: ('identity', x)),
-    ('ReadLen', lambda x: ('read_len', x)),
-    ('RefLen', lambda x: ('ref_len', x)),
-    ('RefCov', lambda x: ('RefCov', x)),
-    ('ReadAln', lambda x: ('ReadAln', x)),
-    ('ReadCov', lambda x: ('ReadCov', x)),
+    ('Pos', lambda x: ('coord_start', int(x))),
+    ('EndPos', lambda x: ('coord_end', int(x))),
+    ('MapQual', lambda x: ('MapQual', float(x))),
+    ('Acc', lambda x: ('identity', float(x))),
+    ('ReadLen', lambda x: ('read_len', int(x))),
+    ('RefAln', lambda x: ('RefAln', int(x))),
+    ('RefLen', lambda x: ('ref_len', int(x))),
+    ('RefCov', lambda x: ('RefCov', float(x))),
+    ('ReadAln', lambda x: ('ReadAln', int(x))),
+    ('ReadCov', lambda x: ('ReadCov', float(x))),
     ('Strand', lambda x: ("Strand",'+' if int(x) == 1 else '-')),
-    ('MeanQual', lambda x: 'MeanQual'),
-    ('LeftClip', lambda x: 'LeftClip'),
-    ('RightClip', lambda x: 'RightClip'),
-    ('Flags', lambda x: 'Flags'),
-    ('IsSec', lambda x: 'IsSec'),
-    ('IsSup', lambda x: 'IsSup'),
+    ('MeanQual', lambda x: ('MeanQual', float(x))),
+    ('LeftClip', lambda x: ('LeftClip', int(x))),
+    ('RightClip', lambda x: ('RightClip', int(x))),
+    ('Flags', lambda x: ('Flags', int(x))),
+    ('IsSec', lambda x: ('IsSec', int(x))),
+    ('IsSup', lambda x: ('IsSup', int(x))),
     ])
 
 def parse_line(line, header_dict):
@@ -184,18 +185,19 @@ def parse_line(line, header_dict):
     for i, field in enumerate(SEQKIT_FIELDS.keys()):
         name, value = SEQKIT_FIELDS[field](tokens[i])
         values[name] = value
-        if values["MapQual"] == 0:
-            values["ref_hit"] = '?'
+    if values["MapQual"] == 0:
+        values["ref_hit"] = '?'
 
     if values["read_name"] in header_dict:
         values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
     else:
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
     if values["ref_hit"] != "*":
-        mismatches, identity = calculate_genetic_identity(tokens[-1])
-        mismatches = -1
+        values["mismatches"] = -1 # FIXME
+        values["matches"] = -1  # FIXME
     else:
         values["mismatches"] = 0
+        values["mmatches"] = 0
         values["identity"]= 0
 
     return values
@@ -240,7 +242,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
 
         counts["total"] += 1
 
-        mapping_length = int(mapping['matches']) + int(mapping['mismatches'])
+        mapping_length = mapping['RefAln']
         report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                     f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
                     f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
@@ -271,10 +273,13 @@ def parse_paf(paf, report, header_dict, reference_options, reference_info,min_id
     all_reads = { x:True for x in header_dict.keys()}
     with open(str(paf),"r") as f:
         last_mapping = None
+        head_line = f.readline() # skip header
         for line in f:
 
             mapping = parse_line(line, header_dict)
-            del all_reads[mapping["read_name"]]
+            read_id = mapping["read_name"]
+            if read_id in all_reads:
+                del all_reads[read_id]
 
             if last_mapping:
                 if mapping["read_name"] == last_mapping["read_name"]:
@@ -292,6 +297,8 @@ def parse_paf(paf, report, header_dict, reference_options, reference_info,min_id
         # Write unmapped reads:
         for r in all_reads.keys():
             rec = OrderedDict([('read_name', r), ('ref_hit', '*'), ('identity', 0.0)])
+            rec['read_len'] = -1 # FIXME
+            rec["barcode"], rec["start_time"] = header_dict[rec["read_name"]]
             write_mapping(report, rec, reference_options, reference_info, counts,min_identity)
 
     try:
