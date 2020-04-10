@@ -6,19 +6,18 @@ rule minimap2:
     """
     input:
         fastq= config["input_path"] + "/{filename_stem}.fastq",
-        ref= config["references_file"]
+        ref= config["references_file"],
+    params:
+        seqkit_threads = 4,
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.tsv")
     threads: config["threads"]
-    params:
-	skth = 4
     shell:
         """
         minimap2 -t {threads} -ax map-ont \
         --secondary=no \
-        --cs \
         {input.ref:q} \
-        {input.fastq:q} | samtools view -b - | seqkit bam -j {params.skth} - > {output:q}
+        {input.fastq:q} | samtools view -S -b - | (seqkit bam -j {params.seqkit_threads}  - 2> {output:q})
         """
         
 #This minimap call runs a mapping optimised for ont reads, only outputs the top hit for each
@@ -35,7 +34,7 @@ rule parse_mapping:
     """
     input:
         fastq=get_demuxed_fastq,
-        mapped= config["output_path"] + "/temp/{filename_stem}.paf",
+        mapped= config["output_path"] + "/temp/{filename_stem}.tsv",
         reference_file = config["references_file"],
     params:
         path_to_script = workflow.current_basedir,
