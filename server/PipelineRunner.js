@@ -152,6 +152,9 @@ class PipelineRunner {
             // add in job-specific config options
             pipelineConfig = {...pipelineConfig, ...job};
             let spawnArgs = ['--snakefile', this._snakefile];
+
+	    spawnArgs.unshift(...['-j', 4]) // FIXME: make this configurable
+
             if (this._configfile) {
                 spawnArgs.push(...['--configfile', this._configfile])
             }
@@ -160,6 +163,7 @@ class PipelineRunner {
             }
             spawnArgs.push('--nolock');
             spawnArgs.push('--rerun-incomplete');
+
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 
