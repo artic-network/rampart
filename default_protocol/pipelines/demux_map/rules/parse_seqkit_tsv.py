@@ -4,9 +4,9 @@ from collections import defaultdict, OrderedDict
 from collections import Counter
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
+    parser = argparse.ArgumentParser(description='Parse barcode info and seqkit bam TSV file, create report.')
 
-    parser.add_argument("--paf_file", action="store", type=str, dest="paf_file")
+    parser.add_argument("--tsv_file", action="store", type=str, dest="tsv_file")
     parser.add_argument("--annotated_reads", action="store", type=str, dest="reads")
 
     parser.add_argument("--report", action="store", type=str, dest="report")
@@ -35,11 +35,8 @@ def parse_reference_options(reference_options):
             else:
                 new_v.append(sublist)
         ref_options[k]=new_v
-        
 
     return ref_options, ','+','.join(ref_options.keys())
-
-
 
 
 def parse_reference_file(references):
@@ -87,7 +84,6 @@ def get_header_dict(reads):
             start_time = header["start_time"]
 
         header_dict[record.id]=(barcode, start_time)
-        
     return header_dict
 
 def check_overlap(coords1,coords2):
@@ -97,59 +93,13 @@ def check_overlap(coords1,coords2):
     if overlap:
         return True, len(overlap)
     else:
-        return False, 0 
-
-def take_appropriate_cigar_action(counter, last_symbol, number):
-    if last_symbol == ":":
-        counter[last_symbol]+=int(number)
-    elif last_symbol == "*":
-        counter[last_symbol]+=1
-    else:
-        counter[last_symbol]+=len(number)
-
-
-def parse_cigar_for_matches_and_mismatches(cigar):
-    cigar_counter = Counter()
-
-    cigar = cigar[5:] # removes the cs:Z: from the beginning of the cigar
-    
-    symbol = ''
-    last_symbol = None
-    number = ''
-    
-    for i in cigar:
-        if i in [":","*","+","-"]:
-            symbol = i
-
-            if last_symbol:
-                take_appropriate_cigar_action(cigar_counter, last_symbol, number)
-                last_symbol = symbol
-                number = ''
-            else:
-                last_symbol = symbol
-        else:
-            number += i
-
-
-    take_appropriate_cigar_action(cigar_counter, last_symbol, number)
-
-    matches = cigar_counter[":"]
-    mismatches = cigar_counter["*"]
-    
-    return matches, mismatches
-
-def calculate_genetic_identity(cigar):
-    
-    matches, mismatches = parse_cigar_for_matches_and_mismatches(cigar)
-    return mismatches, matches / (matches + mismatches)
+        return False, 0
 
 def check_identity_threshold(mapping, min_identity):
-    
     if float(min_identity)<1:
         min_id = float(min_identity)
     else:
         min_id = float(min_identity)/ 100
-        
     if mapping["identity"] >= min_id:
         return True
     else:
@@ -161,7 +111,7 @@ SEQKIT_FIELDS = OrderedDict([
     ('Pos', lambda x: ('coord_start', int(x))),
     ('EndPos', lambda x: ('coord_end', int(x))),
     ('MapQual', lambda x: ('MapQual', float(x))),
-    ('Acc', lambda x: ('identity', float(x))),
+    ('Acc', lambda x: ('identity', float(x)/100.0)),
     ('ReadLen', lambda x: ('read_len', int(x))),
     ('RefAln', lambda x: ('RefAln', int(x))),
     ('RefLen', lambda x: ('ref_len', int(x))),
@@ -260,7 +210,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
         else:
             report.write("\n")
 
-def parse_paf(paf, report, header_dict, reference_options, reference_info,min_identity):
+def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_identity):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
@@ -314,7 +264,6 @@ if __name__ == '__main__':
     args = parse_args()
 
     with open(str(args.report), "w") as csv_report:
-        
         if args.reference_options:
             reference_options,ref_option_header = parse_reference_options(args.reference_options)
             reference_info = parse_reference_file(args.references)
@@ -325,4 +274,4 @@ if __name__ == '__main__':
         header_dict = get_header_dict(args.reads)
 
         csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,mapping_len{ref_option_header}\n")
-        parse_paf(args.paf_file, csv_report, header_dict, reference_options, reference_info,args.min_identity)
+        parse_tsv(args.tsv_file, csv_report, header_dict, reference_options, reference_info,args.min_identity)
