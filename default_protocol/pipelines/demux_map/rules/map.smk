@@ -8,16 +8,17 @@ rule minimap2:
         fastq= config["input_path"] + "/{filename_stem}.fastq",
         ref= config["references_file"]
     output:
-        temp(config["output_path"] + "/temp/{filename_stem}.paf")
+        temp(config["output_path"] + "/temp/{filename_stem}.tsv")
     threads: config["threads"]
+    params:
+	skth = 4
     shell:
         """
-        minimap2 -t {threads} -x map-ont \
+        minimap2 -t {threads} -ax map-ont \
         --secondary=no \
-        --paf-no-hit \
         --cs \
         {input.ref:q} \
-        {input.fastq:q} > {output:q}
+        {input.fastq:q} | samtools view -b - | seqkit bam -j {params.skth} - > {output:q}
         """
         
 #This minimap call runs a mapping optimised for ont reads, only outputs the top hit for each
@@ -44,7 +45,7 @@ rule parse_mapping:
         report = config["output_path"] + "/{filename_stem}.csv"
     shell:
         """
-        python {params.path_to_script}/parse_paf.py \
+        python {params.path_to_script}/parse_seqkit_tsv.py \
         --paf_file {input.mapped:q} \
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
