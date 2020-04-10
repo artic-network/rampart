@@ -113,7 +113,7 @@ SEQKIT_FIELDS = OrderedDict([
     ('MapQual', lambda x: ('MapQual', float(x))),
     ('Acc', lambda x: ('identity', float(x)/100.0)),
     ('ReadLen', lambda x: ('read_len', int(x))),
-    ('RefAln', lambda x: ('RefAln', int(x))),
+    ('RefAln', lambda x: ('aln_block_len', int(x))), # FIXME: not the block length
     ('RefLen', lambda x: ('ref_len', int(x))),
     ('RefCov', lambda x: ('RefCov', float(x))),
     ('ReadAln', lambda x: ('ReadAln', int(x))),
@@ -137,6 +137,8 @@ def parse_line(line, header_dict):
         values[name] = value
     if values["MapQual"] == 0:
         values["ref_hit"] = '?'
+    values['query_start'] = values['LeftClip']
+    values['query_end'] = values['read_len'] - values['RightClip']
 
     if values["read_name"] in header_dict:
         values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
@@ -192,7 +194,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
 
         counts["total"] += 1
 
-        mapping_length = mapping['RefAln']
+        mapping_length = mapping['aln_block_len']
         report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
                     f"{mapping['barcode']},{mapping['ref_hit']},{mapping['ref_len']},"
                     f"{mapping['coord_start']},{mapping['coord_end']},{mapping['matches']},{mapping_length}")
