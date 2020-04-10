@@ -10,6 +10,7 @@ def parse_args():
     parser.add_argument("--annotated_reads", action="store", type=str, dest="reads")
 
     parser.add_argument("--report", action="store", type=str, dest="report")
+    parser.add_argument("--sup_report", action="store", type=str, dest="sup_report")
 
     parser.add_argument("--reference_file", action="store", type=str, dest="references")
     parser.add_argument("--reference_options", action="store", type=str, dest="reference_options")
@@ -213,7 +214,18 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
         else:
             report.write("\n")
 
-def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_identity):
+
+def write_sup_fields(mapping, sup_report, sup_fields):
+    for i, f in enumerate(sup_fields):
+        sep = ","
+        if i == len(sup_fields)-1:
+            sep = "\n"
+        val = '*'
+        if f in mapping:
+            val = mapping[f]
+        sup_report.write("{}{}".format(val, sep))
+
+def parse_tsv(paf, report, sup_report, sup_fields, header_dict, reference_options, reference_info,min_identity):
     #This function parses the input paf file 
     #and outputs a csv report containing information relevant for RAMPART and barcode information
     # read_name,read_len,start_time,barcode,best_reference,start_coords,end_coords,ref_len,matches,aln_block_len,ref_option1,ref_option2
@@ -241,12 +253,14 @@ def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_id
                     last_mapping['ref_hit'] = '?'
                 else:
                     write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
+                    write_sup_fields(mapping, sup_report, sup_fields)
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
         # write the last last_mapping
         write_mapping(report, last_mapping, reference_options, reference_info, counts,min_identity)
+        write_sup_fields(mapping, sup_report, sup_fields)
         # Write unmapped reads:
         for r in all_reads.keys():
             rec = OrderedDict([('read_name', r), ('ref_hit', '*'), ('identity', 0.0)])
@@ -262,6 +276,7 @@ def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_id
             rec['matches'] = '*'
             rec['aln_block_len'] = '*'
             write_mapping(report, rec, reference_options, reference_info, counts,min_identity)
+            write_sup_fields(mapping, sup_report, sup_fields)
 
     try:
         prop_unmapped = counts["unmapped"] / counts["total"]
@@ -275,6 +290,8 @@ if __name__ == '__main__':
 
     args = parse_args()
 
+    sup_csv_report = open(args.sup_report, "w")
+    sup_fields = ["read_name", "ref_hit", "MapQual", "identity", "aln_block_len", "RefCov", "ReadAln", "ReadCov", "Strand", "MeanQual", "LeftClip", "RightClip","Flags"]
     with open(str(args.report), "w") as csv_report:
         if args.reference_options:
             reference_options,ref_option_header = parse_reference_options(args.reference_options)
@@ -286,4 +303,11 @@ if __name__ == '__main__':
         header_dict = get_header_dict(args.reads)
 
         csv_report.write(f"read_name,read_len,start_time,barcode,best_reference,ref_len,start_coords,end_coords,num_matches,mapping_len{ref_option_header}\n")
-        parse_tsv(args.tsv_file, csv_report, header_dict, reference_options, reference_info,args.min_identity)
+        for i, f in enumerate(sup_fields):
+            sep = ","
+            if i == len(sup_fields)-1:
+                sep = "\n"
+            sup_csv_report.write("{}{}".format(f,sep))
+        parse_tsv(args.tsv_file, csv_report, sup_csv_report, sup_fields, header_dict, reference_options, reference_info,args.min_identity)
+    sup_csv_report.flush()
+    sup_csv_report.close()

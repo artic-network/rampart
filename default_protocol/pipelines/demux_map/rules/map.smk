@@ -42,12 +42,14 @@ rule parse_mapping:
         min_identity= minimum_identity, 
         reference_options = f'--reference_options "{reference_fields}"'
     output:
-        report = config["output_path"] + "/{filename_stem}.csv"
+        report = config["output_path"] + "/{filename_stem}.csv",
+        sup_csv = config["output_path"] + "/{filename_stem}_sup.csv",
     shell:
         """
         python {params.path_to_script}/parse_seqkit_tsv.py \
         --tsv_file {input.mapped:q} \
         --report {output.report:q} \
+        --sup_report {output.sup_csv:q} \
         --annotated_reads {input.fastq:q} \
         --reference_file {input.reference_file:q} \
         {params.min_identity} \
