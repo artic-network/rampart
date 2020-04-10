@@ -26,8 +26,12 @@ RAMPART was originally designed to work with amplicon-based primer schemes (e.g.
 * [Debugging when things don't work](docs/debugging.md)
 * [Notes relating to RAMPART development](docs/developing.md)
 
+### Quick install
 
-
+You can (re)deploy rampart after installing [miniconda3](https://docs.conda.io/en/latest/miniconda.html) by issuing:
+```
+./utils/redeploy_rampart.sh
+```
 
 ## Status
 
