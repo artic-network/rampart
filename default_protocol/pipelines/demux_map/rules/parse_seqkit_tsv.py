@@ -144,6 +144,7 @@ def parse_line(line, header_dict):
         values["barcode"], values["start_time"] = header_dict[values["read_name"]] #if porechop didn't discard the read
     else:
         values["barcode"], values["start_time"] = "none", "?" #don't have info on time or barcode
+
     if values["ref_hit"] != "*":
         values["mismatches"] = '*' # FIXME
         values["matches"] = '*' # FIXME
@@ -161,7 +162,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
         mapping['coord_start'], mapping['coord_end'] = 0, 0
         if (mapping["ref_hit"] == '*'):
             counts["unmapped"] += 1
-        else:
+        elif mapping['identity'] != 0.0:
             counts["ambiguous"] += 1
 
         if reference_options != None:
@@ -192,7 +193,7 @@ def write_mapping(report, mapping, reference_options, reference_info, counts, mi
 
     if check_identity_threshold(mapping, min_identity):
 
-        counts["total"] += 1
+        counts["total"] += 1 # FIXME: is this at the right place?
 
         mapping_length = mapping['aln_block_len']
         report.write(f"{mapping['read_name']},{mapping['read_len']},{mapping['start_time']},"
@@ -250,7 +251,10 @@ def parse_tsv(paf, report, header_dict, reference_options, reference_info,min_id
         for r in all_reads.keys():
             rec = OrderedDict([('read_name', r), ('ref_hit', '*'), ('identity', 0.0)])
             rec['read_len'] = '*' # FIXME
-            rec["barcode"], rec["start_time"] = header_dict[rec["read_name"]]
+            if rec["read_name"] in header_dict:
+                rec["barcode"], rec["start_time"] = header_dict[rec["read_name"]]
+            else:
+                rec["barcode"], rec["start_time"] = "none", "?"
             rec['ref_hit'] = '*'
             rec['ref_len'] = '*'
             rec['coord_start'] = '*'
