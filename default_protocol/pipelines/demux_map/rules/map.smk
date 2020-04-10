@@ -9,6 +9,7 @@ rule minimap2:
         ref= config["references_file"],
     params:
         seqkit_threads = 4,
+        samtools_threads = 2,
     output:
         temp(config["output_path"] + "/temp/{filename_stem}.tsv")
     threads: config["threads"]
@@ -17,7 +18,7 @@ rule minimap2:
         minimap2 -t {threads} -ax map-ont \
         --secondary=no \
         {input.ref:q} \
-        {input.fastq:q} | samtools view -S -b - | (seqkit bam -j {params.seqkit_threads}  - 2> {output:q})
+        {input.fastq:q} | samtools view -@ {params.samtools_threads} -b - | (seqkit bam -j {params.seqkit_threads}  - 2> {output:q})
         """
         
 #This minimap call runs a mapping optimised for ont reads, only outputs the top hit for each
@@ -45,7 +46,7 @@ rule parse_mapping:
     shell:
         """
         python {params.path_to_script}/parse_seqkit_tsv.py \
-        --paf_file {input.mapped:q} \
+        --tsv_file {input.mapped:q} \
         --report {output.report:q} \
         --annotated_reads {input.fastq:q} \
         --reference_file {input.reference_file:q} \
