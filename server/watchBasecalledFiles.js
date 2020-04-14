@@ -18,24 +18,26 @@ const path = require('path');
 const { sleep, verbose, log, warn } = require('./utils');
 const { makeFileSortFunction } = require("./startUp");
 
+
 const newFastqFileHandler = (fileInfo) => {
   try {
     if (!fileInfo.looksLikeFastq) return;
-    if (global.filesSeen.has(fileInfo.name)) {
+    if (global.filesSeen.has(fileInfo.filesSeenName)) {
       // This shouldn't happen as FASTQs present at start-up are filtered 
       // against `filesSeen` before being passed to `newFastqFileHandler`
       // Therefore how can a "new" FASTQ already have been seen / annotated?
-      warn(`Detected "new" FASTQ ${fileInfo.name} which has already been seen!`)
+      warn(`Detected "new" FASTQ ${fileInfo.filesSeenName} which has already been seen!`)
       return;
     }
-    verbose("fastq watcher", `new basecalled file => adding "${fileInfo.name}" to annotation queue.`);
+    verbose("fastq watcher", `new basecalled file => adding "${fileInfo.filesSeenName}" to annotation queue.`);
+
     global.pipelineRunners.annotation.addToQueue({
       input_path: fileInfo.dir,
-      output_path: global.config.run.annotatedPath,
+      output_path: path.join(global.config.run.annotatedPath, fileInfo.subdir),
       filename_stem: fileInfo.name,
       filename_ext: fileInfo.ext
     });
-    global.filesSeen.add(fileInfo.name);
+    global.filesSeen.add(fileInfo.filesSeenName);
   } catch (err) {
     console.log(err);
   }
@@ -69,13 +71,13 @@ const startWatcher = () => {
   });
   watcher.on('ready', () => {
     // ready event fires at the end of the initial scan
-    const filepathsToBeAnnotated = fastqsAtInitialScan
-      .filter((fileInfo) => !global.filesSeen.has(fileInfo.name))
-    log(`Initial scan for FASTQs complete. Found ${fastqsAtInitialScan.length} files, ${filepathsToBeAnnotated.length} of which are unannotated (unprocesed).`);
-    if (filepathsToBeAnnotated.length) {
-      filepathsToBeAnnotated
-        .sort(makeFileSortFunction((f) => f.name))
-        .forEach((filepath) => newFastqFileHandler(filepath))
+    const filesToBeAnnotated = fastqsAtInitialScan
+      .filter((fileInfo) => !global.filesSeen.has(fileInfo.filesSeenName))
+    log(`Initial scan for FASTQs complete. Found ${fastqsAtInitialScan.length} files, ${filesToBeAnnotated.length} of which are unannotated (unprocesed).`);
+    if (filesToBeAnnotated.length) {
+      filesToBeAnnotated
+        .sort(makeFileSortFunction((f) => f.filesSeenName))
+        .forEach((fileInfo) => newFastqFileHandler(fileInfo))
     }
     initialScanComplete = true;
     log(`Watching for new files`);
@@ -106,13 +108,19 @@ function getFileInfo(filePath) {
   const ext = pathInfo.ext===".fastq" ? ".fastq" : 
     (pathInfo.ext===".gz" && pathInfo.name.endsWith(".fastq")) ? ".fastq.gz" :
     "unknown";
+  const name = pathInfo.base.replace(ext, '');
+  const dir = pathInfo.dir;
+  const subdir = path.relative(global.config.run.basecalledPath, dir);
+  const filesSeenName = path.join(subdir, name);
   return {
     looksLikeFastq: (ext===".fastq" || ext===".fastq.gz"),
     root: pathInfo.root,
-    dir: pathInfo.dir,
-    base: pathInfo.base,
-    name: pathInfo.base.replace(ext, ''),
-    ext
+    dir,                   /* directory the file is in */
+    base: pathInfo.base,   /* basename. Includes extension. This is `name`+`ext` */
+    subdir,                /* subdirectory the file is in relative to the basecalledPath */
+    filesSeenName,         /* subdirectory + name */
+    name,                  /* name (no extension) */
+    ext                    /* extension */
   };
 }
 
