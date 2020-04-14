@@ -30,18 +30,22 @@ const getFilesFromDirectory = async (dir, extension) => {
         .map((j) => path.join(dir, j));
 };
 
-// Create a sort function which will take a filename or filepath,
-// and analyse the basename (less the provided `extension`).
+
+// Create a sort function which will take a filename or filepath or similar
+// and sort them. It is a generator function, with argument `transform` which
+// transforms the provided arguments into a string (basename) to compare.
 // We attempt to sort using a numerical field at the end of the basename,
 // and if this isn't present then we sort alphabetically
-const makeFileSortFunction = (extension) => (a, b) => {
+const makeFileSortFunction = (transform) => (a, b) => {
+  const aToUse = transform(a);
+  const bToUse = transform(b);
   const regex = /(\d+)$/;
-  const ai = path.basename(a, extension).match(regex);
-  const bi = path.basename(b, extension).match(regex);
+  const ai = aToUse.match(regex);
+  const bi = bToUse.match(regex);
   if (ai && ai.length > 1 && bi && bi.length > 1) {
       return parseInt(ai[1], 10) - parseInt(bi[1], 10);
   }
-  return a.localeCompare(b);
+  return aToUse.localeCompare(bToUse);
 };
 
 
@@ -62,7 +66,8 @@ const removeExistingAnnotatedCSVs = async () => {
  */
 const processExistingAnnotatedCSVs = async () => {
     const csvs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
-    const pathsOfAnnotatedCSVs = csvs.sort(makeFileSortFunction(".csv"));
+    const csvTransformFn = (f) => path.basename(f, ".csv");
+    const pathsOfAnnotatedCSVs = csvs.sort(makeFileSortFunction(csvTransformFn));
 
     log(`Found ${pathsOfAnnotatedCSVs.length} annotated CSV files in ${prettyPath(global.config.run.annotatedPath)}. FASTQs with the same filename as these will be ignored.`);
     /* TODO - we could sort these based on time stamps if we wished */
