@@ -2,6 +2,10 @@
 
 ## __NEXT__
 
+* Fastqs with identical names (but which are in different subdirectories) are now able to be processed.
+The annotated CSVs are now stored in subdirectories which reflect the FASTQ structure.
+* Gzipped FASTQ files can now be used. They must have the filename extension `.fastq.gz`
+
 ## 1.1.0 (01 April 2020)
 
 #### Major changes
