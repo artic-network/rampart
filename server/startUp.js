@@ -19,16 +19,15 @@ const { addToParsingQueue } = require("./annotationParser");
 const readdir = promisify(fs.readdir);
 const { prettyPath, log } = require('./utils');
 
-const getFilesFromDirectory = async (dir, extension) => {
-    let fastqs = (await readdir(dir));
-    return fastqs
-        .filter((j) => {
-            const ext = extension;
-            return j.endsWith(`.${ext}`);
-        })
-        .sort((a, b) => parseInt(a.match(/\d+/), 10) > parseInt(b.match(/\d+/), 10) ? 1 : -1)
-        .map((j) => path.join(dir, j));
-};
+async function getCSVs(dir) {
+  const dirents = await readdir(dir, { withFileTypes: true });
+  const files = await Promise.all(dirents.map((dirent) => {
+    const res = path.resolve(dir, dirent.name);
+    return dirent.isDirectory() ? getCSVs(res) : res;
+  }));
+  return Array.prototype.concat(...files)
+    .filter((f) => f.endsWith('.csv'));
+}
 
 
 // Create a sort function which will take a filename or filepath or similar
@@ -51,32 +50,42 @@ const makeFileSortFunction = (transform) => (a, b) => {
 
 const removeExistingAnnotatedCSVs = async () => {
   log(`Clearing CSVs from the annotated folder (${prettyPath(global.config.run.annotatedPath)})`);
-  const annotatedFilesToDelete = await readdir(global.config.run.annotatedPath);
-  for (const file of annotatedFilesToDelete) {
-      const fullPath = path.join(global.config.run.annotatedPath, file);
-      if (!fs.lstatSync(fullPath).isDirectory() && fullPath.endsWith(".csv")) {
-          fs.unlinkSync(fullPath);
+
+  const deleteCSVsRecursive = async (dir) => {
+    const dirents = await readdir(dir, { withFileTypes: true })
+    for (const dirent of dirents) {
+      const res = path.resolve(dir, dirent.name);
+      if (dirent.isDirectory()) {
+        await deleteCSVsRecursive(res);
+      } else {
+        fs.unlinkSync(res);
       }
-  }
+    }
+    fs.rmdirSync(dir);
+  };
+
+  await deleteCSVsRecursive(global.config.run.annotatedPath);
 }
 
 /**
- * Process existing datafiles (basecalled FASTQs + annotated CSVs)
- * Adds these (as appropriate, no duplicates) to annotation & parsing queues.
+ * Process existing annotated CSVs
+ * Adds these (as appropriate, no duplicates) to parsing queues and filesSeen (so no dups)
  */
 const processExistingAnnotatedCSVs = async () => {
-    const csvs = await getFilesFromDirectory(global.config.run.annotatedPath, 'csv');
-    const csvTransformFn = (f) => path.basename(f, ".csv");
-    const pathsOfAnnotatedCSVs = csvs.sort(makeFileSortFunction(csvTransformFn));
+    const csvs = await getCSVs(global.config.run.annotatedPath)
+    const csvTransformFn = (f) => path.relative(global.config.run.annotatedPath, f).replace(/\.csv$/, '');
 
+    const pathsOfAnnotatedCSVs = csvs.sort(makeFileSortFunction(csvTransformFn));
     log(`Found ${pathsOfAnnotatedCSVs.length} annotated CSV files in ${prettyPath(global.config.run.annotatedPath)}. FASTQs with the same filename as these will be ignored.`);
     /* TODO - we could sort these based on time stamps if we wished */
     /* TODO - we could filter these to remove ones without a corresponding FASTQ, but that wouldn't let
     us start from annotated files which may be useful */
+
     pathsOfAnnotatedCSVs.forEach((f) => {
         addToParsingQueue(f);
-        global.filesSeen.add(path.basename(f, '.csv'));
+        global.filesSeen.add(csvTransformFn(f));
     });
+    // console.log("After initial scan, filesSeen:", global.filesSeen)
 }
 
 module.exports = {
