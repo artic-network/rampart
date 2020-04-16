@@ -15,6 +15,7 @@ rule minimap2:
     threads: config["threads"]
     shell:
         """
+        seqkit version;
         minimap2 -t {threads} -ax map-ont \
         --secondary=no \
         {input.ref:q} \
