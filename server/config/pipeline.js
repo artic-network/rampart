@@ -61,7 +61,9 @@ function setUpPipelines(config, args, pathCascade) {
                 // set up the runner
                 pipelineRunners[key] = new PipelineRunner({
                     config: pipeline,
-                    onSuccess: (job) => {addToParsingQueue(path.join(config.run.annotatedPath, job.filename_stem + '.csv'));},
+                    onSuccess: (job) => {
+                        addToParsingQueue(path.join(job.output_path, job.filename_stem + '.csv'));
+                    },
                     queue: true
                 });
             } else {

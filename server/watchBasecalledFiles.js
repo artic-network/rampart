@@ -18,26 +18,26 @@ const path = require('path');
 const { sleep, verbose, log, warn } = require('./utils');
 const { makeFileSortFunction } = require("./startUp");
 
-const newFastqFileHandler = (newfile) => {
-  try{
-    const pathInfo = path.parse(newfile);
-    if (pathInfo.ext !== ".fastq") return;
-    if (global.filesSeen.has(pathInfo.name)) {
+
+const newFastqFileHandler = (fileInfo) => {
+  try {
+    if (!fileInfo.looksLikeFastq) return;
+    if (global.filesSeen.has(fileInfo.filesSeenName)) {
       // This shouldn't happen as FASTQs present at start-up are filtered 
       // against `filesSeen` before being passed to `newFastqFileHandler`
       // Therefore how can a "new" FASTQ already have been seen / annotated?
-      warn(`Detected "new" FASTQ ${pathInfo.name} which has already been seen!`)
+      warn(`Detected "new" FASTQ ${fileInfo.filesSeenName} which has already been seen!`)
       return;
     }
-    verbose("fastq watcher", `new basecalled file => adding "${pathInfo.name}" to annotation queue.`);
+    verbose("fastq watcher", `new basecalled file => adding "${fileInfo.filesSeenName}" to annotation queue.`);
 
     global.pipelineRunners.annotation.addToQueue({
-      input_path: pathInfo.dir,
-      output_path: global.config.run.annotatedPath,
-      filename_stem: pathInfo.name
+      input_path: fileInfo.dir,
+      output_path: path.join(global.config.run.annotatedPath, fileInfo.subdir),
+      filename_stem: fileInfo.name,
+      filename_ext: fileInfo.ext
     });
-
-    global.filesSeen.add(pathInfo.name);
+    global.filesSeen.add(fileInfo.filesSeenName);
   } catch (err) {
     console.log(err);
   }
@@ -60,21 +60,25 @@ const startWatcher = () => {
   log(`Scanning folder ${global.config.run.basecalledPath} for FASTQs`);
   log(`(basecalled files which exist here (or are created here by MinKNOW) will be annotated and loaded)\n`);
   watcher.on("add", (filepath) => {
+    const fileInfo = getFileInfo(filepath);
     if (initialScanComplete) {
-      newFastqFileHandler(filepath);
+      newFastqFileHandler(fileInfo);
     } else {
-      if (path.parse(filepath).ext === ".fastq") {
-        fastqsAtInitialScan.push(filepath)
+      if (fileInfo.looksLikeFastq) {
+        fastqsAtInitialScan.push(fileInfo)
       }
     }
   });
   watcher.on('ready', () => {
-    const filepathsToBeAnnotated = fastqsAtInitialScan
-        .filter((fp) => !global.filesSeen.has(path.basename(fp, ".fastq")))
-    log(`Initial scan for FASTQs complete. Found ${fastqsAtInitialScan.length} files, ${filepathsToBeAnnotated.length} of which had not already been annotated.`);
-    filepathsToBeAnnotated
-      .sort(makeFileSortFunction(".fastq"))
-      .forEach((filepath) => newFastqFileHandler(filepath))
+    // ready event fires at the end of the initial scan
+    const filesToBeAnnotated = fastqsAtInitialScan
+      .filter((fileInfo) => !global.filesSeen.has(fileInfo.filesSeenName))
+    log(`Initial scan for FASTQs complete. Found ${fastqsAtInitialScan.length} files, ${filesToBeAnnotated.length} of which are unannotated (unprocesed).`);
+    if (filesToBeAnnotated.length) {
+      filesToBeAnnotated
+        .sort(makeFileSortFunction((f) => f.filesSeenName))
+        .forEach((fileInfo) => newFastqFileHandler(fileInfo))
+    }
     initialScanComplete = true;
     log(`Watching for new files`);
   });
@@ -97,6 +101,27 @@ const startBasecalledFilesWatcher = async () => {
     await sleep(5000);
     log("INFO: basecalled directory doesn't yet exist. Checking again in 5s.")
   }
+}
+
+function getFileInfo(filePath) {
+  const pathInfo = path.parse(filePath);
+  const ext = pathInfo.ext===".fastq" ? ".fastq" : 
+    (pathInfo.ext===".gz" && pathInfo.name.endsWith(".fastq")) ? ".fastq.gz" :
+    "unknown";
+  const name = pathInfo.base.replace(ext, '');
+  const dir = pathInfo.dir;
+  const subdir = path.relative(global.config.run.basecalledPath, dir);
+  const filesSeenName = path.join(subdir, name);
+  return {
+    looksLikeFastq: (ext===".fastq" || ext===".fastq.gz"),
+    root: pathInfo.root,
+    dir,                   /* directory the file is in */
+    base: pathInfo.base,   /* basename. Includes extension. This is `name`+`ext` */
+    subdir,                /* subdirectory the file is in relative to the basecalledPath */
+    filesSeenName,         /* subdirectory + name */
+    name,                  /* name (no extension) */
+    ext                    /* extension */
+  };
 }
 
 
