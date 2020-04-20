@@ -5,6 +5,9 @@
 * Fastqs with identical names (but which are in different subdirectories) are now able to be processed.
 The annotated CSVs are now stored in subdirectories which reflect the FASTQ structure.
 * Gzipped FASTQ files can now be used. They must have the filename extension `.fastq.gz`
+* We now provide a `--cores` argument to Snakemake, allowing snakemake v5.11 and higher to be used
+* We provide better information about samples for which no reads are yet available (i.e. no FASTQ has been written)
+
 
 ## 1.1.0 (01 April 2020)
 
