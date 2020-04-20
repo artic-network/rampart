@@ -40,13 +40,19 @@ const TriggerPanelExpand = ({sampleColour, isExpanded, handleClick}) => {
 const InfoRow = ({sampleName, sampleData, sampleColour, menuItems, handleClick, isExpanded, timeSinceLastDataUpdate}) => {
     const summaryTitle = `${sampleName}`;
 
-    let summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.processedCount} processed | ` +
-        `${sampleData.temporal.length > 0 ? Math.round(sampleData.temporal[sampleData.temporal.length - 1].processedRate) : "N/A"} reads/sec `;
-    const readLastSeen = sampleData.readsLastSeen+timeSinceLastDataUpdate;
-    if (readLastSeen > 5) {
-      const timeFormatter = makeTimeFormatter();
-      summaryText += `| read last seen ${timeFormatter(readLastSeen)} ago`
+    let summaryText;
+    if (sampleData.processedCount === 0) {
+      summaryText = "No data yet written to FASTQ"
+    } else {
+      summaryText = `${sampleData.mappedCount} reads mapped | ${sampleData.processedCount} processed | `;
+      summaryText += `${sampleData.temporal.length > 0 ? Math.round(sampleData.temporal[sampleData.temporal.length - 1].processedRate) : "N/A"} reads/sec `;
+      const readLastSeen = sampleData.readsLastSeen+timeSinceLastDataUpdate;
+      if (readLastSeen > 5) {
+        const timeFormatter = makeTimeFormatter();
+        summaryText += `| read last seen ${timeFormatter(readLastSeen)} ago`
+      }
     }
+
     return (
         <div className="infoRow" style={{color: sampleColour}}>
             <div>
