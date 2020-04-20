@@ -13,6 +13,7 @@
  */
 
 const fs = require('fs');
+const yaml = require('js-yaml');
 const path = require('path');
 const { getAbsolutePath, warn, fatal, ensurePathExists, verbose } = require("../utils");
 const { assert, findConfigFile, getBarcodesInConfig } = require("./helpers");
@@ -40,6 +41,12 @@ function setUpPipelines(config, args, pathCascade) {
             /* If there are no config options defined, then set them to the empty object */
             if (!pipeline.configOptions) {
                 pipeline.configOptions = {};
+            }
+
+            /* start by setting the requested threads to 1 (this will be updated according to config files / args) */
+            pipeline.threads_requested = 1;
+            if (pipeline.configOptions.threads && Number.isInteger(pipeline.configOptions.threads)) {
+              pipeline.threads_requested = pipeline.configOptions.threads;
             }
 
             if (key === "annotation") {
@@ -168,9 +175,15 @@ function checkPipeline(config, key, pipeline, giveWarning = false) {
     }
 
     if (!message && pipeline.config_file) {
+        const snakemakeConfigFilePath = getAbsolutePath(pipeline.config_file, {relativeTo: pipeline.path});
         /* the config file is relative to the snakemake file */
-        if (!fs.existsSync(getAbsolutePath(pipeline.config_file, {relativeTo: pipeline.path}))) {
+        if (!fs.existsSync(snakemakeConfigFilePath)) {
             message = `config file doesn't exist`;
+        } else {
+          let data = yaml.safeLoad(fs.readFileSync(snakemakeConfigFilePath, 'utf8'));
+          if (data.threads && Number.isInteger(data.threads) && data.threads > pipeline.threads_requested) {
+            pipeline.threads_requested = data.threads;
+          }
         }
     }
 
