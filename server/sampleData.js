@@ -28,6 +28,17 @@ const SampleData = function() {
     this.readLengthCounts = {};
     this.refMatchCoverages = {};
     // this.refMatchSimilarities = {};
+
+    // Supplementary fields
+    this.mapQual = Array.from(new Array(601), () => 0);
+    this.meanQual = Array.from(new Array(601), () => 0);
+    this.identity = Array.from(new Array(101), () => 0);
+    this.refCov = Array.from(new Array(101), () => 0);
+    this.readCov = Array.from(new Array(101), () => 0);
+    this.alnBlockLen = Array.from(new Array(2000), () => 0);
+    this.readAln = Array.from(new Array(2000), () => 0);
+    this.leftClip = Array.from(new Array(2000), () => 0);
+    this.rightClip = Array.from(new Array(2000), () => 0);
 };
 
 // const getCoverageBins = (readPos) => {
@@ -75,6 +86,40 @@ SampleData.prototype.updateCoverage = function(reads) {
         addCoverage(read, this.coverage, global.config.display.numCoverageBins);
     })
 };
+
+
+/**
+ * Returns binned value
+ */
+
+const binCov = function(cov) {
+    return parseInt(cov)
+};
+
+const binQual = function (qual) {
+    return parseInt(qual / 0.1)
+};
+
+const binIdentity = function(identity) {
+    return parseInt(identity / 0.01)
+};
+
+
+/**
+ * Modifies `this[attrName]`
+ */
+SampleData.prototype.updateBinnedAttribute = function(reads, attrName, binCallback) {
+    reads.forEach((read) => {
+        this[attrName][binCallback(read[attrName])] += 1
+    })
+};
+
+SampleData.prototype.updateValuesAttribute = function(reads, attrName) {
+    reads.forEach((read) => {
+        this[attrName][read[attrName]] += 1
+    })
+};
+
 
 /**
  * Modifies `this.readLengthCounts` and `this.readLengthMappedCounts`
@@ -267,6 +312,25 @@ const updateSampleDataWithNewReads = (sampleData, reads) => {
 
     /* Following removed as the client no longer uses it - Mar 30 2020 */
     // sampleData.updateRefMatchSimilarities(reads);
+
+    // Update supplemental columns
+    sampleData.updateBinnedAttribute(reads, 'mapQual', binQual);
+
+    sampleData.updateBinnedAttribute(reads, 'meanQual', binQual);
+
+    sampleData.updateBinnedAttribute(reads, 'identity', binIdentity);
+
+    sampleData.updateBinnedAttribute(reads, 'refCov', binCov);
+
+    sampleData.updateBinnedAttribute(reads, 'readCov', binCov);
+
+    sampleData.updateValuesAttribute(reads, 'alnBlockLen');
+
+    sampleData.updateValuesAttribute(reads, 'readAln');
+
+    sampleData.updateValuesAttribute(reads, 'leftClip');
+
+    sampleData.updateValuesAttribute(reads, 'rightClip');
 
     return {referencesSeen};
 }

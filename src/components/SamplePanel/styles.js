@@ -1,6 +1,19 @@
 import styled from 'styled-components';
 
 
+const getHeight = ({ panelExpanded, showSupCharts }) => {
+    if(panelExpanded && showSupCharts) {
+        return "1500px";
+    }
+
+    if (panelExpanded) {
+        return "430px";
+    }
+
+    return "30px";
+};
+
+
 const SamplePanelContainer = styled.div`
     position: relative;
     width: 98%;
@@ -11,7 +24,7 @@ const SamplePanelContainer = styled.div`
     border-radius: 5px;
     border-left: 5px solid ${(props) => props.sampleColour};
     overflow: hidden;
-    height: ${(props) => props.panelExpanded ? "370px" : "30px"};
+    height: ${(props) => getHeight(props)};
     min-height: ${(props) => props.panelExpanded ? "370px" : "30px"};
 
     > .infoRow {
@@ -45,7 +58,8 @@ export const ChartContainer = styled.div`
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
-    height: calc(100% - 26px);
+    height: calc(100% - 50px);
+    max-height: 370px;
 `;
 
 export const ExpandIconContainer = styled.div`
@@ -56,5 +70,25 @@ export const ExpandIconContainer = styled.div`
     cursor: pointer;
     transform: scale(1.3);
 `;
+
+export const SupplementaryChartContainer = styled.div`
+    height: 1100px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    
+    > button {
+        padding: 15px 0;
+        margin: 0 auto;
+        display: inline-block;
+        textAlign: center;
+        background: none;
+        outline: none;
+        cursor: pointer;
+        border: none;
+        color: ${(props) => props.sampleColour};
+    }
+`;
+
 
 export default SamplePanelContainer;

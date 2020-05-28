@@ -94,7 +94,7 @@ Datastore.prototype.addAnnotatedSetOfReads = function(fileNameStem, annotations)
     /* have we observed any barcodes here which _aren't_ in the config? */
     let newBarcodesObserved = false;
     [...barcodes].filter((b) => !getBarcodesInConfig(global.config).has(b)).forEach((barcode) => {
-        verbose("datastore", `New barcode observed: ${barcode}`);
+        verbose("datastore", `New readsbarcode observed: ${barcode}`);
         /* create a sample in the config (should be a function) */
         global.config.run.samples.push({
             name: barcode,
@@ -294,6 +294,18 @@ Datastore.prototype.getDataForClient = function() {
             readsLastSeen: sampleData.readsLastSeenTime > 0 ? (this.currentTimestamp - sampleData.readsLastSeenTime) / 1000 : 0,
             refMatches: refMatchesAcrossSamples[sampleName],
             coverage: sampleData.coverage,
+
+            // Supplementary fields
+            mapQual: sampleData.mapQual,
+            identity: sampleData.identity,
+            alnBlockLen: sampleData.alnBlockLen,
+            refCov: sampleData.refCov,
+            readAln: sampleData.readAln,
+            readCov: sampleData.readCov,
+            meanQual: sampleData.meanQual,
+            leftClip: sampleData.leftClip,
+            rightClip: sampleData.rightClip,
+
             maxCoverage: sampleData.coverage.reduce((pv, cv) => cv > pv ? cv : pv, 0),
             temporal: sampleData.summariseTemporalData(this.timestampAdjustment),
             readLengthsMapped: summariseReadLengths(sampleData.readLengthMappedCounts),

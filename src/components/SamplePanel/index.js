@@ -16,12 +16,15 @@ import React, {useState, useEffect} from 'react';
 import CoveragePlot from "../Charts/Coverage";
 import ReadLengthDistribution from "../Charts/ReadLengthDistribution";
 import CoverageOverTime from "../Charts/CoverageOverTime";
+import SimpleFrequencyHist from "../Charts/SimpleFrequencyHist";
 // import RefSimilarity from "../Charts/RefSimilarity";
 import InfoRow from "./infoRow";
 import { getPostProcessingMenuItems, PostProcessingRunner } from "./postProcessing";
 import { IoIosExpand, IoIosContract } from "react-icons/io";
 import { TimerContext } from "../App";
-import SamplePanelContainer, {ChartContainer, ExpandIconContainer} from "./styles";
+import SamplePanelContainer, {
+  ChartContainer, ExpandIconContainer, SupplementaryChartContainer
+} from "./styles";
 
 const ExpandChart = ({handleClick}) => {
   return (
@@ -47,6 +50,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
   const [showSinglePanel, setShowSinglePanel] = useState(false);
   const [transitionInProgress, setTransitionInProgress] = useState(false);
   const [postProcessingState, setPostProcessingState] = useState(false);
+  const [showSupCharts, setShowSupCharts] = useState(false);
   
   /* When the parent tells us to expand / contract the panel, we want to trigger a transition. Why?
    *    The charts, upon initial rendering, calculate the SVG dimentions from the DOM they're in.
@@ -68,6 +72,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
 
   /* -------------- DATA TRANSFORMS ----------------- */
   const coverageData = {};
+  const mapQualData = {};
   coverageData[sampleName] = sampleData;
   const sampleConfig = config.run.samples.filter((d) => d.name === sampleName).shift();
   const sampleColour = sampleConfig ? sampleConfig.colour : "#FFFFFF";
@@ -124,7 +129,7 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
             (<ExpandChart handleClick={() => goToChart("coverageOverTime")}/>)
         }
       />
-    )/*,
+    ),/*,
     refSimilarity: (
         <RefSimilarity
             title={"Read mapping similarities"}
@@ -140,7 +145,161 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
         }
         />
     )*/
-
+    mapQual: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "mapQual") ? "100%" : "30%"}
+        data={coverageData}
+        scaleFactor={0.1}
+        attrName="mapQual"
+        title="Mapping Quality"
+        xLabel="QScore"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="mapQualPlot"
+        renderProp={ showSinglePanel === "mapQual" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("mapQual")}/>)
+        }
+      />
+    ),
+    meanQual: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "meanQual") ? "100%" : "30%"}
+        data={coverageData}
+        scaleFactor={0.1}
+        attrName="meanQual"
+        title="Mean Quality"
+        xLabel="QScore"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="meanQualPlot"
+        renderProp={ showSinglePanel === "meanQual" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("meanQual")}/>)
+        }
+      />
+    ),
+    identity: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "identity") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="identity"
+        title="Identity"
+        xLabel="% Identity"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="identityPlot"
+        renderProp={ showSinglePanel === "identity" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("identity")}/>)
+        }
+      />
+    ),
+    refCov: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "refCov") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="refCov"
+        title="Reference coverage"
+        xLabel="% Cov"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="refCovPlot"
+        renderProp={ showSinglePanel === "refCov" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("refCov")}/>)
+        }
+      />
+    ),
+    readCov: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "readCov") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="readCov"
+        title="Read coverage"
+        xLabel="% Cov"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="refCovPlot"
+        renderProp={ showSinglePanel === "readCov" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("readCov")}/>)
+        }
+      />
+    ),
+    alnBlockLen: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "alnBlockLen") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="alnBlockLen"
+        title="Aligned block length"
+        xLabel="Length (bp)"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="alnBlockLenPlot"
+        renderProp={ showSinglePanel === "alnBlockLen" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("alnBlockLen")}/>)
+        }
+      />
+    ),
+    readAln: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "readAln") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="readAln"
+        title="Read alignment length"
+        xLabel="Length (bp)"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="readAlnPlot"
+        renderProp={ showSinglePanel === "readAln" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("readAln")}/>)
+        }
+      />
+    ),
+    leftClip: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "leftClip") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="leftClip"
+        title="Left clip"
+        xLabel="Length (bp)"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="leftClipPlot"
+        renderProp={ showSinglePanel === "leftClip" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("leftClip")}/>)
+        }
+      />
+    ),
+    rightClip: (
+      <SimpleFrequencyHist
+        width={(showSinglePanel === "rightClip") ? "100%" : "30%"}
+        data={coverageData}
+        attrName="rightClip"
+        title="Right clip"
+        xLabel="Length (bp)"
+        sampleColours={sampleColours}
+        fillIn={true}
+        config={config}
+        key="rightClipPlot"
+        renderProp={ showSinglePanel === "rightClip" ?
+            (<ContractChart handleClick={() => goToChart(false)}/>) :
+            (<ExpandChart handleClick={() => goToChart("rightClip")}/>)
+        }
+      />
+    )
   };
 
   /* ---------------   WHAT CHARTS DO WE RENDER?   -------------- */
@@ -156,10 +315,27 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
     )
   };
 
+  /* ---------------   WHAT SUP CHARTS DO WE RENDER?   -------------- */
+  const renderSupCharts = () => {
+    if (!panelExpanded) return null;
+    const chartsToShow = showSinglePanel ?
+    charts[showSinglePanel] :
+    [charts.mapQual, charts.meanQual, charts.identity, charts.refCov,
+     charts.readCov, charts.alnBlockLen, charts.readAln, charts.leftClip,
+      charts.rightClip];
+    return (
+    <ChartContainer>
+        {chartsToShow}
+    </ChartContainer>
+    )
+  };
+
+
   /* ----------------- R E N D E R ---------------- */
   return (
     <SamplePanelContainer
       panelExpanded={panelExpanded}
+      showSupCharts={showSupCharts}
       sampleColour={sampleColour}
     > 
       <TimerContext.Consumer>
@@ -185,6 +361,22 @@ const SamplePanel = ({sampleName, sampleData, config, reference, socket, panelEx
         />
       ) : null}
       {transitionInProgress ? null : renderCharts()}
+
+      <SupplementaryChartContainer
+        sampleColour={sampleColour}
+      >
+        <button
+          type="button"
+          onClick={() => setShowSupCharts(!showSupCharts)}>
+          {
+            showSupCharts
+            ? ('Hide supplementary charts')
+            : ('Show supplementary charts')
+          }
+        </button>
+        {transitionInProgress || !showSupCharts ? null : renderSupCharts()}
+      </SupplementaryChartContainer>
+
     </SamplePanelContainer>
   );
 };

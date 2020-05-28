@@ -16,6 +16,7 @@
  * Code related to parsing an annotated CSV file & adding it to `global.datastore`
  */
 const fs = require('fs');
+const _ = require('lodash');
 const path = require('path');
 const dsv = require('d3-dsv');
 const Deque = require("collections/deque");
@@ -58,13 +59,31 @@ const annotationParser = async () => {
 
         const fileToParse = parsingQueue.shift();
         const filenameStem = path.basename(fileToParse, '.csv');
+
+        const fileToParsePath = path.parse(fileToParse);
+        const supFileToParse = `${fileToParsePath.dir}/${fileToParsePath.name}_sup.csv`;
+
         let annotations;
+        let supAnnotations;
 
         verbose("annotation parser", `Parsing annotation for ${filenameStem}`);
         verbose("annotation parser", `${parsingQueue.length} files remain in queue`);
 
         try {
             annotations = await parseAnnotations(fileToParse);
+            supAnnotations = await parseAnnotations(supFileToParse);
+
+            if (supAnnotations) {
+                const sortedAnnotations = _.sortBy(annotations, 'read_name');
+                const sortedSupAnnotations = _.sortBy(supAnnotations, 'read_name');
+
+                annotations = sortedAnnotations.map((A, index) => ({
+                    ...sortedSupAnnotations[index], ...A, supplemental: true,
+                }));
+            }
+
+            verbose("annotation parser", `simulating real-time - pausing for ${global.config.run.simulateRealTime} seconds`);
+
             if (annotations) {
                 if (global.config.run.simulateRealTime && global.config.run.simulateRealTime > 0) {
                     verbose("annotation parser", `simulating real-time - pausing for ${global.config.run.simulateRealTime} seconds`);
@@ -140,6 +159,20 @@ const createReadsFromAnnotation = (fastqStem, annotations) => {
             dataPoint.topRefHit = referenceCall;
             dataPoint.topRefHitSimilarity = parseInt(d.num_matches, 10) / parseInt(d.mapping_len, 10);
         }
+
+        // Add the supplemental data in, if it exists!
+        if (d.supplemental) {
+            dataPoint.mapQual = d.MapQual;
+            dataPoint.identity = d.identity;
+            dataPoint.alnBlockLen = d.aln_block_len;
+            dataPoint.refCov = d.RefCov;
+            dataPoint.readAln = d.ReadAln;
+            dataPoint.readCov = d.ReadCov;
+            dataPoint.meanQual = d.MeanQual;
+            dataPoint.leftClip = d.LeftClip;
+            dataPoint.rightClip = d.RightClip;
+        }
+
         dataPoint.readLength = readLength;
         dataPoint.time = (new Date(d.start_time)).getTime();
 
