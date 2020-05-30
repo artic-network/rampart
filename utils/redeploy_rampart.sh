@@ -10,17 +10,19 @@ then
 fi
 
 export PS1="$"
-source $HOME/miniconda3/etc/profile.d/conda.sh
+eval "$(conda shell.bash hook)"
 `conda env list | grep artic-rampart > /dev/null`
 if [[ $? -eq 0 ]];
 then
 	echo Removing existing conda enviroment.
-	conda deactivate
+	#conda deactivate
 	conda env remove -n artic-rampart
 fi
 
 echo Creating new artic-rampart environment.
-conda env create -f environment.yml
+conda install -y mamba
+mamba env create -f environment.yml
+conda deactivate
 conda activate artic-rampart
 
 echo Create new artic-rampart environment.
