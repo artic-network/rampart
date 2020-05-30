@@ -46,6 +46,8 @@ class PipelineRunner {
 
         this._processedCount = 0;
 
+        this._threadsRequested = config.threads_requested || 1;
+
         this._isRunning = false;
         if (queue) {
             this._onSuccess = onSuccess; // callback
@@ -164,6 +166,8 @@ class PipelineRunner {
             spawnArgs.push('--nolock');
             spawnArgs.push('--rerun-incomplete');
 
+            /* Snakemake accepts a --cores arg, and 5.11 made this compulsory */
+            spawnArgs.push(...['--cores', this._threadsRequested]);
 
             verbose(`pipeline (${this._name})`, `snakemake ` + spawnArgs.join(" "));
 

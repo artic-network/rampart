@@ -157,6 +157,15 @@ const ReadCounts = ({data, config}) => {
       </thead>
       <tbody>
         {names.map((name) => {
+          /* don't display stats if no reads have been processed */
+          if (data[name].processedCount === 0) {
+            return (
+              <tr>
+                <th>{name}</th>
+                <td colspan="5" style={{textAlign: "center", fontStyle: "italic"}}>No data yet written to FASTQ</td>
+              </tr>
+            )
+          }
           const readLengths = getReadLengths(data[name].readLengths);
           return (
             <tr key={name}>
