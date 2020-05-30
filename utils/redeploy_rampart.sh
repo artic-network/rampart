@@ -15,7 +15,6 @@ eval "$(conda shell.bash hook)"
 if [[ $? -eq 0 ]];
 then
 	echo Removing existing conda enviroment.
-	#conda deactivate
 	conda env remove -n artic-rampart
 fi
 
@@ -27,4 +26,4 @@ conda activate artic-rampart
 
 echo Create new artic-rampart environment.
 npm install
-npm install --global .
+npm run build
