@@ -48,7 +48,7 @@ Python, biopython, snakemake and minimap2 are required
 ```bash
 conda install -y "python>=3.6"
 conda install -y anaconda::biopython 
-conda install -y -c conda-forge -c bioconda "snakemake<5.11" # snakemake 5.11 will not work currently
+conda install -y -c conda-forge -c bioconda "snakemake-minimal=5.8.1" # later snakemake versions will not work currently
 conda install -y bioconda::minimap2=2.17
 ```
 
