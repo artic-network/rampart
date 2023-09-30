@@ -1,6 +1,6 @@
 {
   "name": "artic-rampart",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "James Hadfield, Ainé O'Toole, ARTIC network, Nick Loman, Andrew Rambaut",
   "bin": {
     "rampart": "./rampart.js"
