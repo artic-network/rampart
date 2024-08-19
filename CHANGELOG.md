@@ -8,6 +8,9 @@ The annotated CSVs are now stored in subdirectories which reflect the FASTQ stru
 * We now provide a `--cores` argument to Snakemake, allowing snakemake v5.11 and higher to be used
 * We provide better information about samples for which no reads are yet available (i.e. no FASTQ has been written)
 
+## 1.2.1 (19 August 2024)
+
+Added dockerfile and github action to automatically build and push images from main to dockerhub on release
 
 ## 1.1.0 (01 April 2020)
 
