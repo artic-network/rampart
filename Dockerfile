@@ -1,6 +1,14 @@
 # A modified verion of Corey's Dockerfile from: https://github.com/CorwinAnsley/artifice/blob/main/artifice/docker_rampart/Dockerfile
 # This will create a docker container that can run rampart and comes preloaded with the mpvx rampart protocol
 
+# start with an image with conda installed
+FROM continuumio/miniconda3 AS compile-image
+
+# set working directory
+WORKDIR /data
+
+# install gcc/make for porechop
+RUN apt-get update -y && apt-get upgrade -y
 RUN apt install build-essential -y --no-install-recommends
 
 # copy in protocol files
