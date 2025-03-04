@@ -56,19 +56,10 @@ COPY --from=compile-image /data/rampart-mpxv /data/rampart-mpxv
 # Copy /venv from the previous stage:
 COPY --from=compile-image /venv /venv
 
-WORKDIR /data/run_data/
+RUN apt-get update && apt-get install -y procps
 
 # set environment variable PYTHONUNBUFFERED to allow unbuffered log output for artifice
 ENV PYTHONUNBUFFERED=1
 
-# create directories to mount the basecalled directory and protocol
-RUN mkdir -p /data/run_data/basecalled && \
-mkdir -p /data/run_data/protocol && \
-cp -a /data/rampart/default_protocol/.  /data/run_data/protocol
-
 SHELL ["/bin/bash", "-c"]
-
-# run rampart
-ENTRYPOINT source /venv/bin/activate && if ["$BARCODES" == ""] ; \
-then rampart --protocol /data/run_data/protocol --ports ${PORT_ONE} ${PORT_TWO} --basecalledPath /data/run_data/basecalled  --clearAnnotated; \
-else rampart --protocol /data/run_data/protocol --ports ${PORT_ONE} ${PORT_TWO} --basecalledPath /data/run_data/basecalled --barcodeNames ${BARCODES} --clearAnnotated ; fi
+ENTRYPOINT source /venv/bin/activate && /bin/bash
