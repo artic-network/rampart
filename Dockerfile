@@ -11,9 +11,6 @@ WORKDIR /data
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt install build-essential -y --no-install-recommends
 
-# copy in protocol files
-RUN git clone https://github.com/artic-network/rampart-mpxv
-
 # install rampart
 # This is a fork of rampart with "nodejs" pinned to 20.7.0
 # Using the original rampart environment.yml leads to an npm version issue.
@@ -51,7 +48,6 @@ RUN export NODE_OPTIONS=--openssl-legacy-provider && \
 FROM debian:buster-slim AS runtime-image
 
 COPY --from=compile-image /data/rampart /data/rampart
-COPY --from=compile-image /data/rampart-mpxv /data/rampart-mpxv
 
 # Copy /venv from the previous stage:
 COPY --from=compile-image /venv /venv
@@ -60,6 +56,6 @@ RUN apt-get update && apt-get install -y procps
 
 # set environment variable PYTHONUNBUFFERED to allow unbuffered log output for artifice
 ENV PYTHONUNBUFFERED=1
+ENV PATH=/venv/bin:$PATH
 
 SHELL ["/bin/bash", "-c"]
-ENTRYPOINT source /venv/bin/activate && /bin/bash
