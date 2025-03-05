@@ -14,7 +14,7 @@ RUN apt install build-essential -y --no-install-recommends
 # install rampart
 # This is a fork of rampart with "nodejs" pinned to 20.7.0
 # Using the original rampart environment.yml leads to an npm version issue.
-RUN git clone https://github.com/artic-network/rampart.git
+COPY . ./rampart/
 
 # create rampart environment
 RUN conda env create -f /data/rampart/environment.yml
@@ -31,9 +31,6 @@ RUN conda-pack -n artic-rampart -o /tmp/env.tar && \
 # We've put venv in same path it'll be in final image,
 # so now fix up paths:
 RUN /venv/bin/conda-unpack
-
-#removing git files and example data to save space in final image
-RUN rm -rf /data/rampart/.git && rm -rf /data/rampart/example_data
 
 SHELL ["/bin/bash", "-c"]
 
