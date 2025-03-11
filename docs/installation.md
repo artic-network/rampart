@@ -26,12 +26,6 @@ conda install -y nodejs=12 # any version >10 should be fine
 ### Step 2: Install RAMPART
 
 ```bash
-conda install -y artic-network::rampart
-```
-
-...this will install the latest release. To install a particular version (say, 1.1.0) use:
-
-```bash
 conda install -y artic-network::rampart=1.1.0
 ```
 
@@ -48,11 +42,11 @@ Python, biopython, snakemake and minimap2 are required
 ```bash
 conda install -y "python>=3.6"
 conda install -y anaconda::biopython 
-conda install -y -c conda-forge -c bioconda "snakemake-minimal=5.8.1" # later snakemake versions will not work currently
+conda install -y -c conda-forge -c bioconda "snakemake<5.11" # snakemake 5.11 will not work currently
 conda install -y bioconda::minimap2=2.17
 ```
 
-If you are using MinKNOW to separate samples by barcodes, you don't need Porechop,
+If you are using guppy to demux samples, you don't need Porechop,
 however if you require RAMPART to perform demuxing then you must install the ARTIC fork of Porechop:
 
 ```bash
