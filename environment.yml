@@ -5,10 +5,10 @@ channels:
   - defaults
 dependencies:
   - "python>=3"
-  - "nodejs=20.7.0"
-  - snakemake-minimal=5.8.1
-  - biopython=1.74
-  - minimap2=2.17
+  - nodejs
+  - snakemake-minimal
+  - biopython
+  - minimap2
   - pip:
     - git+https://github.com/artic-network/Porechop.git@v0.3.2pre  
     - binlorry==1.3.0_alpha1
