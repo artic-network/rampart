@@ -10,5 +10,5 @@ dependencies:
   - biopython
   - minimap2
   - pip:
-    - git+https://github.com/artic-network/Porechop.git@v0.3.2
+    - git+https://github.com/artic-network/Porechop.git@v0.3.2pre
     - binlorry==1.3.0_alpha1
