@@ -38,6 +38,8 @@ config.addArgument('--annotationOptions', {nargs: '+', help: "pass through confi
 const runtime = parser.addArgumentGroup({title: 'Runtime commands', description: "Options to specify how RAMPART behaves"});
 runtime.addArgument('--clearAnnotated', {action: "storeTrue", help: "remove any annotation files present when RAMPART starts up (force re-annotation of all FASTQs)"});
 runtime.addArgument('--simulateRealTime', {type: 'int', defaultValue: 0, help: "simulate real-time annotation with given delay between files (default none)"});
+runtime.addArgument('--usePolling', {action: "storeTrue", help: "Use file polling to check for new fastqs (default off)"});
+runtime.addArgument('--pollingThreshold', {type: 'int', defaultValue: 60000, help: "Time threshold to detect unchanged file  (default 60000)"});
 
 /* ----------------- DEVELOPMENT -------------------- */
 const development = parser.addArgumentGroup({title: 'Development commands'});

@@ -47,13 +47,14 @@ const startWatcher = () => {
   let initialScanComplete = false;
   const fastqsAtInitialScan = [];
   const watcher = chokidar.watch(global.config.run.basecalledPath, {
+    usePolling: global.config.run.usePolling,
     ignored: /(^|[/\\])\../,
     persistent: true,
     /* Allow FASTQs to be in nested subdirs 2 deep (e.g. ${basecalldePath}/a/b/*fastq) */
     depth: 2,
     /* We want the `add` event to fire _after_ MinKNOW has written the file */
     awaitWriteFinish: {
-      stabilityThreshold: 4000, // Amount of time in milliseconds for a file size to remain constant before emitting its event.
+      stabilityThreshold: global.config.run.pollingThreshold, // Amount of time in milliseconds for a file size to remain constant before emitting its event.
       pollInterval: 1000        // file size polling interval, in milliseconds.
     }
   });
