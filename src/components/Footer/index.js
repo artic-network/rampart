@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ARTIC Network http://artic.network
+ * Copyright (c) 2019-2025 ARTIC Network http://artic.network
  * https://github.com/artic-network/rampart
  *
  * This file is part of RAMPART. RAMPART is free software: you can redistribute it and/or modify it under the terms of the
@@ -17,30 +17,32 @@ import styled from 'styled-components';
 import { version } from '../../../package.json';
 
 const Container = styled.div`
-    width: 80%;
-    margin: auto;
-    font-size: 18px;
-    text-align: center;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    font-weight: 300;
+  width: 80%;
+  margin: auto;
+  font-size: 18px;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-weight: 300;
 `;
 
 const Footer = () => {
-  return (
-    <Container>
-      {`RAMPART v${version} is built by `}
-      <a href={"https://twitter.com/hamesjadfield"} target="_blank" rel="noopener noreferrer">James Hadfield</a>
-      {", "}
-      <a href={"https://twitter.com/pathogenomenick"} target="_blank" rel="noopener noreferrer">Nick Loman</a>
-      {" and "}
-      <a href={"https://twitter.com/arambaut"} target="_blank" rel="noopener noreferrer">Andrew Rambaut</a>
-      {" as part of the "}
-      <a href={"http://artic.network"} target="_blank" rel="noopener noreferrer">ARTIC Network</a>
-      {" project"}
-      <br />{ "Funded through The Wellcome Trust Collaborators Award 206298_A_17_Z."}
-    </Container>
-  )
+    return (
+        <Container>
+            {`RAMPART v${version} is built by `}
+            James Hadfield
+            {", "}
+            <a href={"https://aineotoole.co.uk"} target="_blank" rel="noopener noreferrer">Áine O'Toole</a>
+            {", "}
+            <a href={"https://pathogenomenick.bsky.social"} target="_blank" rel="noopener noreferrer">Nick Loman</a>
+            {" and "}
+            <a href={"https://arambaut.bsky.com"} target="_blank" rel="noopener noreferrer">Andrew Rambaut</a>
+            {" as part of the "}
+            <a href={"http://artic.network"} target="_blank" rel="noopener noreferrer">ARTIC Network</a>
+            {" project"}
+            <br />{ "Funded through The Wellcome Trust Collaborators Award 206298_A_17_Z."}
+        </Container>
+    )
 }
 
 export default Footer;

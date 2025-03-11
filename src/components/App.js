@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ARTIC Network http://artic.network
+ * Copyright (c) 2019-2025 ARTIC Network http://artic.network
  * https://github.com/artic-network/rampart
  *
  * This file is part of RAMPART. RAMPART is free software: you can redistribute it and/or modify it under the terms of the
