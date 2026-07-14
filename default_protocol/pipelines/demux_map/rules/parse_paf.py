@@ -57,18 +57,27 @@ def parse_reference_file(references):
                 pass
     return ref_info
 
-def parse_read_header(header):
-    #returns a dict of {key:value} pairs containing all 
-    #" key=value" strings present on the read header
 
-    tokens= header.split(' ')
+def parse_read_header(header):
     header_info = {}
-    for i in tokens:
-        try:
-            info = i.split('=')
-            header_info[info[0]]=info[1]
-        except:
-            pass
+
+    for token in header.split():
+        if "=" in token:
+            key, value = token.split("=", 1)
+            header_info[key] = value
+        elif token.count(":") >= 2:
+            key, tag_type, value = token.split(":", 2)
+            header_info[key] = value
+
+    if "start_time" not in header_info:
+        if "st" in header_info:
+            header_info["start_time"] = header_info["st"]
+        elif "DT" in header_info:
+            header_info["start_time"] = header_info["DT"]
+
+    if "barcode" not in header_info and "al" in header_info:
+        header_info["barcode"] = header_info["al"]
+
     return header_info
 
 def get_header_dict(reads):
@@ -79,14 +88,26 @@ def get_header_dict(reads):
     header_dict = {}
     for record in SeqIO.parse(str(reads),"fastq"):
         header = parse_read_header(str(record.description))
-        try:
-            barcode = header["barcode"]
-            start_time = header["start_time"]
-        except:
-            barcode = 'none'
-            start_time = header["start_time"]
+        barcode = (
+                header.get("barcode")
+                or header.get("SM")
+                or header.get("al")
+                or "none"
+        )
 
-        header_dict[record.id]=(barcode, start_time)
+        start_time = (
+                header.get("start_time")
+                or header.get("st")
+                or header.get("DT")
+        )
+
+        if start_time is None:
+            raise KeyError(
+                "No start_time/st/DT found in FASTQ header: "
+                + str(record.description)
+            )
+
+        header_dict[record.id] = (barcode, start_time)
         
     return header_dict
 
